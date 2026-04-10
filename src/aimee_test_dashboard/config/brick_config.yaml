@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+#
+# SPDX-License-Identifier: MPL-2.0
+
+id: arduino:test_dashboard
+name: Test Dashboard
+description: "Web-based testing dashboard for AIMEE Robot with simulation mode support. Runs locally on UNO Q."
+category: general
+
+variables:
+  - name: HOST
+    description: Host to bind Flask server (0.0.0.0 for all interfaces)
+    default: "0.0.0.0"
+    type: string
+    
+  - name: PORT
+    description: Port for dashboard web server
+    default: "5000"
+    type: integer
+    
+  - name: DEBUG
+    description: Enable Flask debug mode
+    default: "false"
+    type: boolean
+
+ros2:
+  publishers:
+    - topic: /wake_word/control
+      type: std_msgs/msg/String
+      description: "Control wake word detection"
+      
+    - topic: /voice/control
+      type: std_msgs/msg/String
+      description: "Control voice manager"
+      
+    - topic: /tts/speak
+      type: std_msgs/msg/String
+      description: "Send text to TTS"
+      
+    - topic: /tts/control
+      type: std_msgs/msg/String
+      description: "Control TTS"
+      
+  subscribers:
+    - topic: /wake_word/detected
+      type: aimee_msgs/msg/WakeWordDetection
+      description: "Monitor wake word detection"
+      
+    - topic: /voice/transcription
+      type: aimee_msgs/msg/Transcription
+      description: "Monitor transcriptions"
+      
+    - topic: /intent/classified
+      type: aimee_msgs/msg/Intent
+      description: "Monitor intent classification"
+      
+    - topic: /tts/status
+      type: std_msgs/msg/String
+      description: "Monitor TTS status"
+      
+    - topic: /skill/status
+      type: std_msgs/msg/String
+      description: "Monitor skill execution"
+      
+    - topic: /robot/state
+      type: aimee_msgs/msg/RobotState
+      description: "Monitor robot state"
+      
+  parameters:
+    - name: host
+      type: string
+      default: "0.0.0.0"
+      description: "Server bind host"
+      
+    - name: port
+      type: int
+      default: 5000
+      description: "Server port"
+      
+    - name: debug
+      type: bool
+      default: false
+      description: "Debug mode"
+
+# Dashboard configuration
+dashboard:
+  title: "AIMEE Robot - Test Dashboard"
+  refresh_rate: 1000  # ms
+  
+  # Default component states
+  defaults:
+    wake_word:
+      enabled: true
+      simulation: false
+    stt:
+      enabled: true
+      simulation: false
+    tts:
+      enabled: true
+      simulation: false
+    llm:
+      enabled: true
+      simulation: false
+    intent:
+      enabled: true
+      simulation: false
+    skills:
+      enabled: true
+      simulation: true  # Safety: default to simulation
+    microphone:
+      enabled: true
+      simulation: false
+    speaker:
+      enabled: true
+      simulation: false
+    camera:
+      enabled: false
+      simulation: true
+
+# Simulation responses
+simulation:
+  llm_responses:
+    "What is your name?": "I am AIMEE, your robot assistant."
+    "Hello": "Hello! How can I help you today?"
+    "move forward": "I will move forward."
+    "wave": "Waving at you!"
+    
+  wake_word_confidence: 0.95
+  stt_confidence: 0.92
+  intent_confidence: 0.88
+
+# URLs
+urls:
+  dashboard: "http://localhost:5000"
+  api_base: "/api"
