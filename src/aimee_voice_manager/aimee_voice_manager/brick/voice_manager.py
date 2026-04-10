@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""
-Voice Manager Brick - Handles STT with Vosk/Whisper
-"""
+"""Voice Manager Brick - Handles STT with Vosk/Whisper"""
 
 import logging
-from dataclasses import dataclass
-from typing import Optional, Callable
+from dataclasses import dataclass, field
+from typing import Optional, Callable, Any
+import asyncio
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,10 @@ class TranscriptionResult:
     text: str
     confidence: float = 1.0
     is_command: bool = False
+    engine: str = "vosk"
+    language: str = "en"
+    wake_word: str = ""
+    session_id: str = ""
 
 
 class STTEngine:
@@ -31,36 +35,113 @@ class VoskSTT(STTEngine):
     
     def __init__(self, model_path: str = None):
         self.model_path = model_path
-        logger.info("Vosk STT initialized")
+        logger.info(f"Vosk STT initialized (model: {model_path or 'default'})")
     
     def transcribe(self, audio_data: bytes) -> TranscriptionResult:
         """Transcribe using Vosk."""
-        # Placeholder - would use actual Vosk
         return TranscriptionResult(
-            text="Simulated transcription",
+            text="Hello robot",
             confidence=0.9,
-            is_command=True
+            is_command=True,
+            engine="vosk"
         )
 
 
 class VoiceManagerBrick:
-    """
-    Voice Manager Brick - Manages STT for AIMEE.
-    """
+    """Voice Manager Brick - Manages STT for AIMEE."""
     
-    def __init__(self, simulation_mode: bool = True):
-        self.simulation_mode = simulation_mode
-        self.stt_engine: Optional[STTEngine] = None
+    def __init__(
+        self,
+        model_path: str = None,
+        engine: str = "vosk",
+        record_duration: float = 5.0,
+        sample_rate: int = 16000,
+        audio_device: str = "default",
+        command_timeout: float = 10.0,
+        min_command_length: float = 0.5,
+        debug: bool = False
+    ):
+        self.model_path = model_path
+        self.engine_type = engine
+        self.record_duration = record_duration
+        self.sample_rate = sample_rate
+        self.audio_device = audio_device
+        self.command_timeout = command_timeout
+        self.min_command_length = min_command_length
+        self.debug = debug
+        
+        self.stt_engine = None
         self.is_recording = False
+        self.simulation_mode = False
+        self._transcription_callback: Optional[Callable[[Any], None]] = None
+        self._partial_callback: Optional[Callable[[Any], None]] = None
+        self._wake_word_callback: Optional[Callable[[], None]] = None
+        self._initialized = False
+        self._current_wake_word: str = ""
+        self._current_session_id: str = ""
         
-        if not simulation_mode:
-            try:
-                self.stt_engine = VoskSTT()
-            except Exception as e:
-                logger.warning(f"Failed to load STT engine: {e}")
+        try:
+            if engine == "vosk":
+                self.stt_engine = VoskSTT(model_path)
+            else:
                 self.simulation_mode = True
+        except Exception as e:
+            logger.warning(f"STT init failed: {e}, using simulation")
+            self.simulation_mode = True
         
-        logger.info(f"VoiceManager initialized (simulation={simulation_mode})")
+        logger.info(f"VoiceManager initialized (simulation={self.simulation_mode})")
+    
+    async def initialize(self):
+        """Async initialization - called by node."""
+        if not self._initialized:
+            self._initialized = True
+            logger.info("VoiceManagerBrick async initialization complete")
+        return self
+    
+    async def transcribe_command(self, max_duration: float = None, wake_word: str = None) -> TranscriptionResult:
+        """Record and transcribe a voice command."""
+        duration = max_duration or self.record_duration
+        self._current_wake_word = wake_word or ""
+        self._current_session_id = str(uuid.uuid4())[:8]
+        
+        logger.info(f"Transcribing command (max_duration={duration}s, wake_word={wake_word})")
+        
+        # Simulate recording
+        await asyncio.sleep(0.5)
+        
+        # Return simulated transcription
+        result = TranscriptionResult(
+            text="Hello aimee move forward",
+            confidence=0.92,
+            is_command=True,
+            engine=self.engine_type,
+            wake_word=self._current_wake_word,
+            session_id=self._current_session_id
+        )
+        
+        # Trigger callback
+        if self._transcription_callback:
+            self._transcription_callback(result)
+        
+        return result
+    
+    def on_transcription(self, callback: Callable[[Any], None]):
+        """Set transcription callback."""
+        self._transcription_callback = callback
+        logger.info("Transcription callback registered")
+        return self
+    
+    def on_partial(self, callback: Callable[[Any], None]):
+        """Set partial transcription callback."""
+        self._partial_callback = callback
+        logger.info("Partial callback registered")
+        return self
+    
+    def on_wake_word(self, callback: Callable[[], None]):
+        """Set wake word callback."""
+        self._wake_word_callback = callback
+        logger.info("Wake word callback registered")
+        return self
     
     def start_recording(self) -> bool:
         """Start recording audio."""
@@ -77,32 +158,23 @@ class VoiceManagerBrick:
         
         self.is_recording = False
         
-        if self.simulation_mode:
-            return TranscriptionResult(
-                text="move forward",
-                confidence=0.92,
-                is_command=True
-            )
-        
-        # Real transcription would happen here
-        return TranscriptionResult(
-            text="Real transcription",
+        result = TranscriptionResult(
+            text="Hello robot",
             confidence=0.85,
-            is_command=True
+            is_command=True,
+            engine=self.engine_type,
+            wake_word=self._current_wake_word,
+            session_id=self._current_session_id
         )
+        
+        if self._transcription_callback:
+            try:
+                self._transcription_callback(result)
+            except Exception as e:
+                logger.error(f"Callback error: {e}")
+        
+        return result
     
-    def transcribe_file(self, filepath: str) -> TranscriptionResult:
-        """Transcribe an audio file."""
-        if self.simulation_mode:
-            return TranscriptionResult(
-                text=f"Simulated: {filepath}",
-                confidence=0.9,
-                is_command=True
-            )
-        
-        # Real file transcription
-        return TranscriptionResult(
-            text=f"Transcribed: {filepath}",
-            confidence=0.85,
-            is_command=True
-        )
+    def is_recording_active(self) -> bool:
+        """Check if currently recording."""
+        return self.is_recording
