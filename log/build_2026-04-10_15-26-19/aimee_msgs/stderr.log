@@ -1,0 +1,34 @@
+In file included from [01m[K/workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.h:19[m[K,
+                 from [01m[K/workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c:4[m[K:
+[01m[K/workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__struct.h:67:10:[m[K [01;31m[Kfatal error: [m[Kaimee_msgs/msg/detail/camera_action__struct.h: No such file or directory
+   67 | #include [01;31m[K"aimee_msgs/msg/detail/camera_action__struct.h"[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+gmake[2]: *** [CMakeFiles/aimee_msgs__rosidl_generator_c.dir/build.make:452: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:232: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/all] Error 2
+gmake[1]: *** Waiting for unfinished jobs....
+In file included from [01m[K/workspace/build/aimee_msgs/rosidl_typesupport_cpp/aimee_msgs/action/execute_skill__type_support.cpp:7[m[K:
+[01m[K/workspace/build/aimee_msgs/rosidl_generator_cpp/aimee_msgs/action/detail/execute_skill__struct.hpp:200:10:[m[K [01;31m[Kfatal error: [m[Kaimee_msgs/msg/detail/camera_action__struct.hpp: No such file or directory
+  200 | #include [01;31m[K"aimee_msgs/msg/detail/camera_action__struct.hpp"[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+gmake[2]: *** [CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/build.make:337: CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/action/execute_skill__type_support.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:414: CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/all] Error 2
+In file included from [01m[K/workspace/build/aimee_msgs/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/execute_skill__type_support.cpp:12[m[K:
+[01m[K/workspace/build/aimee_msgs/rosidl_generator_cpp/aimee_msgs/action/detail/execute_skill__struct.hpp:200:10:[m[K [01;31m[Kfatal error: [m[Kaimee_msgs/msg/detail/camera_action__struct.hpp: No such file or directory
+  200 | #include [01;31m[K"aimee_msgs/msg/detail/camera_action__struct.hpp"[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+gmake[2]: *** [CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/build.make:366: CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/execute_skill__type_support.cpp.o] Error 1
+gmake[2]: *** Waiting for unfinished jobs....
+In file included from [01m[K/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_fastrtps_cpp.hpp:11[m[K,
+                 from [01m[K/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/execute_skill__type_support.cpp:4[m[K:
+[01m[K/workspace/build/aimee_msgs/rosidl_generator_cpp/aimee_msgs/action/detail/execute_skill__struct.hpp:200:10:[m[K [01;31m[Kfatal error: [m[Kaimee_msgs/msg/detail/camera_action__struct.hpp: No such file or directory
+  200 | #include [01;31m[K"aimee_msgs/msg/detail/camera_action__struct.hpp"[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+gmake[2]: *** [CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/build.make:366: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/execute_skill__type_support.cpp.o] Error 1
+gmake[2]: *** Waiting for unfinished jobs....
+gmake[1]: *** [CMakeFiles/Makefile2:388: CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/all] Error 2
+gmake[1]: *** [CMakeFiles/Makefile2:362: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/all] Error 2
+gmake: *** [Makefile:146: all] Error 2

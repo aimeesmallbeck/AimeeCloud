@@ -1,0 +1,36 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/action/execute_skill__type_support.cpp.o"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/action/execute_skill__type_support.cpp.o.d"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/action/llm_generate__type_support.cpp.o"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/action/llm_generate__type_support.cpp.o.d"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/face_detection__type_support.cpp.o"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/face_detection__type_support.cpp.o.d"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/intent__type_support.cpp.o"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/intent__type_support.cpp.o.d"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/motor_action__type_support.cpp.o"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/motor_action__type_support.cpp.o.d"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/robot_state__type_support.cpp.o"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/robot_state__type_support.cpp.o.d"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/tracking_command__type_support.cpp.o"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/tracking_command__type_support.cpp.o.d"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/transcription__type_support.cpp.o"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/transcription__type_support.cpp.o.d"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/wake_word_detection__type_support.cpp.o"
+  "CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/wake_word_detection__type_support.cpp.o.d"
+  "libaimee_msgs__rosidl_typesupport_c.pdb"
+  "libaimee_msgs__rosidl_typesupport_c.so"
+  "rosidl_typesupport_c/aimee_msgs/action/execute_skill__type_support.cpp"
+  "rosidl_typesupport_c/aimee_msgs/action/llm_generate__type_support.cpp"
+  "rosidl_typesupport_c/aimee_msgs/msg/face_detection__type_support.cpp"
+  "rosidl_typesupport_c/aimee_msgs/msg/intent__type_support.cpp"
+  "rosidl_typesupport_c/aimee_msgs/msg/motor_action__type_support.cpp"
+  "rosidl_typesupport_c/aimee_msgs/msg/robot_state__type_support.cpp"
+  "rosidl_typesupport_c/aimee_msgs/msg/tracking_command__type_support.cpp"
+  "rosidl_typesupport_c/aimee_msgs/msg/transcription__type_support.cpp"
+  "rosidl_typesupport_c/aimee_msgs/msg/wake_word_detection__type_support.cpp"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

@@ -1,0 +1,4 @@
+source;share/aimee_msgs/local_setup.bash
+source;share/aimee_msgs/local_setup.dsv
+source;share/aimee_msgs/local_setup.sh
+source;share/aimee_msgs/local_setup.zsh

@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "aimee_msgs__py",
+		"source" : "/workspace/build/aimee_msgs/aimee_msgs__py"
+	}
+}

@@ -314,3 +314,174 @@ endfunction()
 message(STATUS "Execute custom install script")
 
 # begin of custom install code
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/rosidl_interfaces/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/rosidl_interfaces")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/rosidl_interfaces/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/rosidl_interfaces")
+
+# install(DIRECTORY "/workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN" "*.h")
+ament_cmake_symlink_install_directory("/workspace/src/aimee_msgs" DIRECTORY "/workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN" "*.h")
+
+# install(FILES "/opt/ros/humble/lib/python3.10/site-packages/ament_package/template/environment_hook/library_path.sh" "DESTINATION" "share/aimee_msgs/environment")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/opt/ros/humble/lib/python3.10/site-packages/ament_package/template/environment_hook/library_path.sh" "DESTINATION" "share/aimee_msgs/environment")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/library_path.dsv" "DESTINATION" "share/aimee_msgs/environment")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/library_path.dsv" "DESTINATION" "share/aimee_msgs/environment")
+
+# install(DIRECTORY "/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN_EXCLUDE" "*.cpp")
+ament_cmake_symlink_install_directory("/workspace/src/aimee_msgs" DIRECTORY "/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN_EXCLUDE" "*.cpp")
+
+# install(DIRECTORY "/workspace/build/aimee_msgs/rosidl_typesupport_introspection_c/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN" "*.h")
+ament_cmake_symlink_install_directory("/workspace/src/aimee_msgs" DIRECTORY "/workspace/build/aimee_msgs/rosidl_typesupport_introspection_c/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN" "*.h")
+
+# install(DIRECTORY "/workspace/build/aimee_msgs/rosidl_generator_cpp/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN" "*.hpp")
+ament_cmake_symlink_install_directory("/workspace/src/aimee_msgs" DIRECTORY "/workspace/build/aimee_msgs/rosidl_generator_cpp/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN" "*.hpp")
+
+# install(DIRECTORY "/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_cpp/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN_EXCLUDE" "*.cpp")
+ament_cmake_symlink_install_directory("/workspace/src/aimee_msgs" DIRECTORY "/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_cpp/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN_EXCLUDE" "*.cpp")
+
+# install(DIRECTORY "/workspace/build/aimee_msgs/rosidl_typesupport_introspection_cpp/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN" "*.hpp")
+ament_cmake_symlink_install_directory("/workspace/src/aimee_msgs" DIRECTORY "/workspace/build/aimee_msgs/rosidl_typesupport_introspection_cpp/aimee_msgs/" "DESTINATION" "include/aimee_msgs/aimee_msgs" "PATTERN" "*.hpp")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/pythonpath.sh" "DESTINATION" "share/aimee_msgs/environment")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/pythonpath.sh" "DESTINATION" "share/aimee_msgs/environment")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/pythonpath.dsv" "DESTINATION" "share/aimee_msgs/environment")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/pythonpath.dsv" "DESTINATION" "share/aimee_msgs/environment")
+
+# install(DIRECTORY "/workspace/build/aimee_msgs/ament_cmake_python/aimee_msgs/aimee_msgs.egg-info/" "DESTINATION" "local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info")
+ament_cmake_symlink_install_directory("/workspace/src/aimee_msgs" DIRECTORY "/workspace/build/aimee_msgs/ament_cmake_python/aimee_msgs/aimee_msgs.egg-info/" "DESTINATION" "local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info")
+
+# install(DIRECTORY "/workspace/build/aimee_msgs/rosidl_generator_py/aimee_msgs/" "DESTINATION" "local/lib/python3.10/dist-packages/aimee_msgs" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
+ament_cmake_symlink_install_directory("/workspace/src/aimee_msgs" DIRECTORY "/workspace/build/aimee_msgs/rosidl_generator_py/aimee_msgs/" "DESTINATION" "local/lib/python3.10/dist-packages/aimee_msgs" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
+
+# install("TARGETS" "aimee_msgs__rosidl_typesupport_fastrtps_c__pyext" "DESTINATION" "local/lib/python3.10/dist-packages/aimee_msgs")
+include("/workspace/build/aimee_msgs/ament_cmake_symlink_install_targets_0_${CMAKE_INSTALL_CONFIG_NAME}.cmake")
+
+# install("TARGETS" "aimee_msgs__rosidl_typesupport_introspection_c__pyext" "DESTINATION" "local/lib/python3.10/dist-packages/aimee_msgs")
+include("/workspace/build/aimee_msgs/ament_cmake_symlink_install_targets_1_${CMAKE_INSTALL_CONFIG_NAME}.cmake")
+
+# install("TARGETS" "aimee_msgs__rosidl_typesupport_c__pyext" "DESTINATION" "local/lib/python3.10/dist-packages/aimee_msgs")
+include("/workspace/build/aimee_msgs/ament_cmake_symlink_install_targets_2_${CMAKE_INSTALL_CONFIG_NAME}.cmake")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/rust_packages/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/rust_packages")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/rust_packages/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/rust_packages")
+
+# install(DIRECTORY "/workspace/build/aimee_msgs/rosidl_generator_rs/aimee_msgs/rust" "DESTINATION" "share/aimee_msgs")
+ament_cmake_symlink_install_directory("/workspace/src/aimee_msgs" DIRECTORY "/workspace/build/aimee_msgs/rosidl_generator_rs/aimee_msgs/rust" "DESTINATION" "share/aimee_msgs")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/Intent.idl" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/Intent.idl" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/Transcription.idl" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/Transcription.idl" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/RobotState.idl" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/RobotState.idl" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/FaceDetection.idl" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/FaceDetection.idl" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/TrackingCommand.idl" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/TrackingCommand.idl" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/WakeWordDetection.idl" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/WakeWordDetection.idl" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/MotorAction.idl" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/MotorAction.idl" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/action/LLMGenerate.idl" "DESTINATION" "share/aimee_msgs/action")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/action/LLMGenerate.idl" "DESTINATION" "share/aimee_msgs/action")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/action/ExecuteSkill.idl" "DESTINATION" "share/aimee_msgs/action")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/action/ExecuteSkill.idl" "DESTINATION" "share/aimee_msgs/action")
+
+# install(FILES "/workspace/src/aimee_msgs/msg/Intent.msg" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/Intent.msg" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/src/aimee_msgs/msg/Transcription.msg" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/Transcription.msg" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/src/aimee_msgs/msg/RobotState.msg" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/RobotState.msg" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/src/aimee_msgs/msg/FaceDetection.msg" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/FaceDetection.msg" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/src/aimee_msgs/msg/TrackingCommand.msg" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/TrackingCommand.msg" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/src/aimee_msgs/msg/WakeWordDetection.msg" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/WakeWordDetection.msg" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/src/aimee_msgs/msg/MotorAction.msg" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/MotorAction.msg" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/src/aimee_msgs/action/LLMGenerate.action" "DESTINATION" "share/aimee_msgs/action")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/action/LLMGenerate.action" "DESTINATION" "share/aimee_msgs/action")
+
+# install(FILES "/workspace/src/aimee_msgs/action/ExecuteSkill.action" "DESTINATION" "share/aimee_msgs/action")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/action/ExecuteSkill.action" "DESTINATION" "share/aimee_msgs/action")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/package_run_dependencies")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/package_run_dependencies")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/parent_prefix_path/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/parent_prefix_path")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/parent_prefix_path/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/parent_prefix_path")
+
+# install(FILES "/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/environment/ament_prefix_path.sh" "DESTINATION" "share/aimee_msgs/environment")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/environment/ament_prefix_path.sh" "DESTINATION" "share/aimee_msgs/environment")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/ament_prefix_path.dsv" "DESTINATION" "share/aimee_msgs/environment")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/ament_prefix_path.dsv" "DESTINATION" "share/aimee_msgs/environment")
+
+# install(FILES "/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/environment/path.sh" "DESTINATION" "share/aimee_msgs/environment")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/environment/path.sh" "DESTINATION" "share/aimee_msgs/environment")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/path.dsv" "DESTINATION" "share/aimee_msgs/environment")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/path.dsv" "DESTINATION" "share/aimee_msgs/environment")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/local_setup.bash" "DESTINATION" "share/aimee_msgs")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/local_setup.bash" "DESTINATION" "share/aimee_msgs")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/local_setup.sh" "DESTINATION" "share/aimee_msgs")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/local_setup.sh" "DESTINATION" "share/aimee_msgs")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/local_setup.zsh" "DESTINATION" "share/aimee_msgs")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/local_setup.zsh" "DESTINATION" "share/aimee_msgs")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/local_setup.dsv" "DESTINATION" "share/aimee_msgs")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/local_setup.dsv" "DESTINATION" "share/aimee_msgs")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/package.dsv" "DESTINATION" "share/aimee_msgs")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_environment_hooks/package.dsv" "DESTINATION" "share/aimee_msgs")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/packages/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/packages")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_index/share/ament_index/resource_index/packages/aimee_msgs" "DESTINATION" "share/ament_index/resource_index/packages")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_cmake/rosidl_cmake-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_cmake/rosidl_cmake-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_export_dependencies/ament_cmake_export_dependencies-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_export_dependencies/ament_cmake_export_dependencies-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_export_include_directories/ament_cmake_export_include_directories-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_export_include_directories/ament_cmake_export_include_directories-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_export_libraries/ament_cmake_export_libraries-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_export_libraries/ament_cmake_export_libraries-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_export_targets/ament_cmake_export_targets-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_export_targets/ament_cmake_export_targets-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_cmake/rosidl_cmake_export_typesupport_targets-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_cmake/rosidl_cmake_export_typesupport_targets-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+
+# install(FILES "/workspace/build/aimee_msgs/ament_cmake_core/aimee_msgsConfig.cmake" "/workspace/build/aimee_msgs/ament_cmake_core/aimee_msgsConfig-version.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/ament_cmake_core/aimee_msgsConfig.cmake" "/workspace/build/aimee_msgs/ament_cmake_core/aimee_msgsConfig-version.cmake" "DESTINATION" "share/aimee_msgs/cmake")
+
+# install(FILES "/workspace/src/aimee_msgs/package.xml" "DESTINATION" "share/aimee_msgs")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/package.xml" "DESTINATION" "share/aimee_msgs")

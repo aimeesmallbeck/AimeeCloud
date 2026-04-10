@@ -24,6 +24,8 @@ set(msg_files
   "msg/TrackingCommand.msg"
   "msg/WakeWordDetection.msg"
   "msg/MotorAction.msg"
+  "msg/CameraAction.msg"
+  "msg/LEDAction.msg"
 )
 
 # Service files (add as needed)

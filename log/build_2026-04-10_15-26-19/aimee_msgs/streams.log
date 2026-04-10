@@ -1,0 +1,130 @@
+[0.092s] Invoking command in '/workspace/build/aimee_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /workspace/src/aimee_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs
+[0.455s] -- The C compiler identification is GNU 11.4.0
+[0.816s] -- The CXX compiler identification is GNU 11.4.0
+[0.851s] -- Detecting C compiler ABI info
+[1.272s] -- Detecting C compiler ABI info - done
+[1.323s] -- Check for working C compiler: /usr/bin/cc - skipped
+[1.324s] -- Detecting C compile features
+[1.326s] -- Detecting C compile features - done
+[1.345s] -- Detecting CXX compiler ABI info
+[1.831s] -- Detecting CXX compiler ABI info - done
+[1.876s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[1.877s] -- Detecting CXX compile features
+[1.881s] -- Detecting CXX compile features - done
+[1.891s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[2.815s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[3.387s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[3.491s] -- Found rosidl_default_generators: 1.2.1 (/opt/ros/humble/share/rosidl_default_generators/cmake)
+[3.502s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[3.532s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[3.739s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[3.960s] -- Found builtin_interfaces: 1.2.2 (/opt/ros/humble/share/builtin_interfaces/cmake)
+[4.043s] -- Found std_msgs: 4.9.1 (/opt/ros/humble/share/std_msgs/cmake)
+[4.130s] -- Found geometry_msgs: 4.9.1 (/opt/ros/humble/share/geometry_msgs/cmake)
+[4.219s] -- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)
+[4.342s] -- Found nav_msgs: 4.9.1 (/opt/ros/humble/share/nav_msgs/cmake)
+[4.460s] -- Found action_msgs: 1.2.2 (/opt/ros/humble/share/action_msgs/cmake)
+[7.438s] -- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)
+[9.289s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[11.733s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[11.866s] -- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.12", minimum required is "3.6") 
+[11.891s] -- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)
+[12.051s] -- Found PythonLibs: /usr/lib/aarch64-linux-gnu/libpython3.10.so (found suitable version "3.10.12", minimum required is "3.5") 
+[12.053s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[12.054s] -- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10
+[12.054s] -- Using PYTHON_LIBRARIES: /usr/lib/aarch64-linux-gnu/libpython3.10.so
+[12.159s] -- Found PythonExtra: .so  
+[13.433s] -- Configuring done
+[13.787s] -- Generating done
+[13.884s] -- Build files have been written to: /workspace/build/aimee_msgs
+[13.965s] Invoked command in '/workspace/build/aimee_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /workspace/src/aimee_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs
+[13.982s] Invoking command in '/workspace/build/aimee_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /workspace/build/aimee_msgs -- -j4 -l4
+[14.191s] [  1%] [34m[1mGenerating C code for ROS interfaces[0m
+[14.311s] [  2%] [34m[1mGenerating C++ code for ROS interfaces[0m
+[14.340s] [  3%] [34m[1mGenerating Rust code for ROS interfaces[0m
+[14.423s] [  3%] Built target ament_cmake_python_symlink_aimee_msgs
+[16.345s] running egg_info
+[16.353s] creating aimee_msgs.egg-info
+[16.356s] writing aimee_msgs.egg-info/PKG-INFO
+[16.359s] writing dependency_links to aimee_msgs.egg-info/dependency_links.txt
+[16.360s] writing top-level names to aimee_msgs.egg-info/top_level.txt
+[16.363s] writing manifest file 'aimee_msgs.egg-info/SOURCES.txt'
+[16.371s] reading manifest file 'aimee_msgs.egg-info/SOURCES.txt'
+[16.375s] writing manifest file 'aimee_msgs.egg-info/SOURCES.txt'
+[16.645s] [  3%] Built target ament_cmake_python_build_aimee_msgs_egg
+[26.388s] [  3%] Built target aimee_msgs__rs
+[31.247s] [  3%] Built target aimee_msgs__cpp
+[31.308s] [  4%] [34m[1mGenerating C++ type support for eProsima Fast-RTPS[0m
+[31.375s] [  5%] [34m[1mGenerating C++ introspection for ROS interfaces[0m
+[31.501s] [  6%] [34m[1mGenerating C++ type support dispatch for ROS interfaces[0m
+[32.297s] [  7%] [32mBuilding C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/intent__functions.c.o[0m
+[32.738s] [  8%] [32mBuilding C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/transcription__functions.c.o[0m
+[33.064s] [  9%] [32mBuilding C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/robot_state__functions.c.o[0m
+[33.453s] [ 10%] [32mBuilding C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/face_detection__functions.c.o[0m
+[33.794s] [ 11%] [32mBuilding C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/tracking_command__functions.c.o[0m
+[34.122s] [ 12%] [32mBuilding C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/wake_word_detection__functions.c.o[0m
+[34.435s] [ 13%] [32mBuilding C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c.o[0m
+[34.750s] [ 14%] [32mBuilding C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o[0m
+[35.706s] [ 15%] [32mBuilding C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o[0m
+[35.818s] In file included from [01m[K/workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.h:19[m[K,
+[35.819s]                  from [01m[K/workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c:4[m[K:
+[35.820s] [01m[K/workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__struct.h:67:10:[m[K [01;31m[Kfatal error: [m[Kaimee_msgs/msg/detail/camera_action__struct.h: No such file or directory
+[35.820s]    67 | #include [01;31m[K"aimee_msgs/msg/detail/camera_action__struct.h"[m[K
+[35.821s]       |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[35.822s] compilation terminated.
+[35.827s] gmake[2]: *** [CMakeFiles/aimee_msgs__rosidl_generator_c.dir/build.make:452: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o] Error 1
+[35.828s] gmake[1]: *** [CMakeFiles/Makefile2:232: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/all] Error 2
+[35.829s] gmake[1]: *** Waiting for unfinished jobs....
+[44.087s] [ 16%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/intent__type_support.cpp.o[0m
+[44.108s] [ 17%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/transcription__type_support.cpp.o[0m
+[46.277s] [ 18%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/intent__type_support.cpp.o[0m
+[46.373s] [ 19%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/robot_state__type_support.cpp.o[0m
+[46.461s] [ 20%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/face_detection__type_support.cpp.o[0m
+[48.147s] [ 21%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/intent__type_support.cpp.o[0m
+[48.650s] [ 22%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/tracking_command__type_support.cpp.o[0m
+[48.815s] [ 23%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/wake_word_detection__type_support.cpp.o[0m
+[49.640s] [ 25%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/transcription__type_support.cpp.o[0m
+[50.725s] [ 26%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/robot_state__type_support.cpp.o[0m
+[51.016s] [ 27%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/motor_action__type_support.cpp.o[0m
+[51.732s] [ 28%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/transcription__type_support.cpp.o[0m
+[52.816s] [ 29%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/face_detection__type_support.cpp.o[0m
+[53.241s] [ 30%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/action/llm_generate__type_support.cpp.o[0m
+[54.467s] [ 31%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/tracking_command__type_support.cpp.o[0m
+[55.135s] [ 32%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/robot_state__type_support.cpp.o[0m
+[56.384s] [ 33%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/face_detection__type_support.cpp.o[0m
+[57.477s] [ 34%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/action/execute_skill__type_support.cpp.o[0m
+[57.652s] [ 35%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/wake_word_detection__type_support.cpp.o[0m
+[57.823s] In file included from [01m[K/workspace/build/aimee_msgs/rosidl_typesupport_cpp/aimee_msgs/action/execute_skill__type_support.cpp:7[m[K:
+[57.824s] [01m[K/workspace/build/aimee_msgs/rosidl_generator_cpp/aimee_msgs/action/detail/execute_skill__struct.hpp:200:10:[m[K [01;31m[Kfatal error: [m[Kaimee_msgs/msg/detail/camera_action__struct.hpp: No such file or directory
+[57.825s]   200 | #include [01;31m[K"aimee_msgs/msg/detail/camera_action__struct.hpp"[m[K
+[57.826s]       |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[57.831s] compilation terminated.
+[57.846s] gmake[2]: *** [CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/build.make:337: CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/action/execute_skill__type_support.cpp.o] Error 1
+[57.850s] gmake[1]: *** [CMakeFiles/Makefile2:414: CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/all] Error 2
+[57.885s] [ 36%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/tracking_command__type_support.cpp.o[0m
+[59.112s] [ 37%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/wake_word_detection__type_support.cpp.o[0m
+[60.400s] [ 38%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/motor_action__type_support.cpp.o[0m
+[60.898s] [ 39%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/motor_action__type_support.cpp.o[0m
+[61.384s] [ 40%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/llm_generate__type_support.cpp.o[0m
+[62.450s] [ 41%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/execute_skill__type_support.cpp.o[0m
+[62.864s] In file included from [01m[K/workspace/build/aimee_msgs/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/execute_skill__type_support.cpp:12[m[K:
+[62.865s] [01m[K/workspace/build/aimee_msgs/rosidl_generator_cpp/aimee_msgs/action/detail/execute_skill__struct.hpp:200:10:[m[K [01;31m[Kfatal error: [m[Kaimee_msgs/msg/detail/camera_action__struct.hpp: No such file or directory
+[62.866s]   200 | #include [01;31m[K"aimee_msgs/msg/detail/camera_action__struct.hpp"[m[K
+[62.871s]       |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[62.872s] compilation terminated.
+[62.880s] gmake[2]: *** [CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/build.make:366: CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/execute_skill__type_support.cpp.o] Error 1
+[62.881s] gmake[2]: *** Waiting for unfinished jobs....
+[62.937s] [ 42%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/llm_generate__type_support.cpp.o[0m
+[63.965s] [ 43%] [32mBuilding CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/execute_skill__type_support.cpp.o[0m
+[64.428s] In file included from [01m[K/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_fastrtps_cpp.hpp:11[m[K,
+[64.429s]                  from [01m[K/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/execute_skill__type_support.cpp:4[m[K:
+[64.434s] [01m[K/workspace/build/aimee_msgs/rosidl_generator_cpp/aimee_msgs/action/detail/execute_skill__struct.hpp:200:10:[m[K [01;31m[Kfatal error: [m[Kaimee_msgs/msg/detail/camera_action__struct.hpp: No such file or directory
+[64.436s]   200 | #include [01;31m[K"aimee_msgs/msg/detail/camera_action__struct.hpp"[m[K
+[64.437s]       |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[64.438s] compilation terminated.
+[64.443s] gmake[2]: *** [CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/build.make:366: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/execute_skill__type_support.cpp.o] Error 1
+[64.444s] gmake[2]: *** Waiting for unfinished jobs....
+[66.282s] gmake[1]: *** [CMakeFiles/Makefile2:388: CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/all] Error 2
+[67.205s] gmake[1]: *** [CMakeFiles/Makefile2:362: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/all] Error 2
+[67.206s] gmake: *** [Makefile:146: all] Error 2
+[67.230s] Invoked command in '/workspace/build/aimee_msgs' returned '2': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /workspace/build/aimee_msgs -- -j4 -l4
