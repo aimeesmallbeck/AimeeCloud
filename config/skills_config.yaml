@@ -1,0 +1,261 @@
+# Aimee Robot Skills Configuration
+# Defines intent routing and skill parameters
+
+# =============================================================================
+# Intent Routing Configuration
+# =============================================================================
+intent_routing:
+  # Robot Control Skills (Local, Immediate)
+  robot_control:
+    enabled: true
+    priority: 1  # Highest priority
+    target: "skill_robot_control"
+    local_only: true  # Never route to cloud
+    
+    intents:
+      # Movement commands
+      - name: "move_forward"
+        patterns: ["go forward", "move forward", "forward", "go ahead"]
+        confidence_threshold: 0.8
+        
+      - name: "move_backward"
+        patterns: ["go back", "move backward", "backward", "reverse"]
+        confidence_threshold: 0.8
+        
+      - name: "turn_left"
+        patterns: ["turn left", "go left", "spin left", "rotate left"]
+        confidence_threshold: 0.8
+        
+      - name: "turn_right"
+        patterns: ["turn right", "go right", "spin right", "rotate right"]
+        confidence_threshold: 0.8
+        
+      - name: "stop"
+        patterns: ["stop", "halt", "freeze", "wait"]
+        confidence_threshold: 0.9
+        
+      # Arm commands (Ron only)
+      - name: "arm_home"
+        patterns: ["arm home", "reset arm", "home position"]
+        confidence_threshold: 0.8
+        requires_robot: ["ron"]
+        
+      - name: "arm_wave"
+        patterns: ["wave", "say hello", "wave hand"]
+        confidence_threshold: 0.8
+        requires_robot: ["ron"]
+        
+      - name: "gripper_open"
+        patterns: ["open gripper", "release", "let go"]
+        confidence_threshold: 0.8
+        requires_robot: ["ron"]
+        
+      - name: "gripper_close"
+        patterns: ["close gripper", "grab", "hold"]
+        confidence_threshold: 0.8
+        requires_robot: ["ron"]
+        
+  # Identity and Status Skills (Local LLM)
+  identity_check:
+    enabled: true
+    priority: 2
+    target: "skill_identity"
+    use_llm: true
+    local_only: true
+    
+    intents:
+      - name: "who_are_you"
+        patterns: ["who are you", "what is your name", "introduce yourself"]
+        
+      - name: "how_are_you"
+        patterns: ["how are you", "how do you feel", "are you ok"]
+        
+      - name: "what_can_you_do"
+        patterns: ["what can you do", "help", "capabilities"]
+        
+      - name: "status_check"
+        patterns: ["status", "battery", "how are you feeling"]
+        
+  # Emergency Skills (Highest Priority, Local Only)
+  emergency:
+    enabled: true
+    priority: 0  # Absolute highest
+    target: "skill_emergency"
+    local_only: true
+    interrupt_current: true  # Can interrupt other skills
+    
+    intents:
+      - name: "emergency_stop"
+        patterns: ["emergency stop", "e-stop", "panic"]
+        confidence_threshold: 0.95
+        
+      - name: "reset"
+        patterns: ["reset", "restart", "reboot"]
+        confidence_threshold: 0.9
+        
+  # Cloud Skills (AimeeCloud)
+  cloud_skills:
+    enabled: true
+    priority: 3
+    target: "skill_cloud_proxy"
+    fallback_to_local: true  # Use local LLM if cloud unavailable
+    
+    intents:
+      - name: "storytelling"
+        patterns: ["tell me a story", "story time", "read me a story"]
+        cloud_endpoint: "/skills/storytelling"
+        
+      - name: "education"
+        patterns: ["teach me", "explain", "how does", "what is"]
+        cloud_endpoint: "/skills/education"
+        
+      - name: "games"
+        patterns: ["play a game", "let's play", "quiz me"]
+        cloud_endpoint: "/skills/games"
+        
+      - name: "general_chat"
+        patterns: []  # Catch-all, no specific patterns
+        use_llm: true
+        
+  # Weather and Information (Cloud)
+  information:
+    enabled: true
+    priority: 4
+    target: "skill_cloud_proxy"
+    
+    intents:
+      - name: "weather"
+        patterns: ["weather", "forecast", "temperature"]
+        cloud_endpoint: "/skills/weather"
+        
+      - name: "news"
+        patterns: ["news", "headlines", "what's happening"]
+        cloud_endpoint: "/skills/news"
+        
+      - name: "math"
+        patterns: ["calculate", "what is.*plus", "math problem"]
+        use_llm: true  # Can handle locally
+
+# =============================================================================
+# Skill-Specific Configuration
+# =============================================================================
+
+skill_robot_control:
+  speed_default: 0.5  # m/s
+  speed_slow: 0.2
+  speed_fast: 0.8
+  rotation_speed: 0.5  # rad/s
+  
+  # Safety limits
+  max_linear_speed: 1.0
+  max_angular_speed: 1.0
+  acceleration_limit: 0.5  # m/s^2
+  
+  # Movement presets
+  presets:
+    dance:
+      - action: "rotate"
+        params: {angle: 360, speed: 0.5}
+      - action: "wait"
+        params: {duration: 0.5}
+      - action: "rotate"
+        params: {angle: -360, speed: 0.5}
+        
+    excited:
+      - action: "move"
+        params: {linear: 0.2, duration: 0.3}
+      - action: "move"
+        params: {linear: -0.2, duration: 0.3}
+      - action: "move"
+        params: {linear: 0.2, duration: 0.3}
+
+skill_identity:
+  persona:
+    name: "Aimee"
+    personality: "friendly, helpful, enthusiastic about robotics"
+    backstory: "A social assistance robot designed to help and entertain"
+    
+  responses:
+    who_are_you: "I'm Aimee, your friendly robot companion! I'm here to help, chat, and have fun with you."
+    how_are_you: "I'm doing great, thank you! All my systems are running smoothly and I'm ready to help."
+    
+  # Dynamic responses using local LLM
+  use_dynamic_responses: true
+  max_response_tokens: 100
+
+skill_emergency:
+  # Immediate actions
+  actions:
+    emergency_stop:
+      - topic: "/cmd_vel"
+        message: {linear: {x: 0.0}, angular: {z: 0.0}}
+      - topic: "/arm/emergency_stop"
+        message: {stop: true}
+      - service: "/system/play_sound"
+        request: {sound: "emergency_stop.wav"}
+        
+  # Safety confirmations
+  require_confirmation:
+    - "reset"
+    - "reboot"
+
+skill_cloud_proxy:
+  # Connection settings
+  timeout: 10.0  # seconds
+  retry_attempts: 3
+  retry_delay: 1.0
+  
+  # Offline mode
+  offline_queue_size: 100
+  offline_fallback_skill: "skill_identity"
+  
+  # Response handling
+  stream_audio: true
+  stream_text: true
+  max_wait_time: 30.0  # seconds before giving up
+
+# =============================================================================
+# Voice Configuration
+# =============================================================================
+
+voice:
+  wake_word:
+    enabled: true
+    sensitivity: 0.7
+    cooldown: 2.0  # seconds between detections
+    
+  # Barge-in configuration
+  barge_in:
+    enabled: true
+    keyword: "stop"  # Word to interrupt current speech
+    
+  # Silence detection
+  vad:
+    enabled: true
+    silence_timeout: 3.0  # seconds of silence before processing
+    min_speech_duration: 0.5  # minimum speech to process
+
+# =============================================================================
+# Debug and Development
+# =============================================================================
+
+debug:
+  # Log levels: DEBUG, INFO, WARN, ERROR
+  default_level: "INFO"
+  
+  # Specific component log levels
+  components:
+    voice_manager: "INFO"
+    intent_router: "DEBUG"
+    skill_manager: "INFO"
+    llm_server: "DEBUG"
+    
+  # Simulation mode (no hardware required)
+  simulation_mode: false
+  
+  # Test utterances for development
+  test_utterances:
+    - "go forward"
+    - "who are you"
+    - "tell me a story"
+    - "stop"

@@ -1,0 +1,94 @@
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+#
+# SPDX-License-Identifier: MPL-2.0
+
+id: arduino:wake_word_ei
+name: Wake Word (Edge Impulse)
+description: "Wake word detection using Edge Impulse keyword spotting model. Continuously listens for 'Hey Aimee' and publishes detection events to ROS2 topics."
+category: audio
+
+variables:
+  - name: MODEL_PATH
+    description: Path to Edge Impulse .eim model file
+    default: "/home/arduino/.arduino-bricks/models/custom-ei/ei-model-953002-1/model.eim"
+    type: string
+    
+  - name: TARGET_KEYWORD
+    description: Keyword to detect (must match a label in the model)
+    default: "aimee"
+    type: string
+    
+  - name: CONFIDENCE_THRESHOLD
+    description: Minimum confidence threshold for detection (0.0-1.0)
+    default: "0.70"
+    type: float
+    
+  - name: COOLDOWN_SECONDS
+    description: Minimum time between detections to prevent spam
+    default: "2.0"
+    type: float
+    
+  - name: AUDIO_DEVICE
+    description: ALSA audio device to use for microphone input
+    default: "default"
+    type: string
+    
+  - name: DEBUG
+    description: Enable debug logging
+    default: "false"
+    type: boolean
+
+ros2:
+  publishers:
+    - topic: /wake_word/detected
+      type: aimee_msgs/msg/WakeWordDetection
+      description: "Published when wake word is detected"
+      qos: sensor_data  # Best effort, high throughput
+      
+    - topic: /wake_word/classification
+      type: std_msgs/msg/String
+      description: "Raw classification results (JSON, for debugging/monitoring)"
+      qos: sensor_data
+      
+  subscribers:
+    - topic: /wake_word/control
+      type: std_msgs/msg/String
+      description: "Control commands: 'start', 'stop', 'status'"
+      
+  parameters:
+    - name: confidence_threshold
+      type: double
+      default: 0.70
+      description: "Runtime adjustable confidence threshold"
+      
+    - name: cooldown_seconds
+      type: double
+      default: 2.0
+      description: "Runtime adjustable cooldown period"
+      
+    - name: enabled
+      type: bool
+      default: true
+      description: "Enable/disable wake word detection"
+      
+    # FUTURE ENHANCEMENT: Conversation Mode Integration
+    # These parameters will coordinate with VoiceManager for conversational mode
+    # - name: conversation_mode_enabled
+    #   type: bool
+    #   default: true
+    #   description: "Enable conversation mode support"
+    # - name: conversation_timeout
+    #   type: double
+    #   default: 30.0
+    #   description: "Seconds to stay in conversation mode
+
+# Model information
+model:
+  type: edge_impulse
+  path: /home/arduino/.arduino-bricks/models/custom-ei/ei-model-953002-1/model.eim
+  labels:
+    - aimee
+    - noise
+    - unknown
+  sample_rate: 16000
+  input_features: 16000

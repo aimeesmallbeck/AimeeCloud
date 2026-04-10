@@ -1,0 +1,23 @@
+# Aimee Robot Network Routing Service
+#
+# Ensures OBSBOT USB RNDIS doesn't hijack default gateway
+# 
+# Installation:
+#   sudo cp aimee-routing.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable aimee-routing
+
+[Unit]
+Description=Aimee Robot Network Routing Configuration
+After=network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+# Run routing configuration script
+ExecStart=/home/arduino/aimee-robot-ws/scripts/fix_routing.sh
+
+[Install]
+WantedBy=multi-user.target

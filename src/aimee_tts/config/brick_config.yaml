@@ -1,0 +1,160 @@
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+#
+# SPDX-License-Identifier: MPL-2.0
+
+id: arduino:tts
+name: Text-to-Speech
+description: "Text-to-Speech with gTTS (cloud) and Piper (local) support. Automatic fallback for offline operation."
+category: audio
+
+variables:
+  - name: DEFAULT_ENGINE
+    description: Default TTS engine (gtts, piper, pyttsx3, auto)
+    default: "gtts"
+    type: string
+    
+  - name: FALLBACK_ENGINE
+    description: Fallback engine when primary fails
+    default: "pyttsx3"
+    type: string
+    
+  - name: AUTO_FALLBACK
+    description: Automatically fallback to local TTS when offline
+    default: "true"
+    type: boolean
+    
+  - name: PIPER_MODEL
+    description: Path to Piper ONNX model file
+    default: ""
+    type: string
+    
+  - name: PIPER_CONFIG
+    description: Path to Piper config JSON (auto-detected if empty)
+    default: ""
+    type: string
+    
+  - name: PIPER_SPEAKER_ID
+    description: Speaker ID for multi-speaker models
+    default: "0"
+    type: integer
+    
+  - name: GTTS_LANG
+    description: Language for gTTS (e.g., en, es, fr)
+    default: "en"
+    type: string
+    
+  - name: GTTS_TLD
+    description: Top-level domain for gTTS accent (com, co.uk, com.au, etc.)
+    default: "com"
+    type: string
+    
+  - name: GTTS_SLOW
+    description: Slow speech for gTTS
+    default: "false"
+    type: boolean
+    
+  - name: VOLUME
+    description: Default volume (0.0-1.0)
+    default: "1.0"
+    type: float
+    
+  - name: SPEED
+    description: Default speed multiplier
+    default: "1.0"
+    type: float
+    
+  - name: USE_PYGAME
+    description: Use pygame for audio playback
+    default: "true"
+    type: boolean
+    
+  - name: DEBUG
+    description: Enable debug logging
+    default: "false"
+    type: boolean
+
+ros2:
+  publishers:
+    - topic: /tts/status
+      type: std_msgs/msg/String
+      description: "TTS status information"
+      qos: reliable
+      
+    - topic: /tts/is_speaking
+      type: std_msgs/msg/Bool
+      description: "True when currently speaking"
+      qos: reliable
+      
+  subscribers:
+    - topic: /tts/speak
+      type: std_msgs/msg/String
+      description: "Text to speak (format: [engine:]text)"
+      
+    - topic: /tts/control
+      type: std_msgs/msg/String
+      description: "Control commands: stop, preempt, status"
+      
+    - topic: /tts/volume
+      type: std_msgs/msg/Float32
+      description: "Volume control (0.0-1.0)"
+      
+  parameters:
+    - name: volume
+      type: double
+      default: 1.0
+      description: "Current volume level"
+      
+    - name: speed
+      type: double
+      default: 1.0
+      description: "Current speed multiplier"
+
+# TTS Configuration
+tts:
+  # Development mode (current)
+  development:
+    default_engine: gtts
+    fallback_engine: pyttsx3
+    auto_fallback: true
+    
+  # Pre-production (hybrid mode)
+  pre_production:
+    default_engine: auto  # Uses gtts when online, piper when offline
+    fallback_engine: pyttsx3
+    auto_fallback: true
+    
+  # Production (local only)
+  production:
+    default_engine: piper
+    fallback_engine: pyttsx3
+    auto_fallback: false
+    gtts_enabled: false  # Disable cloud TTS
+
+# Piper model recommendations
+piper_models:
+  en_us_lessac_medium:
+    name: "en_US-lessac-medium"
+    url: "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/"
+    size_mb: 63
+    quality: "good"
+    speed: "fast"
+    
+  en_us_ryan_medium:
+    name: "en_US-ryan-medium"
+    url: "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/ryan/medium/"
+    size_mb: 63
+    quality: "good"
+    speed: "fast"
+
+# Download script for Piper models
+download_script: |
+  #!/bin/bash
+  MODEL_DIR="$HOME/.local/share/piper-tts"
+  mkdir -p "$MODEL_DIR"
+  cd "$MODEL_DIR"
+  
+  # Download en_US-lessac-medium
+  wget https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx
+  wget https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+  
+  echo "Models downloaded to $MODEL_DIR"

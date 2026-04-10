@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Fast DDS Shared Memory Configuration for Aimee Robot
+  
+  This configuration optimizes ROS2 communication for the UNO Q's 4GB RAM constraint.
+  It uses Shared Memory (SHM) transport to prevent message duplication between
+  local nodes on the same physical board.
+  
+  Memory Usage:
+  - Segment size: 10MB
+  - Segment count: 10
+  - Total SHM pool: 100MB
+  
+  Savings: ~40-60% reduction in RAM usage for local node communication
+  
+  Usage:
+    export FASTRTPS_DEFAULT_PROFILES_FILE=~/aimee-robot-ws/fastdds_shm.xml
+    export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+-->
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+    
+    <!-- Transport Configuration -->
+    <transport_descriptors>
+        <!-- Shared Memory Transport for local nodes -->
+        <transport_descriptor>
+            <transport_id>shm_transport</transport_id>
+            <type>SHM</type>
+            <segment_size>10485760</segment_size>  <!-- 10MB per segment -->
+            <segment_count>10</segment_count>       <!-- 10 segments = 100MB total -->
+            <port_queue_capacity>4096</port_queue_capacity>
+            <healthy_check_timeout_ms>1000</healthy_check_timeout_ms>
+            <rtps_dump_file></rtps_dump_file>
+        </transport_descriptor>
+        
+        <!-- UDPv4 Transport for remote nodes (fallback) -->
+        <transport_descriptor>
+            <transport_id>udp_transport</transport_id>
+            <type>UDPv4</type>
+            <sendBufferSize>1048576</sendBufferSize>    <!-- 1MB send buffer -->
+            <receiveBufferSize>1048576</receiveBufferSize>  <!-- 1MB receive buffer -->
+        </transport_descriptor>
+    </transport_descriptors>
+    
+    <!-- Default Participant Profile -->
+    <participant profile_name="AimeeRobotParticipant" is_default_profile="true">
+        <rtps>
+            <!-- Use SHM as primary transport -->
+            <userTransports>
+                <transport_id>shm_transport</transport_id>
+                <transport_id>udp_transport</transport_id>
+            </userTransports>
+            
+            <!-- Disable builtin transports to use custom configuration -->
+            <useBuiltinTransports>false</useBuiltinTransports>
+            
+            <!-- Memory policy: PREALLOCATED_WITH_REALLOC is memory-efficient -->
+            <propertiesPolicy>
+                <properties>
+                    <!-- Enforce SHM for metatraffic -->
+                    <property>
+                        <name>fastdds.shm.enforce_metatraffic</name>
+                        <value>true</value>
+                    </property>
+                    
+                    <!-- Optimize memory allocation -->
+                    <property>
+                        <name>fastdds.builtin_flow_controller</name>
+                        <value>1</value>
+                    </property>
+                </properties>
+            </propertiesPolicy>
+            
+            <!-- Participant allocation settings -->
+            <allocation>
+                <!-- Preallocate for predictable memory usage -->
+                <send_buffers>
+                    <preallocated_number>16</preallocated_number>
+                    <dynamic>false</dynamic>
+                </send_buffers>
+            </allocation>
+            
+            <!-- Built-in protocols configuration -->
+            <builtin>
+                <!-- Discovery configuration -->
+                <discovery_config>
+                    <discoveryProtocol>SIMPLE</discoveryProtocol>
+                    <EDP>SIMPLE</EDP>
+                    
+                    <!-- Lease duration for node liveness -->
+                    <leaseDuration>
+                        <sec>10</sec>
+                        <nanosec>0</nanosec>
+                    </leaseDuration>
+                    <leaseDuration_announcementperiod>
+                        <sec>3</sec>
+                        <nanosec>0</nanosec>
+                    </leaseDuration_announcementperiod>
+                    
+                    <!-- Initial announcements -->
+                    <initialAnnouncements>
+                        <count>5</count>
+                        <period>
+                            <sec>0</sec>
+                            <nanosec>100000000</nanosec>  <!-- 100ms -->
+                        </period>
+                    </initialAnnouncements>
+                </discovery_config>
+                
+                <!-- Avoid SHM port for metatraffic to prevent conflicts -->
+                <metatrafficUnicastLocatorList>
+                    <locator>
+                        <udpv4>
+                            <address>127.0.0.1</address>
+                            <port>0</port>  <!-- Auto-assign -->
+                        </udpv4>
+                    </locator>
+                </metatrafficUnicastLocatorList>
+            </builtin>
+        </rtps>
+    </participant>
+    
+    <!-- Publisher Profile for Large Messages (Camera Streams) -->
+    <publisher profile_name="LargeMessagePublisher">
+        <historyMemoryPolicy>PREALLOCATED_WITH_REALLOC</historyMemoryPolicy>
+        <propertiesPolicy>
+            <properties>
+                <!-- Enable SHM for large messages -->
+                <property>
+                    <name>fastdds.shm.enforce</name>
+                    <value>true</value>
+                </property>
+            </properties>
+        </propertiesPolicy>
+        
+        <!-- QoS for reliable large message transfer -->
+        <qos>
+            <publishMode>
+                <kind>ASYNCHRONOUS</kind>
+            </publishMode>
+            <reliability>
+                <kind>RELIABLE</kind>
+            </reliability>
+            <history>
+                <kind>KEEP_LAST</kind>
+                <depth>1</depth>  <!-- Only keep latest frame -->
+            </history>
+        </qos>
+    </publisher>
+    
+    <!-- Subscriber Profile for Large Messages -->
+    <subscriber profile_name="LargeMessageSubscriber">
+        <historyMemoryPolicy>PREALLOCATED_WITH_REALLOC</historyMemoryPolicy>
+        <propertiesPolicy>
+            <properties>
+                <property>
+                    <name>fastdds.shm.enforce</name>
+                    <value>true</value>
+                </property>
+            </properties>
+        </propertiesPolicy>
+        
+        <qos>
+            <reliability>
+                <kind>RELIABLE</kind>
+            </reliability>
+            <history>
+                <kind>KEEP_LAST</kind>
+                <depth>1</depth>
+            </history>
+        </qos>
+    </subscriber>
+    
+    <!-- DataWriter Profile for Real-time Topics -->
+    <data_writer profile_name="RealtimeWriter">
+        <qos>
+            <reliability>
+                <kind>BEST_EFFORT</kind>  <!-- Lower latency for real-time -->
+            </reliability>
+            <history>
+                <kind>KEEP_LAST</kind>
+                <depth>1</depth>
+            </history>
+            <durability>
+                <kind>VOLATILE</kind>
+            </durability>
+        </qos>
+    </data_writer>
+    
+    <!-- DataReader Profile for Real-time Topics -->
+    <data_reader profile_name="RealtimeReader">
+        <qos>
+            <reliability>
+                <kind>BEST_EFFORT</kind>
+            </reliability>
+            <history>
+                <kind>KEEP_LAST</kind>
+                <depth>1</depth>
+            </history>
+        </qos>
+    </data_reader>
+
+</profiles>

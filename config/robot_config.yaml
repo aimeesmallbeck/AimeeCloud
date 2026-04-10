@@ -1,0 +1,174 @@
+# Aimee Robot Configuration
+# This file contains hardware and system configuration for Aimee robots
+
+# =============================================================================
+# Ron Configuration (UGV02 + RoArm-M3)
+# =============================================================================
+ron:
+  name: "ron"
+  type: "ugv_arm"
+  description: "UGV02 rover with RoArm-M3 robotic arm"
+  
+  hardware:
+    base:
+      type: "waveshare_ugv02"
+      serial_port: "/dev/ttyACM0"
+      baud_rate: 115200
+      protocol: "json"
+      max_speed: 1.0  # m/s
+      wheel_base: 0.3  # meters
+      
+    arm:
+      type: "roarm_m3"
+      serial_port: "/dev/ttyUSB0"
+      baud_rate: 115200
+      control_mode: "json"  # Options: json, moveit
+      degrees_of_freedom: 6
+      max_reach: 350  # mm
+      home_position: [90, 90, 90, 90, 90, 0]  # Joint angles
+      
+    cameras:
+      main:
+        type: "obsbot_tiny2"
+        connection: "usb_network"
+        ip: "192.168.5.1"
+        osc_port: 16284
+        receive_port: 9000
+        resolution: "4K"
+        frame_rate: 30
+        default_tracking_mode: "normal"
+        
+      arm_end:
+        type: "ov7670"
+        interface: "i2c"
+        i2c_bus: 1
+        i2c_address: 0x21
+        resolution: "640x480"
+        
+    led_matrix:
+      type: "max7219"
+      interface: "spi"
+      spi_bus: 0
+      cs_pin: 8
+      num_devices: 1
+      
+    sensors:
+      imu:
+        type: "mpu6050"
+        i2c_bus: 1
+        update_rate: 50  # Hz
+        
+      battery_monitor:
+        type: "ina219"
+        i2c_bus: 1
+        max_voltage: 12.6
+        min_voltage: 9.0
+        
+  # Voice Configuration
+  voice:
+    wake_word:
+      enabled: true
+      model_path: "/home/arduino/.arduino-bricks/models/custom-ei/model.eim"
+      threshold: 0.7
+      audio_device: "hw:1,0"
+      
+    stt:
+      engine: "vosk"
+      model_path: "/home/arduino/models/vosk/vosk-model-small-en-us-0.15"
+      server_url: "http://localhost:5000"
+      sample_rate: 16000
+      
+    tts:
+      engine: "piper"  # Options: piper, gtts
+      model_path: "/home/arduino/models/llm/amy.onnx"
+      audio_device: "hw:1,0"
+      
+  # LLM Configuration
+  llm:
+    backend: "llama.cpp"
+    model: "/home/arduino/models/llm/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf"
+    server_host: "localhost"
+    server_port: 8080
+    context_size: 2048
+    max_tokens: 150
+    temperature: 0.7
+    top_p: 0.9
+    
+  # Memory Configuration
+  memory:
+    db_type: "sqlite"
+    db_path: "/home/arduino/aimee-robot/config/user_memory.db"
+    vector_db_path: "/home/arduino/aimee-robot/config/vector_db"
+    max_history: 50
+    session_timeout: 300  # seconds
+    
+  # Cloud Configuration
+  cloud:
+    enabled: true
+    endpoint: "http://209.38.147.67:8089"
+    api_key: ""  # Set via environment variable AIMEE_API_KEY
+    reconnect_interval: 5.0
+    offline_queue_size: 100
+    
+  # Safety Configuration
+  safety:
+    max_speed_limit: 0.5  # m/s
+    emergency_stop_timeout: 0.5  # seconds
+    battery_low_threshold: 20.0  # percent
+    battery_critical_threshold: 10.0  # percent
+
+# =============================================================================
+# Wren Configuration (Wave Rover)
+# =============================================================================
+wren:
+  name: "wren"
+  type: "wave_rover"
+  description: "Wave Rover mobile base"
+  
+  hardware:
+    base:
+      type: "waveshare_wave_rover"
+      serial_port: "/dev/ttyACM0"
+      baud_rate: 115200
+      protocol: "json"
+      max_speed: 1.0
+      wheel_base: 0.25
+      
+    cameras:
+      main:
+        type: "obsbot_tiny2"
+        connection: "usb_network"
+        ip: "192.168.5.2"
+        osc_port: 16284
+        receive_port: 9001
+        resolution: "4K"
+        default_tracking_mode: "normal"
+        
+  voice:
+    wake_word:
+      enabled: true
+      model_path: "/home/arduino/.arduino-bricks/models/custom-ei/model.eim"
+      threshold: 0.7
+      
+    stt:
+      engine: "vosk"
+      model_path: "/home/arduino/models/vosk/vosk-model-small-en-us-0.15"
+      
+    tts:
+      engine: "piper"
+      model_path: "/home/arduino/models/llm/amy.onnx"
+      
+  llm:
+    backend: "llama.cpp"
+    model: "/home/arduino/models/llm/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf"
+    
+  memory:
+    db_path: "/home/arduino/aimee-robot/config/user_memory_wren.db"
+    
+  cloud:
+    enabled: true
+    endpoint: "http://209.38.147.67:8089"
+    
+  safety:
+    max_speed_limit: 0.8
+    battery_low_threshold: 20.0
