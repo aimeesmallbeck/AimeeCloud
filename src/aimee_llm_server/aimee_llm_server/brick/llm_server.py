@@ -11,7 +11,7 @@ This brick provides non-blocking LLM inference with:
 - Request preemption (cancel ongoing generation)
 - Multiple backend support (llama.cpp server, direct bindings)
 - Session context management
-- Memory-efficient for 4GB RAM systems
+- Memory-efficient for Arduino UNO Q (4GB RAM)
 
 Features:
 - OpenAI-compatible API support (llama.cpp server)

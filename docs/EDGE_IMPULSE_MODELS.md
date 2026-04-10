@@ -236,7 +236,7 @@ ls -la ~/.arduino-bricks/models/custom-ei/<project>/model.eim
 
 ## Notes
 
-- Models are architecture-specific (AARCH64 for Raspberry Pi 5)
+- Models are architecture-specific (AARCH64 for Arduino UNO Q)
 - The `.eim` format is Edge Impulse's Linux executable format
 - Models can be updated without rebuilding the ROS2 workspace
 - Multiple models can coexist; switch via configuration

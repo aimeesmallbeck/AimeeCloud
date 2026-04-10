@@ -11,7 +11,7 @@ This brick captures audio after wake word detection and performs speech-to-text:
 
 ## Features
 
-- **Vosk Integration**: Fast, offline STT optimized for 4GB RAM
+- **Vosk Integration**: Fast, offline STT optimized for Arduino UNO Q
 - **Whisper Support**: More accurate, higher resource usage
 - **Wake Word Triggered**: Automatically records after wake word detection
 - **Streaming Partials**: Optional partial result publishing
@@ -199,7 +199,7 @@ cat /proc/asound/cards
 
 ### High CPU Usage (Whisper)
 
-Whisper is resource-intensive. For 4GB RAM systems:
+Whisper is resource-intensive. For Arduino UNO Q:
 - Use `tiny` or `base` model: `-p model_path:=tiny`
 - Prefer Vosk for always-on operation
 - Use Whisper only for accuracy-critical scenarios

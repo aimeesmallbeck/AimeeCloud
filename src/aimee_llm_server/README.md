@@ -16,7 +16,7 @@ This brick provides non-blocking LLM inference:
 - **Preemption**: Cancel requests for responsive interrupt handling
 - **Session Context**: Maintains conversation history per session
 - **Non-blocking**: Async/await for concurrent request handling
-- **Memory Efficient**: Optimized for 4GB RAM systems
+- **Memory Efficient**: Optimized for Arduino UNO Q (4GB RAM)
 
 ## Architecture
 
@@ -198,7 +198,7 @@ goal_handle.cancel_goal_async()
 | Qwen2.5-0.5B | 0.5B | ~400MB | Fast | Good |
 | TinyLlama-1.1B | 1.1B | ~700MB | Medium | Better |
 
-Recommendation for 4GB RAM: **Qwen2.5-0.5B** for good balance.
+Recommendation for Arduino UNO Q: **Qwen2.5-0.5B** for good balance.
 
 ## Session Context
 
@@ -224,7 +224,7 @@ Context is automatically managed (last 10 exchanges kept).
 
 ## Performance Tuning
 
-### For Low Latency (4GB RAM)
+### For Low Latency (Arduino UNO Q)
 
 ```bash
 # Use smaller model

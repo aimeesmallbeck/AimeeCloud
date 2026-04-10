@@ -110,11 +110,11 @@ tts:
   engine: piper
   piper:
     model_path: ~/.local/share/piper-tts/en_US-lessac-medium.onnx
-    use_cuda: false  # CPU only for Pi 5
+    use_cuda: false  # CPU only
   fallback_engine: pyttsx3
 ```
 
-## Performance Comparison (Raspberry Pi 5, 4GB)
+## Performance Comparison (Arduino UNO Q)
 
 | Engine | First Audio Latency | RAM Usage | Quality | Offline |
 |--------|-------------------|-----------|---------|---------|

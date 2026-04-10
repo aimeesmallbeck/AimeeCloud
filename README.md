@@ -1,6 +1,6 @@
 # Aimee Robot ROS2 Workspace
 
-ROS2 Humble workspace for the Aimee social assistance robot.
+ROS2 Humble workspace for the Aimee social assistance robot running on **Arduino UNO Q**.
 
 ## Quick Start
 
