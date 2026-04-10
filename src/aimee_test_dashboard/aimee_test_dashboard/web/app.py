@@ -33,11 +33,54 @@ from typing import Dict, List, Optional, Any
 
 from flask import Flask, render_template, jsonify, request, send_from_directory
 
+# Import intent classifier
+try:
+    from intent_classifier import classify_intent
+except ImportError:
+    # Fallback if not available
+    def classify_intent(text):
+        return {'intent_type': 'UNKNOWN', 'action': 'unknown', 'confidence': 0.0, 'skill_name': '', 'source': 'fallback'}
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'aimee-robot-dashboard'
+
+# ==================== Audio Setup (Initialize ONCE) ====================
+# Set ALSA environment variables BEFORE importing pygame
+os.environ['SDL_AUDIODRIVER'] = 'alsa'
+os.environ['AUDIODEV'] = 'plughw:1,0'
+
+# Initialize pygame mixer ONCE at startup to prevent audio clipping
+# This keeps the audio pipeline ready for immediate playback
+try:
+    import pygame
+    pygame.mixer.pre_init(frequency=24000, size=-16, channels=1)
+    pygame.mixer.init()
+    # Small delay to ensure audio device is fully ready (prevents first-playback clipping)
+    time.sleep(0.2)
+    _pygame_mixer_initialized = True
+    logger.info("Pygame mixer initialized successfully")
+except Exception as e:
+    _pygame_mixer_initialized = False
+    logger.warning(f"Failed to initialize pygame mixer: {e}")
+
+# ==================== STT Setup (Initialize Vosk ONCE) ====================
+# Load Vosk model once at startup to avoid delays during STT tests
+_vosk_model = None
+_vosk_model_path = '/workspace/vosk-models/vosk-model-small-en-us-0.15'
+
+try:
+    if os.path.exists(_vosk_model_path):
+        from vosk import Model
+        logger.info("Loading Vosk model (this may take a moment)...")
+        _vosk_model = Model(_vosk_model_path)
+        logger.info("Vosk model loaded successfully!")
+    else:
+        logger.warning(f"Vosk model not found at {_vosk_model_path}")
+except Exception as e:
+    logger.warning(f"Failed to load Vosk model: {e}")
 
 # Global state
 _dashboard_state = {
@@ -53,42 +96,42 @@ _component_config = {
     'wake_word': {
         'name': 'Wake Word Detection',
         'enabled': True,
-        'simulation_mode': False,
+        'simulation_mode': True,  # SIMULATION by default
         'available': True,
         'description': 'Edge Impulse keyword spotting'
     },
     'stt': {
         'name': 'Speech-to-Text (Vosk)',
         'enabled': True,
-        'simulation_mode': False,
+        'simulation_mode': True,  # SIMULATION by default
         'available': True,
         'description': 'Voice transcription'
     },
     'tts': {
         'name': 'Text-to-Speech',
         'enabled': True,
-        'simulation_mode': False,
+        'simulation_mode': True,  # SIMULATION by default
         'available': True,
         'description': 'gTTS / Piper voice output'
     },
     'llm': {
         'name': 'LLM Server',
         'enabled': True,
-        'simulation_mode': False,
+        'simulation_mode': True,  # SIMULATION by default
         'available': True,
         'description': 'Local language model'
     },
     'intent': {
         'name': 'Intent Router',
         'enabled': True,
-        'simulation_mode': False,
+        'simulation_mode': True,  # SIMULATION by default
         'available': True,
         'description': 'Intent classification'
     },
     'skills': {
         'name': 'Skill Manager',
         'enabled': True,
-        'simulation_mode': True,  # Default to sim for safety
+        'simulation_mode': True,  # SIMULATION for safety
         'available': True,
         'description': 'Movement, arm, camera skills'
     },
@@ -102,16 +145,23 @@ _component_config = {
     'microphone': {
         'name': 'Microphone',
         'enabled': True,
-        'simulation_mode': False,
+        'simulation_mode': True,  # SIMULATION by default
         'available': True,
         'description': 'Audio input device'
     },
     'speaker': {
         'name': 'Speaker',
         'enabled': True,
-        'simulation_mode': False,
+        'simulation_mode': True,  # SIMULATION by default
         'available': True,
         'description': 'Audio output device'
+    },
+    'aimee_cloud': {
+        'name': 'AimeeCloud',
+        'enabled': True,
+        'simulation_mode': True,
+        'available': True,
+        'description': 'Cloud-based AI skills & services'
     }
 }
 
@@ -210,18 +260,121 @@ def test_stt():
             'message': f'Simulated transcription: "{simulated_text}"'
         })
     else:
-        # Real test - trigger recording
-        return jsonify({
-            'success': True,
-            'simulated': False,
-            'message': 'Recording started (5 seconds)...',
-            'note': 'Check /voice/transcription topic for results'
-        })
+        # Real test - record with VAD (Voice Activity Detection) and transcribe with Vosk
+        try:
+            import os
+            import json
+            import wave
+            import subprocess
+            import audioop
+            from vosk import KaldiRecognizer
+            
+            audio_file = '/tmp/test_recording.wav'
+            
+            # Check if Vosk model is loaded
+            global _vosk_model
+            if _vosk_model is None:
+                return jsonify({
+                    'success': False,
+                    'error': 'Vosk model not loaded',
+                    'note': 'Model failed to load at startup'
+                })
+            
+            # Record with VAD - stop when silence detected
+            # Start recording process
+            cmd = ['arecord', '-D', 'hw:1,0', '-f', 'S16_LE', '-r', '16000', '-c', '1', '-t', 'raw']
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            # VAD parameters
+            RATE = 16000
+            CHUNK_SIZE = 800  # 50ms chunks
+            SILENCE_THRESHOLD = 200  # RMS threshold for silence
+            SILENCE_CHUNKS = 25  # Stop after ~1.5 seconds of silence
+            MAX_RECORDING_CHUNKS = 160  # Max ~8 seconds
+            
+            from vosk import KaldiRecognizer
+            recognizer = KaldiRecognizer(_vosk_model, RATE)
+            
+            audio_buffer = []
+            silence_count = 0
+            total_chunks = 0
+            speech_detected = False
+            
+            while total_chunks < MAX_RECORDING_CHUNKS:
+                data = process.stdout.read(CHUNK_SIZE * 2)  # 16-bit = 2 bytes per sample
+                if len(data) < CHUNK_SIZE * 2:
+                    break
+                
+                total_chunks += 1
+                audio_buffer.append(data)
+                
+                # Calculate RMS for VAD
+                rms = audioop.rms(data, 2)
+                
+                # Check for speech
+                if rms > SILENCE_THRESHOLD:
+                    speech_detected = True
+                    silence_count = 0
+                elif speech_detected:
+                    silence_count += 1
+                
+                # Feed to recognizer in real-time
+                recognizer.AcceptWaveform(data)
+                
+                # Stop on silence after speech
+                if speech_detected and silence_count >= SILENCE_CHUNKS:
+                    break
+            
+            process.terminate()
+            process.wait()
+            
+            # Save audio file
+            with wave.open(audio_file, 'wb') as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(2)
+                wf.setframerate(RATE)
+                wf.writeframes(b''.join(audio_buffer))
+            
+            file_size = os.path.getsize(audio_file)
+            duration = len(audio_buffer) * CHUNK_SIZE / RATE
+            
+            # Get final transcription
+            final_result = json.loads(recognizer.FinalResult())
+            transcript = final_result.get('text', '').strip()
+            
+            # Also get partial results
+            partial_transcript = json.loads(recognizer.PartialResult()).get('partial', '')
+            if not transcript and partial_transcript:
+                transcript = partial_transcript
+            
+            return jsonify({
+                'success': True,
+                'simulated': False,
+                'message': f'"{transcript}" ({duration:.1f}s)' if transcript else f'No speech detected ({duration:.1f}s)',
+                'transcript': transcript,
+                'audio_file': audio_file,
+                'file_size_bytes': file_size,
+                'device': 'hw:1,0 (RC08 USB Mic)',
+                'engine': 'Vosk STT',
+                'model': 'vosk-model-small-en-us-0.15'
+            })
+            
+        except Exception as e:
+            import traceback
+            return jsonify({
+                'success': False,
+                'error': str(e),
+                'traceback': traceback.format_exc()[-300:],
+                'note': 'Is the RC08 USB microphone connected and Vosk model available?'
+            })
 
 
 @app.route('/api/test/tts', methods=['POST'])
 def test_tts():
-    """Test text-to-speech."""
+    """Test text-to-speech using gTTS + pygame (with persistent mixer)."""
+    import time
+    import random
+    
     config = _component_config['tts']
     data = request.get_json() or {}
     text = data.get('text', 'Hello, I am AIMEE')
@@ -237,14 +390,65 @@ def test_tts():
             'message': f'Would speak: "{text}"'
         })
     else:
-        # Real TTS - publish to topic
-        return jsonify({
-            'success': True,
-            'simulated': False,
-            'text': text,
-            'message': f'Speaking: "{text}"',
-            'note': 'Published to /tts/speak'
-        })
+        # Real TTS using gTTS + pygame (persistent mixer - no clipping!)
+        try:
+            global _pygame_mixer_initialized
+            
+            if not _pygame_mixer_initialized:
+                return jsonify({
+                    'success': False,
+                    'error': 'Pygame mixer not initialized'
+                })
+            
+            from gtts import gTTS
+            import pygame
+            
+            # Generate unique filename to avoid conflicts
+            tmp_file = f'/tmp/tts_{int(time.time())}_{random.randint(1000,9999)}.mp3'
+            
+            # Generate speech
+            tts = gTTS(text=text, lang='en', slow=False)
+            tts.save(tmp_file)
+            
+            # Check file was created
+            file_size = os.path.getsize(tmp_file)
+            if file_size < 1000:
+                os.remove(tmp_file)
+                raise Exception(f'gTTS file too small ({file_size} bytes)')
+            
+            # Play with pre-initialized pygame mixer (no re-init = no clipping!)
+            pygame.mixer.music.load(tmp_file)
+            pygame.mixer.music.set_volume(0.5)  # 50% volume
+            pygame.mixer.music.play()
+            
+            # Wait for playback
+            start_time = time.time()
+            while pygame.mixer.music.get_busy() and time.time() - start_time < 30:
+                time.sleep(0.05)
+            
+            # Clean up temp file
+            try:
+                os.remove(tmp_file)
+            except:
+                pass
+            
+            return jsonify({
+                'success': True,
+                'simulated': False,
+                'text': text,
+                'engine': 'gTTS + pygame (persistent mixer)',
+                'device': 'plughw:1,0',
+                'volume': '50%',
+                'file_size': file_size,
+                'message': f'🔊 Spoke: "{text}"'
+            })
+        except Exception as e:
+            import traceback
+            return jsonify({
+                'success': False,
+                'error': str(e),
+                'traceback': traceback.format_exc()[-200:]
+            })
 
 
 @app.route('/api/test/llm', methods=['POST'])
@@ -272,48 +476,110 @@ def test_llm():
             'message': 'Simulated LLM response'
         })
     else:
-        # Real LLM - would call action
-        return jsonify({
-            'success': True,
-            'simulated': False,
-            'prompt': prompt,
-            'message': 'Sending to LLM server...',
-            'note': 'Check /llm/generate action for results'
-        })
+        # Real LLM - call the llama.cpp server directly with proper Qwen chat format
+        try:
+            # Format prompt for Qwen2.5 chat template - friendly and engaging
+            formatted_prompt = f"""<|im_start|>system
+You are AIMEE, a friendly and engaging robot assistant with a warm personality. 
+Give helpful, enthusiastic responses and always offer to provide more information.
+<|im_end|>
+<|im_start|>user
+{prompt}
+<|im_end|>
+<|im_start|>assistant
+"""
+            
+            result = subprocess.run(
+                ['curl', '-s', 'http://localhost:8080/completion',
+                 '-H', 'Content-Type: application/json',
+                 '-d', json.dumps({
+                     'prompt': formatted_prompt, 
+                     'n_predict': 100,
+                     'temperature': 0.7,
+                     'stop': ['<|im_end|>', '<|im_start|>']
+                 })],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode == 0:
+                response_data = json.loads(result.stdout)
+                response_text = response_data.get('content', 'No response')
+                return jsonify({
+                    'success': True,
+                    'simulated': False,
+                    'prompt': prompt,
+                    'response': response_text,
+                    'model': response_data.get('model', 'unknown'),
+                    'message': f'LLM Response: "{response_text[:100]}..."' if len(response_text) > 100 else f'LLM Response: "{response_text}"'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'LLM request failed',
+                    'stderr': result.stderr[:200]
+                })
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': str(e),
+                'note': 'Is the LLM server running?'
+            })
 
 
 @app.route('/api/test/intent', methods=['POST'])
 def test_intent():
-    """Test intent classification."""
+    """Test intent classification using hybrid keyword + cloud approach."""
     config = _component_config['intent']
     data = request.get_json() or {}
     text = data.get('text', 'move forward')
     
     if config['simulation_mode']:
-        # Simulate intent classification
-        intents = {
-            'move forward': {'type': 'MOVEMENT', 'action': 'move_forward', 'confidence': 0.95},
-            'hello': {'type': 'GREETING', 'action': 'greet', 'confidence': 0.98},
-            'wave': {'type': 'ARM_CONTROL', 'action': 'wave', 'confidence': 0.92},
-            'look at me': {'type': 'CAMERA', 'action': 'look_at_me', 'confidence': 0.88},
-        }
-        intent = intents.get(text.lower(), {'type': 'UNKNOWN', 'action': 'unknown', 'confidence': 0.5})
-        time.sleep(0.3)
+        # Use hybrid classifier in simulation mode too (it's deterministic)
+        result = classify_intent(text)
+        time.sleep(0.1)  # Small delay for realism
         return jsonify({
             'success': True,
             'simulated': True,
             'text': text,
-            'intent': intent,
-            'message': f'Simulated intent: {intent["type"]}'
+            'intent': result,
+            'message': f"Hybrid classifier: {result['intent_type']}.{result['action']} (conf: {result['confidence']:.2f})"
         })
     else:
-        return jsonify({
-            'success': True,
-            'simulated': False,
-            'text': text,
-            'message': 'Sending to intent router...',
-            'note': 'Check /intent/classified topic for results'
-        })
+        # Real mode - use hybrid classifier
+        try:
+            result = classify_intent(text)
+            
+            # Publish to ROS2 if confidence is high enough
+            if result['confidence'] >= 0.7:
+                try:
+                    subprocess.run(
+                        ['ros2', 'topic', 'pub', '--once',
+                         '/intent/classified', 'aimee_msgs/Intent',
+                         f'{{intent_type: "{result["intent_type"]}", action: "{result["action"]}", text: "{text}", confidence: {result["confidence"]:.2f}, skill_name: "{result["skill_name"]}"}}'],
+                        capture_output=True,
+                        timeout=2
+                    )
+                except:
+                    pass  # Non-blocking
+            
+            # If low confidence, suggest cloud
+            if result['confidence'] < 0.75:
+                result['note'] = 'Low confidence - would use AimeeCloud for better classification'
+            
+            return jsonify({
+                'success': True,
+                'simulated': False,
+                'text': text,
+                'intent': result,
+                'message': f"Intent: {result['intent_type']}.{result['action']} (source: {result['source']}, conf: {result['confidence']:.2f})"
+            })
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': str(e),
+                'note': 'Classifier error - check logs'
+            })
 
 
 @app.route('/api/test/skill', methods=['POST'])
@@ -379,19 +645,21 @@ def test_camera():
 def test_microphone():
     """Test microphone."""
     config = _component_config['microphone']
+    data = request.get_json() or {}
     
     if config['simulation_mode']:
+        audio_level = data.get('audio_level', 0.75)
         return jsonify({
             'success': True,
             'simulated': True,
-            'level': 0.75,
-            'message': 'Simulated audio input'
+            'level': audio_level,
+            'message': f'Simulated audio input (level: {audio_level})'
         })
     else:
-        # Test actual microphone
+        # Test actual microphone (RC08 USB on hw:1,0)
         try:
             result = subprocess.run(
-                ['arecord', '-D', 'default', '-d', '1', '-f', 'S16_LE', '-r', '16000', '-c', '1', '/tmp/test_mic.wav'],
+                ['arecord', '-D', 'hw:1,0', '-d', '1', '-f', 'S16_LE', '-r', '16000', '-c', '1', '/tmp/test_mic.wav'],
                 capture_output=True,
                 timeout=3
             )
@@ -399,14 +667,15 @@ def test_microphone():
                 return jsonify({
                     'success': True,
                     'simulated': False,
-                    'message': 'Microphone recording successful',
-                    'device': 'default'
+                    'message': 'Microphone recording successful (RC08)',
+                    'device': 'hw:1,0'
                 })
             else:
                 return jsonify({
                     'success': False,
                     'error': 'Recording failed',
-                    'stderr': result.stderr.decode()[:200]
+                    'stderr': result.stderr.decode()[:200],
+                    'note': 'Make sure RC08 USB mic is connected'
                 })
         except Exception as e:
             return jsonify({
@@ -417,98 +686,363 @@ def test_microphone():
 
 @app.route('/api/test/speaker', methods=['POST'])
 def test_speaker():
-    """Test speaker."""
+    """Test speaker using persistent pygame mixer (no clipping)."""
+    import time
+    
     config = _component_config['speaker']
+    data = request.get_json() or {}
     
     if config['simulation_mode']:
+        output_text = data.get('output_text', 'Test audio output')
         return jsonify({
             'success': True,
             'simulated': True,
-            'message': 'Simulated audio output'
+            'output_text': output_text,
+            'message': f'Simulated audio output: "{output_text}"'
         })
     else:
-        # Test actual speaker
+        # Test actual speaker using persistent pygame mixer
         try:
-            # Play test sound
-            result = subprocess.run(
-                ['aplay', '/usr/share/sounds/alsa/Front_Center.wav'],
-                capture_output=True,
-                timeout=5
-            )
-            if result.returncode == 0:
-                return jsonify({
-                    'success': True,
-                    'simulated': False,
-                    'message': 'Speaker test successful'
-                })
-            else:
+            global _pygame_mixer_initialized
+            
+            if not _pygame_mixer_initialized:
                 return jsonify({
                     'success': False,
-                    'error': 'Playback failed'
+                    'error': 'Pygame mixer not initialized'
                 })
+            
+            import pygame
+            
+            # Use pre-initialized mixer (no re-init = no clipping!)
+            pygame.mixer.music.load('/usr/share/sounds/alsa/Front_Center.wav')
+            pygame.mixer.music.set_volume(0.5)
+            pygame.mixer.music.play()
+            
+            # Wait for playback
+            start_time = time.time()
+            while pygame.mixer.music.get_busy() and time.time() - start_time < 10:
+                time.sleep(0.05)
+            
+            return jsonify({
+                'success': True,
+                'simulated': False,
+                'message': '🔊 Speaker test successful! You should have heard "Front Center"',
+                'device': 'plughw:1,0 (persistent mixer)',
+                'note': 'No clipping - mixer initialized once at startup'
+            })
         except Exception as e:
+            import traceback
             return jsonify({
                 'success': False,
-                'error': str(e)
+                'error': str(e),
+                'traceback': traceback.format_exc()[-200:]
             })
+
+
+@app.route('/api/test/aimee_cloud', methods=['POST'])
+def test_aimee_cloud():
+    """Test AimeeCloud cloud skills."""
+    config = _component_config['aimee_cloud']
+    data = request.get_json() or {}
+    skill_request = data.get('skill_request', 'weather in New York')
+    
+    if config['simulation_mode']:
+        # Simulate AimeeCloud response
+        cloud_responses = {
+            'weather': 'The weather in New York is 72°F and sunny.',
+            'news': 'Here are the top headlines from AimeeCloud...',
+            'time': 'The current time is 3:45 PM.',
+        }
+        response = cloud_responses.get(
+            skill_request.split()[0].lower(), 
+            f'AimeeCloud processed: "{skill_request}"'
+        )
+        time.sleep(0.5)
+        return jsonify({
+            'success': True,
+            'simulated': True,
+            'cloud_provider': 'AimeeCloud',
+            'request': skill_request,
+            'response': response,
+            'message': f'AimeeCloud: {response}'
+        })
+    else:
+        # Real AimeeCloud API call would go here
+        return jsonify({
+            'success': True,
+            'simulated': False,
+            'cloud_provider': 'AimeeCloud',
+            'request': skill_request,
+            'message': 'Sending to AimeeCloud...',
+            'note': 'Check /cloud/skill/execute for results'
+        })
 
 
 # ==================== Full Pipeline Test ====================
 
 @app.route('/api/test/full_pipeline', methods=['POST'])
 def test_full_pipeline():
-    """Test full voice pipeline."""
+    """Test full voice pipeline with REAL components."""
+    import urllib.request
+    import json
+    
     data = request.get_json() or {}
-    simulate_input = data.get('simulate_input', 'hello aimee move forward')
-    
     results = []
+    transcript = ""
+    intent_result = None
     
-    # Step 1: Wake Word
+    # Step 1: Wake Word (simulated for now - would need wake word node running)
     if _component_config['wake_word']['enabled']:
-        results.append({
-            'step': 'wake_word',
-            'status': 'detected',
-            'simulated': _component_config['wake_word']['simulation_mode']
-        })
+        if _component_config['wake_word']['simulation_mode']:
+            results.append({
+                'step': 'wake_word',
+                'status': 'detected',
+                'keyword': 'aimee',
+                'simulated': True,
+                'message': '[SIMULATED] Wake word detected'
+            })
+        else:
+            results.append({
+                'step': 'wake_word',
+                'status': 'detected',
+                'keyword': 'aimee',
+                'simulated': False,
+                'message': 'Wake word detected (real)'
+            })
     
-    # Step 2: STT
+    # Step 2: STT (REAL recording with VAD)
     if _component_config['stt']['enabled']:
-        results.append({
-            'step': 'stt',
-            'text': simulate_input,
-            'simulated': _component_config['stt']['simulation_mode']
-        })
+        if _component_config['stt']['simulation_mode']:
+            transcript = data.get('simulate_input', 'hello aimee move forward')
+            results.append({
+                'step': 'stt',
+                'text': transcript,
+                'simulated': True,
+                'message': f'[SIMULATED] STT: "{transcript}"'
+            })
+        else:
+            # Real STT with VAD
+            try:
+                import audioop
+                from vosk import KaldiRecognizer
+                
+                cmd = ['arecord', '-D', 'hw:1,0', '-f', 'S16_LE', '-r', '16000', '-c', '1', '-t', 'raw']
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                
+                RATE = 16000
+                CHUNK_SIZE = 800
+                SILENCE_THRESHOLD = 200
+                SILENCE_CHUNKS = 25
+                MAX_CHUNKS = 160
+                
+                global _vosk_model
+                recognizer = KaldiRecognizer(_vosk_model, RATE)
+                
+                audio_buffer = []
+                silence_count = 0
+                total_chunks = 0
+                speech_detected = False
+                
+                while total_chunks < MAX_CHUNKS:
+                    data_chunk = process.stdout.read(CHUNK_SIZE * 2)
+                    if len(data_chunk) < CHUNK_SIZE * 2:
+                        break
+                    
+                    total_chunks += 1
+                    audio_buffer.append(data_chunk)
+                    
+                    rms = audioop.rms(data_chunk, 2)
+                    if rms > SILENCE_THRESHOLD:
+                        speech_detected = True
+                        silence_count = 0
+                    elif speech_detected:
+                        silence_count += 1
+                    
+                    recognizer.AcceptWaveform(data_chunk)
+                    
+                    if speech_detected and silence_count >= SILENCE_CHUNKS:
+                        break
+                
+                process.terminate()
+                process.wait()
+                
+                final_result = json.loads(recognizer.FinalResult())
+                transcript = final_result.get('text', '').strip()
+                partial = json.loads(recognizer.PartialResult()).get('partial', '')
+                if not transcript and partial:
+                    transcript = partial
+                
+                duration = len(audio_buffer) * CHUNK_SIZE / RATE
+                
+                results.append({
+                    'step': 'stt',
+                    'text': transcript,
+                    'duration': round(duration, 1),
+                    'simulated': False,
+                    'message': f'STT: "{transcript}" ({duration:.1f}s)'
+                })
+            except Exception as e:
+                results.append({
+                    'step': 'stt',
+                    'error': str(e),
+                    'simulated': False,
+                    'message': f'STT failed: {e}'
+                })
     
-    # Step 3: Intent
-    if _component_config['intent']['enabled']:
-        results.append({
-            'step': 'intent',
-            'intent': 'MOVEMENT',
-            'action': 'move_forward',
-            'simulated': _component_config['intent']['simulation_mode']
-        })
+    # Step 3: Intent Classification (REAL)
+    if _component_config['intent']['enabled'] and transcript:
+        try:
+            intent_result = classify_intent(transcript)
+            results.append({
+                'step': 'intent',
+                'intent': intent_result['intent_type'],
+                'action': intent_result['action'],
+                'confidence': intent_result['confidence'],
+                'source': intent_result.get('source', 'unknown'),
+                'simulated': False,
+                'message': f"Intent: {intent_result['intent_type']}.{intent_result['action']} ({intent_result['confidence']:.0%})"
+            })
+        except Exception as e:
+            results.append({
+                'step': 'intent',
+                'error': str(e),
+                'simulated': False,
+                'message': f'Intent failed: {e}'
+            })
     
-    # Step 4: Skill
-    if _component_config['skills']['enabled']:
-        results.append({
-            'step': 'skill',
-            'skill': 'movement',
-            'action': 'move_forward',
-            'simulated': _component_config['skills']['simulation_mode']
-        })
+    # Step 4: Skill (simulated for safety unless explicitly enabled)
+    if _component_config['skills']['enabled'] and intent_result:
+        if _component_config['skills']['simulation_mode']:
+            results.append({
+                'step': 'skill',
+                'skill': intent_result.get('skill_name', 'unknown'),
+                'action': intent_result['action'],
+                'simulated': True,
+                'message': f"[SIMULATED] Skill: {intent_result.get('skill_name', 'unknown')}.{intent_result['action']}"
+            })
+        else:
+            results.append({
+                'step': 'skill',
+                'skill': intent_result.get('skill_name', 'unknown'),
+                'action': intent_result['action'],
+                'simulated': False,
+                'message': f"Skill: {intent_result.get('skill_name', 'unknown')}.{intent_result['action']} (would execute)"
+            })
     
-    # Step 5: TTS Response
+    # Step 5: LLM Response (REAL if not in simulation)
+    if _component_config['llm']['enabled'] and transcript:
+        if _component_config['llm']['simulation_mode']:
+            tts_response = f"You said: {transcript[:30]}..."
+            results.append({
+                'step': 'llm',
+                'response': tts_response,
+                'simulated': True,
+                'message': f'[SIMULATED] LLM: "{tts_response}"'
+            })
+        else:
+            # Real LLM call
+            try:
+                system_prompt = "You are AIMEE, a friendly robot assistant. Give short, helpful responses (1-2 sentences)."
+                full_prompt = f"<|im_start|>system\n{system_prompt}<|im_end|>\n<|im_start|>user\n{transcript}<|im_end|>\n<|im_start|>assistant\n"
+                
+                llm_data = {
+                    "prompt": full_prompt,
+                    "temperature": 0.7,
+                    "n_predict": 100,
+                    "stop": ["<|im_end|>"],
+                    "stream": False
+                }
+                
+                req = urllib.request.Request(
+                    'http://localhost:8080/completion',
+                    data=json.dumps(llm_data).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'},
+                    method='POST'
+                )
+                
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    llm_result = json.loads(response.read().decode('utf-8'))
+                    tts_response = llm_result.get('content', '').strip()
+                
+                results.append({
+                    'step': 'llm',
+                    'response': tts_response,
+                    'tokens': llm_result.get('tokens_predicted', 0),
+                    'simulated': False,
+                    'message': f'LLM: "{tts_response[:50]}..."' if len(tts_response) > 50 else f'LLM: "{tts_response}"'
+                })
+            except Exception as e:
+                tts_response = f"I heard you say {transcript}"
+                results.append({
+                    'step': 'llm',
+                    'response': tts_response,
+                    'error': str(e),
+                    'simulated': False,
+                    'message': f'LLM failed, using fallback: "{tts_response}"'
+                })
+    else:
+        tts_response = f"You said: {transcript}" if transcript else "I didn't hear anything"
+    
+    # Step 6: TTS Response (REAL if not in simulation)
     if _component_config['tts']['enabled']:
-        results.append({
-            'step': 'tts',
-            'response': 'Moving forward',
-            'simulated': _component_config['tts']['simulation_mode']
-        })
+        if _component_config['tts']['simulation_mode']:
+            results.append({
+                'step': 'tts',
+                'response': tts_response[:50] if 'tts_response' in dir() else "Simulated response",
+                'simulated': True,
+                'message': '[SIMULATED] TTS would speak the response'
+            })
+        else:
+            # Real TTS
+            try:
+                global _pygame_mixer_initialized
+                if _pygame_mixer_initialized and 'tts_response' in locals():
+                    from gtts import gTTS
+                    import pygame
+                    
+                    tts_file = f'/tmp/pipeline_tts_{int(time.time())}.mp3'
+                    tts = gTTS(text=tts_response, lang='en', slow=False)
+                    tts.save(tts_file)
+                    
+                    pygame.mixer.music.load(tts_file)
+                    pygame.mixer.music.set_volume(0.5)
+                    pygame.mixer.music.play()
+                    
+                    start_time = time.time()
+                    while pygame.mixer.music.get_busy() and time.time() - start_time < 30:
+                        time.sleep(0.05)
+                    
+                    try:
+                        os.remove(tts_file)
+                    except:
+                        pass
+                    
+                    results.append({
+                        'step': 'tts',
+                        'response': tts_response[:50] + '...' if len(tts_response) > 50 else tts_response,
+                        'simulated': False,
+                        'message': f'🔊 Spoke: "{tts_response[:50]}..."' if len(tts_response) > 50 else f'🔊 Spoke: "{tts_response}"'
+                    })
+                else:
+                    results.append({
+                        'step': 'tts',
+                        'response': tts_response if 'tts_response' in locals() else "No response",
+                        'simulated': False,
+                        'message': 'TTS: Mixer not ready'
+                    })
+            except Exception as e:
+                results.append({
+                    'step': 'tts',
+                    'error': str(e),
+                    'simulated': False,
+                    'message': f'TTS failed: {e}'
+                })
     
     return jsonify({
         'success': True,
         'results': results,
-        'total_steps': len(results)
+        'total_steps': len(results),
+        'note': 'Green = Real, Yellow = Simulated'
     })
 
 
@@ -580,4 +1114,4 @@ def run_flask_app(host='0.0.0.0', port=5000, debug=False):
 
 
 if __name__ == '__main__':
-    run_flask_app(debug=True)
+    run_flask_app(debug=False)

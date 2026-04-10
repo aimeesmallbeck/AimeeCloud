@@ -168,8 +168,9 @@ class DashboardNode(Node):
         def run_server():
             try:
                 # Disable Flask's default logging
-                import flask
-                flask.logger.setLevel(logging.ERROR)
+                import logging
+                werkzeug_logger = logging.getLogger('werkzeug')
+                werkzeug_logger.setLevel(logging.ERROR)
                 
                 run_flask_app(
                     host=self._host,

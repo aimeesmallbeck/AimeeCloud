@@ -21,8 +21,21 @@
         header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 1.5rem;
-            text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+        
+        .header-logo {
+            height: 120px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .header-text {
+            text-align: left;
         }
         
         header h1 {
@@ -244,6 +257,21 @@
             font-size: 1rem;
         }
         
+        .sim-input {
+            width: 100%;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .sim-input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
         .system-info {
             margin-top: 2rem;
             padding: 1.5rem;
@@ -319,10 +347,12 @@
         }
     </style>
 </head>
-<body>
     <header>
-        <h1>🤖 AIMEE Robot - Test Dashboard</h1>
-        <p>Arduino UNO Q | Integration & Testing Phase</p>
+        <img src="http://209.38.147.67:8089/aimee-logo.jpg" alt="AIMEE" class="header-logo">
+        <div class="header-text">
+            <h1>Project Aimee - Test Dashboard</h1>
+            <p>Arduino UNO Q | Integration & Testing Phase | Powered by AimeeCloud</p>
+        </div>
     </header>
     
     <div class="container">
@@ -353,7 +383,7 @@
             <div class="component-card" id="card-wake_word">
                 <div class="component-header">
                     <span class="component-title">🎯 Wake Word</span>
-                    <span class="badge badge-real" id="badge-wake_word">Real</span>
+                    <span class="badge badge-simulated" id="badge-wake_word">Simulated</span>
                 </div>
                 <div class="component-description">Edge Impulse keyword spotting</div>
                 <div class="toggle-row">
@@ -362,7 +392,7 @@
                 </div>
                 <div class="toggle-row">
                     <span class="toggle-label">🎮 Simulation</span>
-                    <div class="toggle-switch" id="sim-wake_word" onclick="toggleSimulation('wake_word')"></div>
+                    <div class="toggle-switch simulation active" id="sim-wake_word" onclick="toggleSimulation('wake_word')"></div>
                 </div>
                 <button class="test-button" onclick="testComponent('wake_word')">Test Wake Word</button>
                 <div class="result-box" id="result-wake_word"></div>
@@ -372,7 +402,7 @@
             <div class="component-card" id="card-stt">
                 <div class="component-header">
                     <span class="component-title">🎤 Speech-to-Text</span>
-                    <span class="badge badge-real" id="badge-stt">Real</span>
+                    <span class="badge badge-simulated" id="badge-stt">Simulated</span>
                 </div>
                 <div class="component-description">Vosk voice transcription</div>
                 <div class="toggle-row">
@@ -381,8 +411,9 @@
                 </div>
                 <div class="toggle-row">
                     <span class="toggle-label">🎮 Simulation</span>
-                    <div class="toggle-switch" id="sim-stt" onclick="toggleSimulation('stt')"></div>
+                    <div class="toggle-switch simulation active" id="sim-stt" onclick="toggleSimulation('stt')"></div>
                 </div>
+                <input type="text" class="sim-input" id="input-stt" placeholder="Simulated text (e.g., move forward)" value="move forward">
                 <button class="test-button" onclick="testComponent('stt')">Test STT</button>
                 <div class="result-box" id="result-stt"></div>
             </div>
@@ -391,7 +422,7 @@
             <div class="component-card" id="card-tts">
                 <div class="component-header">
                     <span class="component-title">🔊 Text-to-Speech</span>
-                    <span class="badge badge-real" id="badge-tts">Real</span>
+                    <span class="badge badge-simulated" id="badge-tts">Simulated</span>
                 </div>
                 <div class="component-description">gTTS / Piper voice output</div>
                 <div class="toggle-row">
@@ -400,8 +431,9 @@
                 </div>
                 <div class="toggle-row">
                     <span class="toggle-label">🎮 Simulation</span>
-                    <div class="toggle-switch" id="sim-tts" onclick="toggleSimulation('tts')"></div>
+                    <div class="toggle-switch simulation active" id="sim-tts" onclick="toggleSimulation('tts')"></div>
                 </div>
+                <input type="text" class="sim-input" id="input-tts" placeholder="Text to speak" value="Hello, I am AIMEE">
                 <button class="test-button" onclick="testComponent('tts')">Test TTS</button>
                 <div class="result-box" id="result-tts"></div>
             </div>
@@ -410,7 +442,7 @@
             <div class="component-card" id="card-llm">
                 <div class="component-header">
                     <span class="component-title">🧠 LLM Server</span>
-                    <span class="badge badge-real" id="badge-llm">Real</span>
+                    <span class="badge badge-simulated" id="badge-llm">Simulated</span>
                 </div>
                 <div class="component-description">Local language model</div>
                 <div class="toggle-row">
@@ -419,8 +451,9 @@
                 </div>
                 <div class="toggle-row">
                     <span class="toggle-label">🎮 Simulation</span>
-                    <div class="toggle-switch" id="sim-llm" onclick="toggleSimulation('llm')"></div>
+                    <div class="toggle-switch simulation active" id="sim-llm" onclick="toggleSimulation('llm')"></div>
                 </div>
+                <input type="text" class="sim-input" id="input-llm" placeholder="Prompt for LLM" value="What is your name?">
                 <button class="test-button" onclick="testComponent('llm')">Test LLM</button>
                 <div class="result-box" id="result-llm"></div>
             </div>
@@ -429,7 +462,7 @@
             <div class="component-card" id="card-intent">
                 <div class="component-header">
                     <span class="component-title">🎯 Intent Router</span>
-                    <span class="badge badge-real" id="badge-intent">Real</span>
+                    <span class="badge badge-simulated" id="badge-intent">Simulated</span>
                 </div>
                 <div class="component-description">Intent classification</div>
                 <div class="toggle-row">
@@ -438,8 +471,9 @@
                 </div>
                 <div class="toggle-row">
                     <span class="toggle-label">🎮 Simulation</span>
-                    <div class="toggle-switch" id="sim-intent" onclick="toggleSimulation('intent')"></div>
+                    <div class="toggle-switch simulation active" id="sim-intent" onclick="toggleSimulation('intent')"></div>
                 </div>
+                <input type="text" class="sim-input" id="input-intent" placeholder="Text to classify" value="move forward">
                 <button class="test-button" onclick="testComponent('intent')">Test Intent</button>
                 <div class="result-box" id="result-intent"></div>
             </div>
@@ -467,7 +501,7 @@
             <div class="component-card" id="card-microphone">
                 <div class="component-header">
                     <span class="component-title">🎙️ Microphone</span>
-                    <span class="badge badge-real" id="badge-microphone">Real</span>
+                    <span class="badge badge-simulated" id="badge-microphone">Simulated</span>
                 </div>
                 <div class="component-description">Audio input device</div>
                 <div class="toggle-row">
@@ -476,8 +510,9 @@
                 </div>
                 <div class="toggle-row">
                     <span class="toggle-label">🎮 Simulation</span>
-                    <div class="toggle-switch" id="sim-microphone" onclick="toggleSimulation('microphone')"></div>
+                    <div class="toggle-switch simulation active" id="sim-microphone" onclick="toggleSimulation('microphone')"></div>
                 </div>
+                <input type="text" class="sim-input" id="input-microphone" placeholder="Simulated audio level (e.g., 0.75)" value="0.75">
                 <button class="test-button" onclick="testComponent('microphone')">Test Mic</button>
                 <div class="result-box" id="result-microphone"></div>
             </div>
@@ -486,7 +521,7 @@
             <div class="component-card" id="card-speaker">
                 <div class="component-header">
                     <span class="component-title">🔈 Speaker</span>
-                    <span class="badge badge-real" id="badge-speaker">Real</span>
+                    <span class="badge badge-simulated" id="badge-speaker">Simulated</span>
                 </div>
                 <div class="component-description">Audio output device</div>
                 <div class="toggle-row">
@@ -495,8 +530,9 @@
                 </div>
                 <div class="toggle-row">
                     <span class="toggle-label">🎮 Simulation</span>
-                    <div class="toggle-switch" id="sim-speaker" onclick="toggleSimulation('speaker')"></div>
+                    <div class="toggle-switch simulation active" id="sim-speaker" onclick="toggleSimulation('speaker')"></div>
                 </div>
+                <input type="text" class="sim-input" id="input-speaker" placeholder="Simulated output text" value="Test audio output">
                 <button class="test-button" onclick="testComponent('speaker')">Test Speaker</button>
                 <div class="result-box" id="result-speaker"></div>
             </div>
@@ -518,6 +554,26 @@
                 </div>
                 <button class="test-button" disabled>Test Camera</button>
                 <div class="result-box" id="result-camera">Connect OBSBOT camera to enable</div>
+            </div>
+            
+            <!-- AimeeCloud -->
+            <div class="component-card" id="card-aimee_cloud" style="border: 2px solid #667eea;">
+                <div class="component-header">
+                    <span class="component-title">☁️ AimeeCloud</span>
+                    <span class="badge badge-simulated" id="badge-aimee_cloud">Cloud Skills</span>
+                </div>
+                <div class="component-description">Cloud-based AI skills &amp; services</div>
+                <div class="toggle-row">
+                    <span class="toggle-label">🔌 Enabled</span>
+                    <div class="toggle-switch active" onclick="toggleComponent('aimee_cloud')"></div>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">🎮 Simulation</span>
+                    <div class="toggle-switch simulation active" id="sim-aimee_cloud" onclick="toggleSimulation('aimee_cloud')"></div>
+                </div>
+                <input type="text" class="sim-input" id="input-aimee_cloud" placeholder="Cloud skill request" value=" weather in New York">
+                <button class="test-button" onclick="testComponent('aimee_cloud')">Test AimeeCloud</button>
+                <div class="result-box" id="result-aimee_cloud"></div>
             </div>
         </div>
         
@@ -567,12 +623,20 @@
     <script>
         // Component state
         const components = ['wake_word', 'stt', 'tts', 'llm', 'intent', 'skills', 
-                           'microphone', 'speaker', 'camera'];
+                           'microphone', 'speaker', 'camera', 'aimee_cloud'];
         
         // Initialize simulation toggles
         const simulationDefaults = {
+            'wake_word': true,
+            'stt': true,
+            'tts': true,
+            'llm': true,
+            'intent': true,
             'skills': true,
-            'camera': true
+            'microphone': true,
+            'speaker': true,
+            'camera': true,
+            'aimee_cloud': true
         };
         
         // Update timestamp
@@ -658,10 +722,24 @@
             resultBox.innerHTML = '<div class="loading"></div> Testing...';
             resultBox.className = 'result-box';
             
+            // Build request body with input values if available
+            const body = {};
+            const inputField = document.getElementById(`input-${componentId}`);
+            if (inputField && inputField.value) {
+                if (componentId === 'stt') body.simulate_text = inputField.value;
+                if (componentId === 'tts') body.text = inputField.value;
+                if (componentId === 'llm') body.prompt = inputField.value;
+                if (componentId === 'intent') body.text = inputField.value;
+                if (componentId === 'microphone') body.audio_level = parseFloat(inputField.value) || 0.75;
+                if (componentId === 'speaker') body.output_text = inputField.value;
+                if (componentId === 'aimee_cloud') body.skill_request = inputField.value;
+            }
+            
             try {
                 const response = await fetch(`/api/test/${componentId}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
                 });
                 const data = await response.json();
                 
