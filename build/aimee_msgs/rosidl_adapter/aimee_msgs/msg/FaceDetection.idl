@@ -1,0 +1,58 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from aimee_msgs/msg/FaceDetection.msg
+// generated code does not contain a copyright notice
+
+#include "builtin_interfaces/msg/Time.idl"
+#include "geometry_msgs/msg/Point.idl"
+
+module aimee_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "Face detection message" "\n"
+      "Published by: Vision Manager" "\n"
+      "Subscribed by: Skills, OBSBOT Controller")
+    struct FaceDetection {
+      @verbatim (language="comment", text=
+        "Face identification" "\n"
+        "Unique face identifier (or \"unknown\")")
+      string face_id;
+
+      @verbatim (language="comment", text=
+        "Name if recognized, \"unknown\" otherwise")
+      string person_name;
+
+      float recognition_confidence;
+
+      @verbatim (language="comment", text=
+        "Face location (normalized coordinates 0.0-1.0)")
+      float center_x;
+
+      float center_y;
+
+      float width;
+
+      float height;
+
+      @verbatim (language="comment", text=
+        "Additional face data" "\n"
+        "Total faces in frame")
+      int32 num_faces_detected;
+
+      @verbatim (language="comment", text=
+        "Optional: facial landmarks")
+      sequence<float> face_landmarks;
+
+      @verbatim (language="comment", text=
+        "3D position estimate (if available)")
+      geometry_msgs::msg::Point position_3d;
+
+      @verbatim (language="comment", text=
+        "Metadata")
+      builtin_interfaces::msg::Time timestamp;
+
+      @verbatim (language="comment", text=
+        "\"obsbot_main\" | \"ov7670\"")
+      string camera_source;
+    };
+  };
+};

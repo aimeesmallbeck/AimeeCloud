@@ -1,0 +1,50 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from aimee_msgs/msg/WakeWordDetection.msg
+// generated code does not contain a copyright notice
+
+#include "builtin_interfaces/msg/Time.idl"
+
+module aimee_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "Wake word detection message" "\n"
+      "Published by: Wake Word Detection Brick (keyword spotting)" "\n"
+      "Subscribed by: Voice Manager, State Manager")
+    struct WakeWordDetection {
+      @verbatim (language="comment", text=
+        "Detected wake word (e.g., \"aimee\", \"hey_aimee\")")
+      string wake_word;
+
+      @verbatim (language="comment", text=
+        "Detection confidence (0.0-1.0)")
+      float confidence;
+
+      @verbatim (language="comment", text=
+        "Detection source (e.g., \"edge_impulse\", \"porcupine\")")
+      string source;
+
+      @verbatim (language="comment", text=
+        "Detection context" "\n"
+        "Audio sample index at detection")
+      uint16 sample_index;
+
+      @verbatim (language="comment", text=
+        "Audio signal energy level")
+      float signal_energy;
+
+      @verbatim (language="comment", text=
+        "System state" "\n"
+        "true when wake word is active/triggered" "\n"
+        "false when wake word session ends")
+      boolean active;
+
+      @verbatim (language="comment", text=
+        "Metadata")
+      builtin_interfaces::msg::Time timestamp;
+
+      @verbatim (language="comment", text=
+        "Unique session identifier")
+      string session_id;
+    };
+  };
+};

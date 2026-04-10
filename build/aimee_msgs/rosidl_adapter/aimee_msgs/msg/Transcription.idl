@@ -1,0 +1,52 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from aimee_msgs/msg/Transcription.msg
+// generated code does not contain a copyright notice
+
+#include "builtin_interfaces/msg/Time.idl"
+
+module aimee_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "Voice transcription message" "\n"
+      "Published by: Voice Manager (ASR)" "\n"
+      "Subscribed by: Intent Router")
+    struct Transcription {
+      @verbatim (language="comment", text=
+        "Transcribed text")
+      string text;
+
+      @verbatim (language="comment", text=
+        "ASR confidence (0.0-1.0)")
+      float confidence;
+
+      @verbatim (language="comment", text=
+        "vosk | whisper | cloud")
+      string source;
+
+      @verbatim (language="comment", text=
+        "True if this is a command (post-wake-word)")
+      boolean is_command;
+
+      @verbatim (language="comment", text=
+        "True if this is a partial result (streaming)")
+      boolean is_partial;
+
+      @verbatim (language="comment", text=
+        "Wake word info" "\n"
+        "True if preceded by wake word")
+      boolean wake_word_detected;
+
+      @verbatim (language="comment", text=
+        "Which wake word was detected")
+      string wake_word;
+
+      @verbatim (language="comment", text=
+        "Metadata")
+      builtin_interfaces::msg::Time timestamp;
+
+      string session_id;
+
+      string correlation_id;
+    };
+  };
+};

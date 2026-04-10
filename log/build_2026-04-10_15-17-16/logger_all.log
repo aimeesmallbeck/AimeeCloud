@@ -1,0 +1,418 @@
+[1.023s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--symlink-install']
+[1.024s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=True, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=4, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0xffffb1c95b10>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0xffffb1ef8070>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0xffffb1ef8070>>, mixin_verb=('build',))
+[1.923s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[1.927s] INFO:colcon.colcon_metadata.package_discovery.colcon_meta:Using configuration from '/root/.colcon/metadata/default/Gazebo.meta'
+[1.931s] INFO:colcon.colcon_metadata.package_discovery.colcon_meta:Using configuration from '/root/.colcon/metadata/default/fastdds.meta'
+[1.935s] INFO:colcon.colcon_metadata.package_discovery.colcon_meta:Using configuration from '/root/.colcon/metadata/default/fastrtps.meta'
+[1.936s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[1.936s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[1.936s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[1.936s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[1.937s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[1.937s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/workspace'
+[1.938s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[1.939s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[1.939s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[1.940s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[1.940s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[1.940s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[1.940s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[1.940s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[1.941s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[2.024s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[2.025s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[2.025s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[2.026s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[2.026s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[2.027s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[2.028s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[2.028s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[2.029s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extensions ['ignore', 'ignore_ament_install']
+[2.029s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extension 'ignore'
+[2.030s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extension 'ignore_ament_install'
+[2.031s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extensions ['colcon_pkg']
+[2.031s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extension 'colcon_pkg'
+[2.031s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extensions ['colcon_meta']
+[2.031s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extension 'colcon_meta'
+[2.032s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extensions ['ros']
+[2.032s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extension 'ros'
+[2.032s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extensions ['cmake', 'python']
+[2.033s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extension 'cmake'
+[2.033s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extension 'python'
+[2.033s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extensions ['python_setup_py']
+[2.033s] Level 1:colcon.colcon_core.package_identification:_identify(config) by extension 'python_setup_py'
+[2.034s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['ignore', 'ignore_ament_install']
+[2.035s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'ignore'
+[2.035s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'ignore_ament_install'
+[2.036s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['colcon_pkg']
+[2.036s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'colcon_pkg'
+[2.036s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['colcon_meta']
+[2.036s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'colcon_meta'
+[2.037s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['ros']
+[2.037s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'ros'
+[2.037s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['cmake', 'python']
+[2.038s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'cmake'
+[2.038s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'python'
+[2.038s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['python_setup_py']
+[2.039s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'python_setup_py'
+[2.039s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[2.040s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[2.040s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[2.041s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[2.041s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[2.042s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[2.042s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extensions ['ignore', 'ignore_ament_install']
+[2.043s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extension 'ignore'
+[2.043s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extension 'ignore_ament_install'
+[2.044s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extensions ['colcon_pkg']
+[2.044s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extension 'colcon_pkg'
+[2.044s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extensions ['colcon_meta']
+[2.044s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extension 'colcon_meta'
+[2.045s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extensions ['ros']
+[2.045s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extension 'ros'
+[2.046s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extensions ['cmake', 'python']
+[2.046s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extension 'cmake'
+[2.046s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extension 'python'
+[2.046s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extensions ['python_setup_py']
+[2.047s] Level 1:colcon.colcon_core.package_identification:_identify(scripts) by extension 'python_setup_py'
+[2.047s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ignore', 'ignore_ament_install']
+[2.048s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore'
+[2.048s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore_ament_install'
+[2.049s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_pkg']
+[2.049s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_pkg'
+[2.049s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_meta']
+[2.049s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_meta'
+[2.050s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ros']
+[2.050s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ros'
+[2.051s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['cmake', 'python']
+[2.051s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'cmake'
+[2.051s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python'
+[2.052s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['python_setup_py']
+[2.052s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python_setup_py'
+[2.052s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extensions ['ignore', 'ignore_ament_install']
+[2.053s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extension 'ignore'
+[2.054s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extension 'ignore_ament_install'
+[2.054s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extensions ['colcon_pkg']
+[2.054s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extension 'colcon_pkg'
+[2.054s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extensions ['colcon_meta']
+[2.055s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extension 'colcon_meta'
+[2.055s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extensions ['ros']
+[2.055s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extension 'ros'
+[2.056s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extensions ['cmake', 'python']
+[2.056s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extension 'cmake'
+[2.056s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extension 'python'
+[2.056s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extensions ['python_setup_py']
+[2.057s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template) by extension 'python_setup_py'
+[2.057s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extensions ['ignore', 'ignore_ament_install']
+[2.058s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extension 'ignore'
+[2.058s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extension 'ignore_ament_install'
+[2.059s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extensions ['colcon_pkg']
+[2.059s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extension 'colcon_pkg'
+[2.059s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extensions ['colcon_meta']
+[2.059s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extension 'colcon_meta'
+[2.060s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extensions ['ros']
+[2.060s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extension 'ros'
+[2.060s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extensions ['cmake', 'python']
+[2.061s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extension 'cmake'
+[2.061s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extension 'python'
+[2.061s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extensions ['python_setup_py']
+[2.062s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template) by extension 'python_setup_py'
+[2.062s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extensions ['ignore', 'ignore_ament_install']
+[2.063s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extension 'ignore'
+[2.064s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extension 'ignore_ament_install'
+[2.064s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extensions ['colcon_pkg']
+[2.064s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extension 'colcon_pkg'
+[2.065s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extensions ['colcon_meta']
+[2.065s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extension 'colcon_meta'
+[2.065s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extensions ['ros']
+[2.066s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extension 'ros'
+[2.066s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extensions ['cmake', 'python']
+[2.066s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extension 'cmake'
+[2.067s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extension 'python'
+[2.067s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extensions ['python_setup_py']
+[2.067s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src) by extension 'python_setup_py'
+[2.068s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extensions ['ignore', 'ignore_ament_install']
+[2.068s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extension 'ignore'
+[2.069s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extension 'ignore_ament_install'
+[2.069s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extensions ['colcon_pkg']
+[2.070s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extension 'colcon_pkg'
+[2.070s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extensions ['colcon_meta']
+[2.070s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extension 'colcon_meta'
+[2.070s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extensions ['ros']
+[2.071s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extension 'ros'
+[2.071s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extensions ['cmake', 'python']
+[2.071s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extension 'cmake'
+[2.072s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extension 'python'
+[2.072s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extensions ['python_setup_py']
+[2.072s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino) by extension 'python_setup_py'
+[2.073s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extensions ['ignore', 'ignore_ament_install']
+[2.073s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extension 'ignore'
+[2.074s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extension 'ignore_ament_install'
+[2.074s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extensions ['colcon_pkg']
+[2.074s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extension 'colcon_pkg'
+[2.075s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extensions ['colcon_meta']
+[2.075s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extension 'colcon_meta'
+[2.075s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extensions ['ros']
+[2.075s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extension 'ros'
+[2.076s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extensions ['cmake', 'python']
+[2.076s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extension 'cmake'
+[2.077s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extension 'python'
+[2.077s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extensions ['python_setup_py']
+[2.077s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks) by extension 'python_setup_py'
+[2.078s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extensions ['ignore', 'ignore_ament_install']
+[2.079s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extension 'ignore'
+[2.079s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extension 'ignore_ament_install'
+[2.079s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extensions ['colcon_pkg']
+[2.080s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extension 'colcon_pkg'
+[2.080s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extensions ['colcon_meta']
+[2.080s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extension 'colcon_meta'
+[2.080s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extensions ['ros']
+[2.081s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extension 'ros'
+[2.081s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extensions ['cmake', 'python']
+[2.082s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extension 'cmake'
+[2.082s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extension 'python'
+[2.082s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extensions ['python_setup_py']
+[2.082s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_brick_template/brick_template/src/arduino/app_bricks/template) by extension 'python_setup_py'
+[2.083s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_bringup) by extensions ['ignore', 'ignore_ament_install']
+[2.084s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_bringup) by extension 'ignore'
+[2.084s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_bringup) by extension 'ignore_ament_install'
+[2.085s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_bringup) by extensions ['colcon_pkg']
+[2.085s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_bringup) by extension 'colcon_pkg'
+[2.085s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_bringup) by extensions ['colcon_meta']
+[2.086s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_bringup) by extension 'colcon_meta'
+[2.086s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_bringup) by extensions ['ros']
+[2.086s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_bringup) by extension 'ros'
+[2.099s] DEBUG:colcon.colcon_core.package_identification:Package 'src/aimee_bringup' with type 'ros.ament_cmake_python' and name 'aimee_bringup'
+[2.100s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_intent_router) by extensions ['ignore', 'ignore_ament_install']
+[2.101s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_intent_router) by extension 'ignore'
+[2.102s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_intent_router) by extension 'ignore_ament_install'
+[2.102s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_intent_router) by extensions ['colcon_pkg']
+[2.102s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_intent_router) by extension 'colcon_pkg'
+[2.102s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_intent_router) by extensions ['colcon_meta']
+[2.103s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_intent_router) by extension 'colcon_meta'
+[2.103s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_intent_router) by extensions ['ros']
+[2.103s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_intent_router) by extension 'ros'
+[2.109s] DEBUG:colcon.colcon_core.package_identification:Package 'src/aimee_intent_router' with type 'ros.ament_python' and name 'aimee_intent_router'
+[2.110s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_llm_server) by extensions ['ignore', 'ignore_ament_install']
+[2.110s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_llm_server) by extension 'ignore'
+[2.111s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_llm_server) by extension 'ignore_ament_install'
+[2.111s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_llm_server) by extensions ['colcon_pkg']
+[2.111s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_llm_server) by extension 'colcon_pkg'
+[2.112s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_llm_server) by extensions ['colcon_meta']
+[2.112s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_llm_server) by extension 'colcon_meta'
+[2.112s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_llm_server) by extensions ['ros']
+[2.112s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_llm_server) by extension 'ros'
+[2.117s] DEBUG:colcon.colcon_core.package_identification:Package 'src/aimee_llm_server' with type 'ros.ament_python' and name 'aimee_llm_server'
+[2.118s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_msgs) by extensions ['ignore', 'ignore_ament_install']
+[2.118s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_msgs) by extension 'ignore'
+[2.119s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_msgs) by extension 'ignore_ament_install'
+[2.119s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_msgs) by extensions ['colcon_pkg']
+[2.119s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_msgs) by extension 'colcon_pkg'
+[2.120s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_msgs) by extensions ['colcon_meta']
+[2.120s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_msgs) by extension 'colcon_meta'
+[2.120s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_msgs) by extensions ['ros']
+[2.120s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_msgs) by extension 'ros'
+[2.126s] DEBUG:colcon.colcon_core.package_identification:Package 'src/aimee_msgs' with type 'ros.ament_cmake' and name 'aimee_msgs'
+[2.127s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_skill_manager) by extensions ['ignore', 'ignore_ament_install']
+[2.128s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_skill_manager) by extension 'ignore'
+[2.128s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_skill_manager) by extension 'ignore_ament_install'
+[2.128s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_skill_manager) by extensions ['colcon_pkg']
+[2.128s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_skill_manager) by extension 'colcon_pkg'
+[2.129s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_skill_manager) by extensions ['colcon_meta']
+[2.129s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_skill_manager) by extension 'colcon_meta'
+[2.129s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_skill_manager) by extensions ['ros']
+[2.130s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_skill_manager) by extension 'ros'
+[2.134s] DEBUG:colcon.colcon_core.package_identification:Package 'src/aimee_skill_manager' with type 'ros.ament_python' and name 'aimee_skill_manager'
+[2.135s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_test_dashboard) by extensions ['ignore', 'ignore_ament_install']
+[2.136s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_test_dashboard) by extension 'ignore'
+[2.136s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_test_dashboard) by extension 'ignore_ament_install'
+[2.137s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_test_dashboard) by extensions ['colcon_pkg']
+[2.137s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_test_dashboard) by extension 'colcon_pkg'
+[2.137s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_test_dashboard) by extensions ['colcon_meta']
+[2.137s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_test_dashboard) by extension 'colcon_meta'
+[2.138s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_test_dashboard) by extensions ['ros']
+[2.138s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_test_dashboard) by extension 'ros'
+[2.143s] DEBUG:colcon.colcon_core.package_identification:Package 'src/aimee_test_dashboard' with type 'ros.ament_python' and name 'aimee_test_dashboard'
+[2.144s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_tts) by extensions ['ignore', 'ignore_ament_install']
+[2.144s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_tts) by extension 'ignore'
+[2.145s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_tts) by extension 'ignore_ament_install'
+[2.146s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_tts) by extensions ['colcon_pkg']
+[2.146s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_tts) by extension 'colcon_pkg'
+[2.147s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_tts) by extensions ['colcon_meta']
+[2.148s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_tts) by extension 'colcon_meta'
+[2.149s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_tts) by extensions ['ros']
+[2.149s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_tts) by extension 'ros'
+[2.156s] DEBUG:colcon.colcon_core.package_identification:Package 'src/aimee_tts' with type 'ros.ament_python' and name 'aimee_tts'
+[2.157s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_voice_manager) by extensions ['ignore', 'ignore_ament_install']
+[2.158s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_voice_manager) by extension 'ignore'
+[2.158s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_voice_manager) by extension 'ignore_ament_install'
+[2.159s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_voice_manager) by extensions ['colcon_pkg']
+[2.159s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_voice_manager) by extension 'colcon_pkg'
+[2.159s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_voice_manager) by extensions ['colcon_meta']
+[2.159s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_voice_manager) by extension 'colcon_meta'
+[2.160s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_voice_manager) by extensions ['ros']
+[2.160s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_voice_manager) by extension 'ros'
+[2.165s] DEBUG:colcon.colcon_core.package_identification:Package 'src/aimee_voice_manager' with type 'ros.ament_python' and name 'aimee_voice_manager'
+[2.166s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_wake_word_ei) by extensions ['ignore', 'ignore_ament_install']
+[2.167s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_wake_word_ei) by extension 'ignore'
+[2.167s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_wake_word_ei) by extension 'ignore_ament_install'
+[2.168s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_wake_word_ei) by extensions ['colcon_pkg']
+[2.168s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_wake_word_ei) by extension 'colcon_pkg'
+[2.168s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_wake_word_ei) by extensions ['colcon_meta']
+[2.168s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_wake_word_ei) by extension 'colcon_meta'
+[2.169s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_wake_word_ei) by extensions ['ros']
+[2.169s] Level 1:colcon.colcon_core.package_identification:_identify(src/aimee_wake_word_ei) by extension 'ros'
+[2.175s] DEBUG:colcon.colcon_core.package_identification:Package 'src/aimee_wake_word_ei' with type 'ros.ament_python' and name 'aimee_wake_word_ei'
+[2.176s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extensions ['ignore', 'ignore_ament_install']
+[2.177s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extension 'ignore'
+[2.177s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extension 'ignore_ament_install'
+[2.178s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extensions ['colcon_pkg']
+[2.179s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extension 'colcon_pkg'
+[2.179s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extensions ['colcon_meta']
+[2.179s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extension 'colcon_meta'
+[2.179s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extensions ['ros']
+[2.180s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extension 'ros'
+[2.180s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extensions ['cmake', 'python']
+[2.181s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extension 'cmake'
+[2.181s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extension 'python'
+[2.182s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extensions ['python_setup_py']
+[2.182s] Level 1:colcon.colcon_core.package_identification:_identify(systemd) by extension 'python_setup_py'
+[2.182s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[2.183s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[2.183s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[2.183s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[2.183s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[2.382s] Level 5:colcon.colcon_core.verb:set package 'aimee_msgs' build argument 'cmake_args' from command line to 'None'
+[2.382s] Level 5:colcon.colcon_core.verb:set package 'aimee_msgs' build argument 'cmake_target' from command line to 'None'
+[2.382s] Level 5:colcon.colcon_core.verb:set package 'aimee_msgs' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.383s] Level 5:colcon.colcon_core.verb:set package 'aimee_msgs' build argument 'cmake_clean_cache' from command line to 'False'
+[2.383s] Level 5:colcon.colcon_core.verb:set package 'aimee_msgs' build argument 'cmake_clean_first' from command line to 'False'
+[2.383s] Level 5:colcon.colcon_core.verb:set package 'aimee_msgs' build argument 'cmake_force_configure' from command line to 'False'
+[2.383s] Level 5:colcon.colcon_core.verb:set package 'aimee_msgs' build argument 'ament_cmake_args' from command line to 'None'
+[2.383s] Level 5:colcon.colcon_core.verb:set package 'aimee_msgs' build argument 'catkin_cmake_args' from command line to 'None'
+[2.383s] Level 5:colcon.colcon_core.verb:set package 'aimee_msgs' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.384s] DEBUG:colcon.colcon_core.verb:Building package 'aimee_msgs' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/aimee_msgs', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/aimee_msgs', 'merge_install': False, 'path': '/workspace/src/aimee_msgs', 'symlink_install': True, 'test_result_base': None}
+[2.386s] Level 5:colcon.colcon_core.verb:set package 'aimee_tts' build argument 'cmake_args' from command line to 'None'
+[2.387s] Level 5:colcon.colcon_core.verb:set package 'aimee_tts' build argument 'cmake_target' from command line to 'None'
+[2.387s] Level 5:colcon.colcon_core.verb:set package 'aimee_tts' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.387s] Level 5:colcon.colcon_core.verb:set package 'aimee_tts' build argument 'cmake_clean_cache' from command line to 'False'
+[2.387s] Level 5:colcon.colcon_core.verb:set package 'aimee_tts' build argument 'cmake_clean_first' from command line to 'False'
+[2.387s] Level 5:colcon.colcon_core.verb:set package 'aimee_tts' build argument 'cmake_force_configure' from command line to 'False'
+[2.387s] Level 5:colcon.colcon_core.verb:set package 'aimee_tts' build argument 'ament_cmake_args' from command line to 'None'
+[2.387s] Level 5:colcon.colcon_core.verb:set package 'aimee_tts' build argument 'catkin_cmake_args' from command line to 'None'
+[2.387s] Level 5:colcon.colcon_core.verb:set package 'aimee_tts' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.388s] DEBUG:colcon.colcon_core.verb:Building package 'aimee_tts' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/aimee_tts', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/aimee_tts', 'merge_install': False, 'path': '/workspace/src/aimee_tts', 'symlink_install': True, 'test_result_base': None}
+[2.390s] WARNING:colcon.colcon_core.verb:No task extension to 'build' a 'ros.ament_cmake_python' package
+[2.395s] Level 5:colcon.colcon_core.verb:set package 'aimee_intent_router' build argument 'cmake_args' from command line to 'None'
+[2.395s] Level 5:colcon.colcon_core.verb:set package 'aimee_intent_router' build argument 'cmake_target' from command line to 'None'
+[2.396s] Level 5:colcon.colcon_core.verb:set package 'aimee_intent_router' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.396s] Level 5:colcon.colcon_core.verb:set package 'aimee_intent_router' build argument 'cmake_clean_cache' from command line to 'False'
+[2.397s] Level 5:colcon.colcon_core.verb:set package 'aimee_intent_router' build argument 'cmake_clean_first' from command line to 'False'
+[2.397s] Level 5:colcon.colcon_core.verb:set package 'aimee_intent_router' build argument 'cmake_force_configure' from command line to 'False'
+[2.398s] Level 5:colcon.colcon_core.verb:set package 'aimee_intent_router' build argument 'ament_cmake_args' from command line to 'None'
+[2.398s] Level 5:colcon.colcon_core.verb:set package 'aimee_intent_router' build argument 'catkin_cmake_args' from command line to 'None'
+[2.399s] Level 5:colcon.colcon_core.verb:set package 'aimee_intent_router' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.399s] DEBUG:colcon.colcon_core.verb:Building package 'aimee_intent_router' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/aimee_intent_router', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/aimee_intent_router', 'merge_install': False, 'path': '/workspace/src/aimee_intent_router', 'symlink_install': True, 'test_result_base': None}
+[2.402s] Level 5:colcon.colcon_core.verb:set package 'aimee_llm_server' build argument 'cmake_args' from command line to 'None'
+[2.402s] Level 5:colcon.colcon_core.verb:set package 'aimee_llm_server' build argument 'cmake_target' from command line to 'None'
+[2.402s] Level 5:colcon.colcon_core.verb:set package 'aimee_llm_server' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.403s] Level 5:colcon.colcon_core.verb:set package 'aimee_llm_server' build argument 'cmake_clean_cache' from command line to 'False'
+[2.403s] Level 5:colcon.colcon_core.verb:set package 'aimee_llm_server' build argument 'cmake_clean_first' from command line to 'False'
+[2.403s] Level 5:colcon.colcon_core.verb:set package 'aimee_llm_server' build argument 'cmake_force_configure' from command line to 'False'
+[2.403s] Level 5:colcon.colcon_core.verb:set package 'aimee_llm_server' build argument 'ament_cmake_args' from command line to 'None'
+[2.403s] Level 5:colcon.colcon_core.verb:set package 'aimee_llm_server' build argument 'catkin_cmake_args' from command line to 'None'
+[2.404s] Level 5:colcon.colcon_core.verb:set package 'aimee_llm_server' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.404s] DEBUG:colcon.colcon_core.verb:Building package 'aimee_llm_server' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/aimee_llm_server', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/aimee_llm_server', 'merge_install': False, 'path': '/workspace/src/aimee_llm_server', 'symlink_install': True, 'test_result_base': None}
+[2.407s] Level 5:colcon.colcon_core.verb:set package 'aimee_skill_manager' build argument 'cmake_args' from command line to 'None'
+[2.407s] Level 5:colcon.colcon_core.verb:set package 'aimee_skill_manager' build argument 'cmake_target' from command line to 'None'
+[2.408s] Level 5:colcon.colcon_core.verb:set package 'aimee_skill_manager' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.408s] Level 5:colcon.colcon_core.verb:set package 'aimee_skill_manager' build argument 'cmake_clean_cache' from command line to 'False'
+[2.408s] Level 5:colcon.colcon_core.verb:set package 'aimee_skill_manager' build argument 'cmake_clean_first' from command line to 'False'
+[2.408s] Level 5:colcon.colcon_core.verb:set package 'aimee_skill_manager' build argument 'cmake_force_configure' from command line to 'False'
+[2.408s] Level 5:colcon.colcon_core.verb:set package 'aimee_skill_manager' build argument 'ament_cmake_args' from command line to 'None'
+[2.408s] Level 5:colcon.colcon_core.verb:set package 'aimee_skill_manager' build argument 'catkin_cmake_args' from command line to 'None'
+[2.408s] Level 5:colcon.colcon_core.verb:set package 'aimee_skill_manager' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.409s] DEBUG:colcon.colcon_core.verb:Building package 'aimee_skill_manager' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/aimee_skill_manager', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/aimee_skill_manager', 'merge_install': False, 'path': '/workspace/src/aimee_skill_manager', 'symlink_install': True, 'test_result_base': None}
+[2.412s] Level 5:colcon.colcon_core.verb:set package 'aimee_test_dashboard' build argument 'cmake_args' from command line to 'None'
+[2.412s] Level 5:colcon.colcon_core.verb:set package 'aimee_test_dashboard' build argument 'cmake_target' from command line to 'None'
+[2.412s] Level 5:colcon.colcon_core.verb:set package 'aimee_test_dashboard' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.412s] Level 5:colcon.colcon_core.verb:set package 'aimee_test_dashboard' build argument 'cmake_clean_cache' from command line to 'False'
+[2.412s] Level 5:colcon.colcon_core.verb:set package 'aimee_test_dashboard' build argument 'cmake_clean_first' from command line to 'False'
+[2.413s] Level 5:colcon.colcon_core.verb:set package 'aimee_test_dashboard' build argument 'cmake_force_configure' from command line to 'False'
+[2.413s] Level 5:colcon.colcon_core.verb:set package 'aimee_test_dashboard' build argument 'ament_cmake_args' from command line to 'None'
+[2.413s] Level 5:colcon.colcon_core.verb:set package 'aimee_test_dashboard' build argument 'catkin_cmake_args' from command line to 'None'
+[2.413s] Level 5:colcon.colcon_core.verb:set package 'aimee_test_dashboard' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.413s] DEBUG:colcon.colcon_core.verb:Building package 'aimee_test_dashboard' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/aimee_test_dashboard', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/aimee_test_dashboard', 'merge_install': False, 'path': '/workspace/src/aimee_test_dashboard', 'symlink_install': True, 'test_result_base': None}
+[2.416s] Level 5:colcon.colcon_core.verb:set package 'aimee_voice_manager' build argument 'cmake_args' from command line to 'None'
+[2.416s] Level 5:colcon.colcon_core.verb:set package 'aimee_voice_manager' build argument 'cmake_target' from command line to 'None'
+[2.416s] Level 5:colcon.colcon_core.verb:set package 'aimee_voice_manager' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.417s] Level 5:colcon.colcon_core.verb:set package 'aimee_voice_manager' build argument 'cmake_clean_cache' from command line to 'False'
+[2.417s] Level 5:colcon.colcon_core.verb:set package 'aimee_voice_manager' build argument 'cmake_clean_first' from command line to 'False'
+[2.417s] Level 5:colcon.colcon_core.verb:set package 'aimee_voice_manager' build argument 'cmake_force_configure' from command line to 'False'
+[2.417s] Level 5:colcon.colcon_core.verb:set package 'aimee_voice_manager' build argument 'ament_cmake_args' from command line to 'None'
+[2.417s] Level 5:colcon.colcon_core.verb:set package 'aimee_voice_manager' build argument 'catkin_cmake_args' from command line to 'None'
+[2.417s] Level 5:colcon.colcon_core.verb:set package 'aimee_voice_manager' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.418s] DEBUG:colcon.colcon_core.verb:Building package 'aimee_voice_manager' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/aimee_voice_manager', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/aimee_voice_manager', 'merge_install': False, 'path': '/workspace/src/aimee_voice_manager', 'symlink_install': True, 'test_result_base': None}
+[2.420s] Level 5:colcon.colcon_core.verb:set package 'aimee_wake_word_ei' build argument 'cmake_args' from command line to 'None'
+[2.420s] Level 5:colcon.colcon_core.verb:set package 'aimee_wake_word_ei' build argument 'cmake_target' from command line to 'None'
+[2.421s] Level 5:colcon.colcon_core.verb:set package 'aimee_wake_word_ei' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[2.421s] Level 5:colcon.colcon_core.verb:set package 'aimee_wake_word_ei' build argument 'cmake_clean_cache' from command line to 'False'
+[2.421s] Level 5:colcon.colcon_core.verb:set package 'aimee_wake_word_ei' build argument 'cmake_clean_first' from command line to 'False'
+[2.421s] Level 5:colcon.colcon_core.verb:set package 'aimee_wake_word_ei' build argument 'cmake_force_configure' from command line to 'False'
+[2.421s] Level 5:colcon.colcon_core.verb:set package 'aimee_wake_word_ei' build argument 'ament_cmake_args' from command line to 'None'
+[2.421s] Level 5:colcon.colcon_core.verb:set package 'aimee_wake_word_ei' build argument 'catkin_cmake_args' from command line to 'None'
+[2.422s] Level 5:colcon.colcon_core.verb:set package 'aimee_wake_word_ei' build argument 'catkin_skip_building_tests' from command line to 'False'
+[2.422s] DEBUG:colcon.colcon_core.verb:Building package 'aimee_wake_word_ei' with the following arguments: {'ament_cmake_args': None, 'build_base': '/workspace/build/aimee_wake_word_ei', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/workspace/install/aimee_wake_word_ei', 'merge_install': False, 'path': '/workspace/src/aimee_wake_word_ei', 'symlink_install': True, 'test_result_base': None}
+[2.423s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[2.428s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[2.431s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/workspace/src/aimee_msgs' with build type 'ament_cmake'
+[2.432s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/workspace/src/aimee_msgs'
+[2.452s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[2.455s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[2.455s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[2.481s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/workspace/src/aimee_tts' with build type 'ament_python'
+[2.482s] Level 1:colcon.colcon_core.shell:create_environment_hook('aimee_tts', 'ament_prefix_path')
+[2.485s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/aimee_tts/share/aimee_tts/hook/ament_prefix_path.ps1'
+[2.492s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/workspace/install/aimee_tts/share/aimee_tts/hook/ament_prefix_path.dsv'
+[2.495s] INFO:colcon.colcon_core.shell:Creating environment hook '/workspace/install/aimee_tts/share/aimee_tts/hook/ament_prefix_path.sh'
+[2.501s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[2.502s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[2.533s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/workspace/build/aimee_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /workspace/src/aimee_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs
+[4.398s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/workspace/src/aimee_tts'
+[4.399s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[4.400s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[6.940s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/workspace/build/aimee_tts': PYTHONPATH=/workspace/build/aimee_tts/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_tts/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspace/build/aimee_tts/build --no-deps symlink_data
+[8.962s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/workspace/build/aimee_msgs' returned '1': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /workspace/src/aimee_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs
+[9.022s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(aimee_msgs)
+[9.046s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/aimee_msgs' for CMake module files
+[9.048s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/aimee_msgs' for CMake config files
+[9.050s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/aimee_msgs/bin'
+[9.051s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/aimee_msgs/lib/pkgconfig/aimee_msgs.pc'
+[9.053s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/aimee_msgs/lib/python3.10/site-packages'
+[9.056s] Level 1:colcon.colcon_core.environment:checking '/workspace/install/aimee_msgs/bin'
+[9.058s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/aimee_msgs/share/aimee_msgs/package.ps1'
+[9.067s] INFO:colcon.colcon_core.shell:Creating package descriptor '/workspace/install/aimee_msgs/share/aimee_msgs/package.dsv'
+[9.071s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/aimee_msgs/share/aimee_msgs/package.sh'
+[9.076s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/aimee_msgs/share/aimee_msgs/package.bash'
+[9.082s] INFO:colcon.colcon_core.shell:Creating package script '/workspace/install/aimee_msgs/share/aimee_msgs/package.zsh'
+[9.087s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/workspace/install/aimee_msgs/share/colcon-core/packages/aimee_msgs)
+[9.775s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[9.776s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[9.777s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '1'
+[9.778s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[9.843s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[9.844s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[9.844s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[9.845s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[9.846s] DEBUG:colcon.colcon_notification.desktop_notification.notify2:Failed to initialize notify2: org.freedesktop.DBus.Error.NotSupported: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+[9.847s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[9.850s] INFO:colcon.colcon_core.shell:Creating prefix script '/workspace/install/local_setup.ps1'
+[9.862s] INFO:colcon.colcon_core.shell:Creating prefix util module '/workspace/install/_local_setup_util_ps1.py'
+[9.887s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/workspace/install/setup.ps1'
+[9.900s] INFO:colcon.colcon_core.shell:Creating prefix script '/workspace/install/local_setup.sh'
+[9.905s] INFO:colcon.colcon_core.shell:Creating prefix util module '/workspace/install/_local_setup_util_sh.py'
+[9.912s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/workspace/install/setup.sh'
+[9.921s] INFO:colcon.colcon_core.shell:Creating prefix script '/workspace/install/local_setup.bash'
+[9.926s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/workspace/install/setup.bash'
+[9.934s] INFO:colcon.colcon_core.shell:Creating prefix script '/workspace/install/local_setup.zsh'
+[9.940s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/workspace/install/setup.zsh'

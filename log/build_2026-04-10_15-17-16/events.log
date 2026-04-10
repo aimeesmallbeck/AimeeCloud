@@ -1,0 +1,162 @@
+[0.000000] (-) TimerEvent: {}
+[0.003544] (aimee_msgs) JobQueued: {'identifier': 'aimee_msgs', 'dependencies': OrderedDict()}
+[0.004972] (aimee_tts) JobQueued: {'identifier': 'aimee_tts', 'dependencies': OrderedDict()}
+[0.005359] (aimee_intent_router) JobQueued: {'identifier': 'aimee_intent_router', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.005896] (aimee_llm_server) JobQueued: {'identifier': 'aimee_llm_server', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.006173] (aimee_skill_manager) JobQueued: {'identifier': 'aimee_skill_manager', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.006328] (aimee_test_dashboard) JobQueued: {'identifier': 'aimee_test_dashboard', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.006442] (aimee_voice_manager) JobQueued: {'identifier': 'aimee_voice_manager', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.006553] (aimee_wake_word_ei) JobQueued: {'identifier': 'aimee_wake_word_ei', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.006668] (aimee_msgs) JobStarted: {'identifier': 'aimee_msgs'}
+[0.053844] (aimee_tts) JobStarted: {'identifier': 'aimee_tts'}
+[0.095257] (aimee_msgs) JobProgress: {'identifier': 'aimee_msgs', 'progress': 'cmake'}
+[0.097505] (-) TimerEvent: {}
+[0.099951] (aimee_msgs) Command: {'cmd': ['/usr/bin/cmake', '/workspace/src/aimee_msgs', '-DAMENT_CMAKE_SYMLINK_INSTALL=1', '-DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs'], 'cwd': '/workspace/build/aimee_msgs', 'env': OrderedDict([('HOSTNAME', 'Ron'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('OLDPWD', '/workspace'), ('ROS_PYTHON_VERSION', '3'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('LANG', 'C.UTF-8'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/workspace/build/aimee_msgs'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.197754] (-) TimerEvent: {}
+[0.299472] (-) TimerEvent: {}
+[0.400750] (-) TimerEvent: {}
+[0.501855] (-) TimerEvent: {}
+[0.603062] (-) TimerEvent: {}
+[0.638873] (aimee_msgs) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[0.703747] (-) TimerEvent: {}
+[0.805275] (-) TimerEvent: {}
+[0.906477] (-) TimerEvent: {}
+[1.016960] (-) TimerEvent: {}
+[1.028305] (aimee_msgs) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[1.082696] (aimee_msgs) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[1.117188] (-) TimerEvent: {}
+[1.218371] (-) TimerEvent: {}
+[1.320931] (-) TimerEvent: {}
+[1.429517] (-) TimerEvent: {}
+[1.530954] (-) TimerEvent: {}
+[1.540867] (aimee_msgs) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[1.583211] (aimee_msgs) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[1.586039] (aimee_msgs) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[1.588583] (aimee_msgs) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[1.611936] (aimee_msgs) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[1.631231] (-) TimerEvent: {}
+[1.732730] (-) TimerEvent: {}
+[1.836400] (-) TimerEvent: {}
+[1.937557] (-) TimerEvent: {}
+[2.044504] (-) TimerEvent: {}
+[2.096600] (aimee_msgs) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[2.144760] (-) TimerEvent: {}
+[2.147745] (aimee_msgs) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[2.151566] (aimee_msgs) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[2.156298] (aimee_msgs) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[2.175352] (aimee_msgs) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[2.245626] (-) TimerEvent: {}
+[2.347005] (-) TimerEvent: {}
+[2.448478] (-) TimerEvent: {}
+[2.550925] (-) TimerEvent: {}
+[2.652604] (-) TimerEvent: {}
+[2.757730] (-) TimerEvent: {}
+[2.859416] (-) TimerEvent: {}
+[2.961049] (-) TimerEvent: {}
+[3.062591] (-) TimerEvent: {}
+[3.122116] (aimee_msgs) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter \n'}
+[3.163276] (-) TimerEvent: {}
+[3.265051] (-) TimerEvent: {}
+[3.366595] (-) TimerEvent: {}
+[3.468182] (-) TimerEvent: {}
+[3.569720] (-) TimerEvent: {}
+[3.658694] (aimee_msgs) StdoutLine: {'line': b'-- Override CMake install command with custom implementation using symlinks instead of copying resources\n'}
+[3.669968] (-) TimerEvent: {}
+[3.771506] (-) TimerEvent: {}
+[3.813556] (aimee_msgs) StdoutLine: {'line': b'-- Found rosidl_default_generators: 1.2.1 (/opt/ros/humble/share/rosidl_default_generators/cmake)\n'}
+[3.832896] (aimee_msgs) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[3.869058] (aimee_msgs) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[3.871743] (-) TimerEvent: {}
+[3.972923] (-) TimerEvent: {}
+[4.074138] (-) TimerEvent: {}
+[4.117757] (aimee_msgs) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[4.174930] (-) TimerEvent: {}
+[4.276542] (-) TimerEvent: {}
+[4.376580] (aimee_msgs) StdoutLine: {'line': b'-- Found builtin_interfaces: 1.2.2 (/opt/ros/humble/share/builtin_interfaces/cmake)\n'}
+[4.377636] (-) TimerEvent: {}
+[4.479398] (-) TimerEvent: {}
+[4.481222] (aimee_msgs) StdoutLine: {'line': b'-- Found std_msgs: 4.9.1 (/opt/ros/humble/share/std_msgs/cmake)\n'}
+[4.497316] (aimee_tts) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/build/aimee_tts/build', '--no-deps', 'symlink_data'], 'cwd': '/workspace/build/aimee_tts', 'env': {'HOSTNAME': 'Ron', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'OLDPWD': '/workspace', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'PWD': '/workspace/build/aimee_tts', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/build/aimee_tts/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_tts/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1'}, 'shell': False}
+[4.580729] (-) TimerEvent: {}
+[4.602033] (aimee_msgs) StdoutLine: {'line': b'-- Found geometry_msgs: 4.9.1 (/opt/ros/humble/share/geometry_msgs/cmake)\n'}
+[4.681237] (-) TimerEvent: {}
+[4.727271] (aimee_msgs) StdoutLine: {'line': b'-- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)\n'}
+[4.781852] (-) TimerEvent: {}
+[4.883501] (-) TimerEvent: {}
+[4.895329] (aimee_msgs) StdoutLine: {'line': b'-- Found nav_msgs: 4.9.1 (/opt/ros/humble/share/nav_msgs/cmake)\n'}
+[4.984267] (-) TimerEvent: {}
+[5.050920] (aimee_msgs) StdoutLine: {'line': b'-- Found action_msgs: 1.2.2 (/opt/ros/humble/share/action_msgs/cmake)\n'}
+[5.084600] (-) TimerEvent: {}
+[5.185747] (-) TimerEvent: {}
+[5.287289] (-) TimerEvent: {}
+[5.388740] (-) TimerEvent: {}
+[5.489865] (-) TimerEvent: {}
+[5.591051] (-) TimerEvent: {}
+[5.692605] (-) TimerEvent: {}
+[5.793725] (-) TimerEvent: {}
+[5.894982] (-) TimerEvent: {}
+[5.996716] (-) TimerEvent: {}
+[6.097825] (-) TimerEvent: {}
+[6.199501] (-) TimerEvent: {}
+[6.224845] (aimee_tts) StdoutLine: {'line': b'running develop\n'}
+[6.300442] (-) TimerEvent: {}
+[6.401836] (-) TimerEvent: {}
+[6.474165] (aimee_msgs) StderrLine: {'line': b'\x1b[31mCMake Error at /opt/ros/humble/share/rosidl_adapter/cmake/rosidl_adapt_interfaces.cmake:59 (message):\n'}
+[6.475264] (aimee_msgs) StderrLine: {'line': b'  execute_process(/usr/bin/python3 -m rosidl_adapter --package-name\n'}
+[6.476033] (aimee_msgs) StderrLine: {'line': b'  aimee_msgs --arguments-file\n'}
+[6.477079] (aimee_msgs) StderrLine: {'line': b'  /workspace/build/aimee_msgs/rosidl_adapter__arguments__aimee_msgs.json\n'}
+[6.477813] (aimee_msgs) StderrLine: {'line': b'  --output-dir /workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs\n'}
+[6.478548] (aimee_msgs) StderrLine: {'line': b'  --output-file /workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs.idls)\n'}
+[6.479371] (aimee_msgs) StderrLine: {'line': b'  returned error code 1:\n'}
+[6.480220] (aimee_msgs) StderrLine: {'line': b'\n'}
+[6.481288] (aimee_msgs) StderrLine: {'line': b"  KeyError processing template 'struct.idl.em': 'duration'\n"}
+[6.482053] (aimee_msgs) StderrLine: {'line': b'\n'}
+[6.482831] (aimee_msgs) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[6.483490] (aimee_msgs) StderrLine: {'line': b'  /opt/ros/humble/share/rosidl_cmake/cmake/rosidl_generate_interfaces.cmake:130 (rosidl_adapt_interfaces)\n'}
+[6.484282] (aimee_msgs) StderrLine: {'line': b'  CMakeLists.txt:40 (rosidl_generate_interfaces)\n'}
+[6.485151] (aimee_msgs) StderrLine: {'line': b'\n'}
+[6.485889] (aimee_msgs) StderrLine: {'line': b'\x1b[0m\n'}
+[6.486658] (aimee_msgs) StdoutLine: {'line': b'-- Configuring incomplete, errors occurred!\n'}
+[6.487494] (aimee_msgs) StdoutLine: {'line': b'See also "/workspace/build/aimee_msgs/CMakeFiles/CMakeOutput.log".\n'}
+[6.502118] (-) TimerEvent: {}
+[6.531572] (aimee_msgs) CommandEnded: {'returncode': 1}
+[6.602731] (-) TimerEvent: {}
+[6.660321] (aimee_msgs) JobEnded: {'identifier': 'aimee_msgs', 'rc': 1}
+[6.703283] (-) TimerEvent: {}
+[6.804740] (-) TimerEvent: {}
+[6.905817] (-) TimerEvent: {}
+[7.006833] (-) TimerEvent: {}
+[7.012166] (aimee_tts) StdoutLine: {'line': b'running egg_info\n'}
+[7.013216] (aimee_tts) StdoutLine: {'line': b'creating aimee_tts.egg-info\n'}
+[7.014250] (aimee_tts) StdoutLine: {'line': b'writing aimee_tts.egg-info/PKG-INFO\n'}
+[7.015575] (aimee_tts) StdoutLine: {'line': b'writing dependency_links to aimee_tts.egg-info/dependency_links.txt\n'}
+[7.016997] (aimee_tts) StdoutLine: {'line': b'writing entry points to aimee_tts.egg-info/entry_points.txt\n'}
+[7.018051] (aimee_tts) StdoutLine: {'line': b'writing requirements to aimee_tts.egg-info/requires.txt\n'}
+[7.019055] (aimee_tts) StdoutLine: {'line': b'writing top-level names to aimee_tts.egg-info/top_level.txt\n'}
+[7.020306] (aimee_tts) StdoutLine: {'line': b"writing manifest file 'aimee_tts.egg-info/SOURCES.txt'\n"}
+[7.030136] (aimee_tts) StdoutLine: {'line': b"reading manifest file 'aimee_tts.egg-info/SOURCES.txt'\n"}
+[7.034812] (aimee_tts) StdoutLine: {'line': b"writing manifest file 'aimee_tts.egg-info/SOURCES.txt'\n"}
+[7.045329] (aimee_tts) StdoutLine: {'line': b'running build_ext\n'}
+[7.047074] (aimee_tts) StdoutLine: {'line': b'Creating /workspace/install/aimee_tts/lib/python3.10/site-packages/aimee-tts.egg-link (link to .)\n'}
+[7.053913] (aimee_tts) StdoutLine: {'line': b'Installing tts_node script to /workspace/install/aimee_tts/lib/aimee_tts\n'}
+[7.056251] (aimee_tts) StdoutLine: {'line': b'\n'}
+[7.059097] (aimee_tts) StdoutLine: {'line': b'Installed /workspace/build/aimee_tts\n'}
+[7.060359] (aimee_tts) StdoutLine: {'line': b'running symlink_data\n'}
+[7.061373] (aimee_tts) StdoutLine: {'line': b'creating /workspace/install/aimee_tts/share/ament_index\n'}
+[7.062535] (aimee_tts) StdoutLine: {'line': b'creating /workspace/install/aimee_tts/share/ament_index/resource_index\n'}
+[7.065020] (aimee_tts) StdoutLine: {'line': b'creating /workspace/install/aimee_tts/share/ament_index/resource_index/packages\n'}
+[7.065989] (aimee_tts) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_tts/resource/aimee_tts -> /workspace/install/aimee_tts/share/ament_index/resource_index/packages\n'}
+[7.066885] (aimee_tts) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_tts/package.xml -> /workspace/install/aimee_tts/share/aimee_tts\n'}
+[7.067858] (aimee_tts) StdoutLine: {'line': b'creating /workspace/install/aimee_tts/share/aimee_tts/config\n'}
+[7.069126] (aimee_tts) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_tts/config/brick_config.yaml -> /workspace/install/aimee_tts/share/aimee_tts/config\n'}
+[7.107185] (-) TimerEvent: {}
+[7.208705] (-) TimerEvent: {}
+[7.310346] (-) TimerEvent: {}
+[7.335396] (aimee_tts) JobEnded: {'identifier': 'aimee_tts', 'rc': 'SIGINT'}
+[7.349663] (aimee_intent_router) JobSkipped: {'identifier': 'aimee_intent_router'}
+[7.350204] (aimee_llm_server) JobSkipped: {'identifier': 'aimee_llm_server'}
+[7.350572] (aimee_skill_manager) JobSkipped: {'identifier': 'aimee_skill_manager'}
+[7.350912] (aimee_test_dashboard) JobSkipped: {'identifier': 'aimee_test_dashboard'}
+[7.351247] (aimee_voice_manager) JobSkipped: {'identifier': 'aimee_voice_manager'}
+[7.351565] (aimee_wake_word_ei) JobSkipped: {'identifier': 'aimee_wake_word_ei'}
+[7.351876] (-) EventReactorShutdown: {}
