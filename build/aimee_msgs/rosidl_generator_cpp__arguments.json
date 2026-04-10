@@ -10,6 +10,8 @@
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs:msg/TrackingCommand.idl",
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs:msg/WakeWordDetection.idl",
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs:msg/MotorAction.idl",
+    "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs:msg/CameraAction.idl",
+    "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs:msg/LEDAction.idl",
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs:action/LLMGenerate.idl",
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs:action/ExecuteSkill.idl"
   ],
@@ -145,6 +147,8 @@
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/TrackingCommand.idl",
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/WakeWordDetection.idl",
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/MotorAction.idl",
+    "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/CameraAction.idl",
+    "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/LEDAction.idl",
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/action/LLMGenerate.idl",
     "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/action/ExecuteSkill.idl",
     "/opt/ros/humble/share/builtin_interfaces/msg/Duration.idl",

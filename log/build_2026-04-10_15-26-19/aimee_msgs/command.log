@@ -1,4 +1,0 @@
-Invoking command in '/workspace/build/aimee_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /workspace/src/aimee_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs
-Invoked command in '/workspace/build/aimee_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /workspace/src/aimee_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs
-Invoking command in '/workspace/build/aimee_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /workspace/build/aimee_msgs -- -j4 -l4
-Invoked command in '/workspace/build/aimee_msgs' returned '2': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /workspace/build/aimee_msgs -- -j4 -l4

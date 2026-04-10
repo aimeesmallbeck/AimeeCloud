@@ -1,0 +1,16 @@
+package.xml
+setup.cfg
+setup.py
+aimee_voice_manager/__init__.py
+aimee_voice_manager/voice_manager_node.py
+aimee_voice_manager.egg-info/PKG-INFO
+aimee_voice_manager.egg-info/SOURCES.txt
+aimee_voice_manager.egg-info/dependency_links.txt
+aimee_voice_manager.egg-info/entry_points.txt
+aimee_voice_manager.egg-info/requires.txt
+aimee_voice_manager.egg-info/top_level.txt
+aimee_voice_manager.egg-info/zip-safe
+aimee_voice_manager/brick/__init__.py
+aimee_voice_manager/brick/voice_manager.py
+config/brick_config.yaml
+resource/aimee_voice_manager

@@ -2,10 +2,14 @@ action/ExecuteSkill.action
 action/ExecuteSkill.idl
 action/LLMGenerate.action
 action/LLMGenerate.idl
+msg/CameraAction.idl
+msg/CameraAction.msg
 msg/FaceDetection.idl
 msg/FaceDetection.msg
 msg/Intent.idl
 msg/Intent.msg
+msg/LEDAction.idl
+msg/LEDAction.msg
 msg/MotorAction.idl
 msg/MotorAction.msg
 msg/RobotState.idl

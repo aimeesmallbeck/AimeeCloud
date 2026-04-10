@@ -89,6 +89,8 @@ rosidl_generator_c/aimee_msgs/msg/intent.h: rosidl_adapter/aimee_msgs/msg/FaceDe
 rosidl_generator_c/aimee_msgs/msg/intent.h: rosidl_adapter/aimee_msgs/msg/TrackingCommand.idl
 rosidl_generator_c/aimee_msgs/msg/intent.h: rosidl_adapter/aimee_msgs/msg/WakeWordDetection.idl
 rosidl_generator_c/aimee_msgs/msg/intent.h: rosidl_adapter/aimee_msgs/msg/MotorAction.idl
+rosidl_generator_c/aimee_msgs/msg/intent.h: rosidl_adapter/aimee_msgs/msg/CameraAction.idl
+rosidl_generator_c/aimee_msgs/msg/intent.h: rosidl_adapter/aimee_msgs/msg/LEDAction.idl
 rosidl_generator_c/aimee_msgs/msg/intent.h: rosidl_adapter/aimee_msgs/action/LLMGenerate.idl
 rosidl_generator_c/aimee_msgs/msg/intent.h: rosidl_adapter/aimee_msgs/action/ExecuteSkill.idl
 rosidl_generator_c/aimee_msgs/msg/intent.h: /opt/ros/humble/share/builtin_interfaces/msg/Duration.idl
@@ -282,6 +284,30 @@ rosidl_generator_c/aimee_msgs/msg/detail/motor_action__struct.h: rosidl_generato
 rosidl_generator_c/aimee_msgs/msg/detail/motor_action__type_support.h: rosidl_generator_c/aimee_msgs/msg/intent.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/motor_action__type_support.h
 
+rosidl_generator_c/aimee_msgs/msg/camera_action.h: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/camera_action.h
+
+rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.h: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.h
+
+rosidl_generator_c/aimee_msgs/msg/detail/camera_action__struct.h: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/camera_action__struct.h
+
+rosidl_generator_c/aimee_msgs/msg/detail/camera_action__type_support.h: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/camera_action__type_support.h
+
+rosidl_generator_c/aimee_msgs/msg/led_action.h: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/led_action.h
+
+rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.h: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.h
+
+rosidl_generator_c/aimee_msgs/msg/detail/led_action__struct.h: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/led_action__struct.h
+
+rosidl_generator_c/aimee_msgs/msg/detail/led_action__type_support.h: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/led_action__type_support.h
+
 rosidl_generator_c/aimee_msgs/action/llm_generate.h: rosidl_generator_c/aimee_msgs/msg/intent.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/action/llm_generate.h
 
@@ -326,6 +352,12 @@ rosidl_generator_c/aimee_msgs/msg/detail/wake_word_detection__functions.c: rosid
 
 rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c: rosidl_generator_c/aimee_msgs/msg/intent.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c
+
+rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c
+
+rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c: rosidl_generator_c/aimee_msgs/msg/intent.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c
 
 rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c: rosidl_generator_c/aimee_msgs/msg/intent.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c
@@ -431,10 +463,38 @@ CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c -o CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c.s
 
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/flags.make
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o: rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o -MF CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o.d -o CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o -c /workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c
+
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c > CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.i
+
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c -o CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.s
+
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/flags.make
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o: rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o -MF CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o.d -o CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o -c /workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c
+
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c > CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.i
+
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c -o CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.s
+
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/flags.make
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o: rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o -MF CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o.d -o CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o -c /workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c
 
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.i: cmake_force
@@ -448,7 +508,7 @@ CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/acti
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/flags.make
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o: rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o -MF CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o.d -o CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o -c /workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c
 
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.i: cmake_force
@@ -468,6 +528,8 @@ aimee_msgs__rosidl_generator_c_OBJECTS = \
 "CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/tracking_command__functions.c.o" \
 "CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/wake_word_detection__functions.c.o" \
 "CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c.o" \
+"CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o" \
+"CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o" \
 "CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o" \
 "CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o"
 
@@ -481,6 +543,8 @@ libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.
 libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/tracking_command__functions.c.o
 libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/wake_word_detection__functions.c.o
 libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c.o
+libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o
+libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o
 libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o
 libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o
 libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/build.make
@@ -494,7 +558,7 @@ libaimee_msgs__rosidl_generator_c.so: /opt/ros/humble/lib/libbuiltin_interfaces_
 libaimee_msgs__rosidl_generator_c.so: /opt/ros/humble/lib/librosidl_runtime_c.so
 libaimee_msgs__rosidl_generator_c.so: /opt/ros/humble/lib/librcutils.so
 libaimee_msgs__rosidl_generator_c.so: CMakeFiles/aimee_msgs__rosidl_generator_c.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking C shared library libaimee_msgs__rosidl_generator_c.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Linking C shared library libaimee_msgs__rosidl_generator_c.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/aimee_msgs__rosidl_generator_c.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -515,6 +579,11 @@ CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_m
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/action/detail/llm_generate__type_support.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/action/execute_skill.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/action/llm_generate.h
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/camera_action.h
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.h
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/camera_action__struct.h
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/camera_action__type_support.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/face_detection__functions.c
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/face_detection__functions.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/face_detection__struct.h
@@ -523,6 +592,10 @@ CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_m
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/intent__functions.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/intent__struct.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/intent__type_support.h
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.h
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/led_action__struct.h
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/led_action__type_support.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/motor_action__struct.h
@@ -545,6 +618,7 @@ CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_m
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/detail/wake_word_detection__type_support.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/face_detection.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/intent.h
+CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/led_action.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/motor_action.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/robot_state.h
 CMakeFiles/aimee_msgs__rosidl_generator_c.dir/depend: rosidl_generator_c/aimee_msgs/msg/tracking_command.h

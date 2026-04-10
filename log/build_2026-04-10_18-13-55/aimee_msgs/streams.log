@@ -1,0 +1,477 @@
+[0.127s] Invoking command in '/workspace/build/aimee_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /workspace/src/aimee_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs
+[4.013s] -- The C compiler identification is GNU 11.4.0
+[4.015s] -- The CXX compiler identification is GNU 11.4.0
+[4.016s] -- Detecting C compiler ABI info
+[4.017s] -- Detecting C compiler ABI info - done
+[4.019s] -- Check for working C compiler: /usr/bin/cc - skipped
+[4.021s] -- Detecting C compile features
+[4.026s] -- Detecting C compile features - done
+[4.029s] -- Detecting CXX compiler ABI info
+[4.029s] -- Detecting CXX compiler ABI info - done
+[4.034s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[4.035s] -- Detecting CXX compile features
+[4.035s] -- Detecting CXX compile features - done
+[4.036s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[4.037s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[4.038s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[4.043s] -- Found rosidl_default_generators: 1.2.1 (/opt/ros/humble/share/rosidl_default_generators/cmake)
+[4.044s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[4.045s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[4.050s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[4.051s] -- Found builtin_interfaces: 1.2.2 (/opt/ros/humble/share/builtin_interfaces/cmake)
+[4.138s] -- Found std_msgs: 4.9.1 (/opt/ros/humble/share/std_msgs/cmake)
+[4.242s] -- Found geometry_msgs: 4.9.1 (/opt/ros/humble/share/geometry_msgs/cmake)
+[4.348s] -- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)
+[4.484s] -- Found nav_msgs: 4.9.1 (/opt/ros/humble/share/nav_msgs/cmake)
+[4.623s] -- Found action_msgs: 1.2.2 (/opt/ros/humble/share/action_msgs/cmake)
+[8.459s] -- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)
+[10.924s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[13.384s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[13.485s] -- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.12", minimum required is "3.6") 
+[13.492s] -- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)
+[13.616s] -- Found PythonLibs: /usr/lib/aarch64-linux-gnu/libpython3.10.so (found suitable version "3.10.12", minimum required is "3.5") 
+[13.617s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[13.617s] -- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10
+[13.618s] -- Using PYTHON_LIBRARIES: /usr/lib/aarch64-linux-gnu/libpython3.10.so
+[13.740s] -- Found PythonExtra: .so  
+[14.991s] -- Configuring done
+[15.406s] -- Generating done
+[15.512s] -- Build files have been written to: /workspace/build/aimee_msgs
+[15.597s] Invoked command in '/workspace/build/aimee_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /workspace/src/aimee_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs
+[15.605s] Invoking command in '/workspace/build/aimee_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /workspace/build/aimee_msgs -- -j4 -l4
+[15.885s] [  1%] Generating C code for ROS interfaces
+[15.962s] [  1%] Generating C++ code for ROS interfaces
+[15.990s] [  2%] Generating Rust code for ROS interfaces
+[16.051s] [  2%] Built target ament_cmake_python_symlink_aimee_msgs
+[18.386s] running egg_info
+[18.388s] creating aimee_msgs.egg-info
+[18.394s] writing aimee_msgs.egg-info/PKG-INFO
+[18.396s] writing dependency_links to aimee_msgs.egg-info/dependency_links.txt
+[18.396s] writing top-level names to aimee_msgs.egg-info/top_level.txt
+[18.397s] writing manifest file 'aimee_msgs.egg-info/SOURCES.txt'
+[18.408s] reading manifest file 'aimee_msgs.egg-info/SOURCES.txt'
+[18.413s] writing manifest file 'aimee_msgs.egg-info/SOURCES.txt'
+[18.686s] [  2%] Built target ament_cmake_python_build_aimee_msgs_egg
+[29.439s] [  2%] Built target aimee_msgs__rs
+[35.288s] [  2%] Built target aimee_msgs__cpp
+[35.386s] [  3%] Generating C++ type support for eProsima Fast-RTPS
+[35.443s] [  4%] Generating C++ type support dispatch for ROS interfaces
+[35.462s] [  5%] Generating C++ introspection for ROS interfaces
+[36.244s] [  6%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/intent__functions.c.o
+[36.610s] [  7%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/transcription__functions.c.o
+[36.951s] [  8%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/robot_state__functions.c.o
+[37.326s] [  9%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/face_detection__functions.c.o
+[37.646s] [ 10%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/tracking_command__functions.c.o
+[37.994s] [ 11%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/wake_word_detection__functions.c.o
+[38.319s] [ 11%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c.o
+[38.634s] [ 12%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o
+[38.990s] [ 13%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o
+[39.439s] [ 14%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o
+[40.853s] [ 15%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o
+[42.090s] [ 16%] Linking C shared library libaimee_msgs__rosidl_generator_c.so
+[42.466s] [ 16%] Built target aimee_msgs__rosidl_generator_c
+[42.520s] [ 17%] Generating C type support for eProsima Fast-RTPS
+[51.783s] [ 18%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/intent__type_support.cpp.o
+[54.343s] [ 19%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/transcription__type_support.cpp.o
+[54.386s] [ 20%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/intent__type_support.cpp.o
+[57.174s] [ 21%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/robot_state__type_support.cpp.o
+[57.209s] [ 22%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/intent__type_support.cpp.o
+[58.662s] [ 23%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/transcription__type_support.cpp.o
+[60.066s] [ 23%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/face_detection__type_support.cpp.o
+[61.548s] [ 24%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/transcription__type_support.cpp.o
+[62.407s] [ 25%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/tracking_command__type_support.cpp.o
+[62.462s] [ 26%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/robot_state__type_support.cpp.o
+[64.656s] [ 27%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/wake_word_detection__type_support.cpp.o
+[65.236s] [ 27%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__type_support_c.cpp.o
+[65.599s] [ 28%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/robot_state__type_support.cpp.o
+[66.744s] [ 28%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/face_detection__type_support.cpp.o
+[67.319s] [ 29%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/motor_action__type_support.cpp.o
+[69.021s] [ 30%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/transcription__type_support_c.cpp.o
+[70.468s] [ 31%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/camera_action__type_support.cpp.o
+[70.824s] [ 31%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/face_detection__type_support.cpp.o
+[71.912s] [ 32%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/tracking_command__type_support.cpp.o
+[72.835s] [ 33%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/robot_state__type_support_c.cpp.o
+[72.851s] [ 34%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/led_action__type_support.cpp.o
+[74.615s] [ 35%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/tracking_command__type_support.cpp.o
+[74.630s] [ 36%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/action/llm_generate__type_support.cpp.o
+[74.670s] [ 37%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/wake_word_detection__type_support.cpp.o
+[75.554s] [ 38%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/face_detection__type_support_c.cpp.o
+[77.558s] [ 39%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/wake_word_detection__type_support.cpp.o
+[77.868s] [ 40%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/motor_action__type_support.cpp.o
+[78.218s] [ 41%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/tracking_command__type_support_c.cpp.o
+[78.374s] [ 42%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/action/execute_skill__type_support.cpp.o
+[81.761s] [ 43%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/motor_action__type_support.cpp.o
+[81.958s] [ 44%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/wake_word_detection__type_support_c.cpp.o
+[82.331s] [ 45%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/camera_action__type_support.cpp.o
+[83.251s] [ 46%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_cpp.so
+[83.589s] [ 46%] Built target aimee_msgs__rosidl_typesupport_cpp
+[83.667s] [ 47%] Generating C introspection for ROS interfaces
+[85.687s] [ 48%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp.o
+[86.410s] [ 49%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/led_action__type_support.cpp.o
+[86.518s] [ 50%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/camera_action__type_support.cpp.o
+[88.658s] [ 51%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o
+[89.759s] [ 52%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/llm_generate__type_support.cpp.o
+[89.938s] [ 53%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/led_action__type_support.cpp.o
+[92.182s] [ 54%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o
+[94.783s] [ 55%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/llm_generate__type_support.cpp.o
+[95.403s] [ 55%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o
+[96.218s] [ 56%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/execute_skill__type_support.cpp.o
+[98.986s] [ 57%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o
+[100.210s] [ 58%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/execute_skill__type_support.cpp.o
+[102.872s] [ 59%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_fastrtps_c.so
+[103.679s] [ 59%] Built target aimee_msgs__rosidl_typesupport_fastrtps_c
+[105.117s] [ 60%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_introspection_cpp.so
+[105.879s] [ 60%] Built target aimee_msgs__rosidl_typesupport_introspection_cpp
+[105.942s] [ 61%] Generating C type support dispatch for ROS interfaces
+[106.266s] [ 61%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/intent__type_support.c.o
+[106.274s] [ 62%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/transcription__type_support.c.o
+[106.495s] [ 63%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/robot_state__type_support.c.o
+[106.499s] [ 64%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/face_detection__type_support.c.o
+[106.766s] [ 65%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/tracking_command__type_support.c.o
+[106.823s] [ 66%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/wake_word_detection__type_support.c.o
+[106.996s] [ 67%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/motor_action__type_support.c.o
+[107.045s] [ 68%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/camera_action__type_support.c.o
+[107.236s] [ 69%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/led_action__type_support.c.o
+[107.247s] [ 70%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_fastrtps_cpp.so
+[107.274s] [ 70%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/action/detail/llm_generate__type_support.c.o
+[107.506s] [ 71%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/action/detail/execute_skill__type_support.c.o
+[107.919s] [ 72%] Linking C shared library libaimee_msgs__rosidl_typesupport_introspection_c.so
+[107.962s] [ 72%] Built target aimee_msgs__rosidl_typesupport_fastrtps_cpp
+[108.135s] [ 72%] Built target aimee_msgs__rosidl_typesupport_introspection_c
+[118.252s] [ 74%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/transcription__type_support.cpp.o
+[118.253s] [ 74%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/robot_state__type_support.cpp.o
+[118.254s] [ 74%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/intent__type_support.cpp.o
+[118.412s] [ 76%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/tracking_command__type_support.cpp.o
+[118.413s] [ 76%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/face_detection__type_support.cpp.o
+[118.434s] [ 77%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/wake_word_detection__type_support.cpp.o
+[118.579s] [ 78%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/motor_action__type_support.cpp.o
+[118.582s] [ 79%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/camera_action__type_support.cpp.o
+[118.595s] [ 80%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/led_action__type_support.cpp.o
+[118.737s] [ 80%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/action/llm_generate__type_support.cpp.o
+[118.740s] [ 81%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/action/execute_skill__type_support.cpp.o
+[119.020s] [ 82%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_c.so
+[119.254s] [ 82%] Built target aimee_msgs__rosidl_typesupport_c
+[119.358s] [ 82%] Built target aimee_msgs
+[119.472s] [ 83%] Generating Python code for ROS interfaces
+[149.234s] [ 83%] Built target aimee_msgs__py
+[149.338s] [ 85%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_transcription_s.c.o
+[149.339s] [ 86%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_robot_state_s.c.o
+[149.345s] [ 86%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_face_detection_s.c.o
+[149.346s] [ 86%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_intent_s.c.o
+[150.067s] [ 87%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_tracking_command_s.c.o
+[150.148s] [ 88%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_wake_word_detection_s.c.o
+[150.149s] [ 89%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_motor_action_s.c.o
+[150.312s] [ 90%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_camera_action_s.c.o
+[150.780s] [ 91%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_led_action_s.c.o
+[150.834s] [ 92%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/action/_llm_generate_s.c.o
+[150.858s] [ 93%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/action/_execute_skill_s.c.o
+[152.003s] [ 94%] Linking C shared library rosidl_generator_py/aimee_msgs/libaimee_msgs__rosidl_generator_py.so
+[152.395s] [ 94%] Built target aimee_msgs__rosidl_generator_py
+[152.504s] [ 96%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c__pyext.dir/rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_introspection_c.c.o
+[152.505s] [ 96%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c.o
+[152.506s] [ 97%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_c.c.o
+[153.682s] [ 99%] Linking C shared library rosidl_generator_py/aimee_msgs/aimee_msgs_s__rosidl_typesupport_introspection_c.cpython-310-aarch64-linux-gnu.so
+[153.683s] [ 99%] Linking C shared library rosidl_generator_py/aimee_msgs/aimee_msgs_s__rosidl_typesupport_c.cpython-310-aarch64-linux-gnu.so
+[153.731s] [100%] Linking C shared library rosidl_generator_py/aimee_msgs/aimee_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-aarch64-linux-gnu.so
+[154.206s] [100%] Built target aimee_msgs__rosidl_typesupport_c__pyext
+[154.208s] [100%] Built target aimee_msgs__rosidl_typesupport_introspection_c__pyext
+[154.257s] [100%] Built target aimee_msgs__rosidl_typesupport_fastrtps_c__pyext
+[154.324s] Invoked command in '/workspace/build/aimee_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /workspace/build/aimee_msgs -- -j4 -l4
+[154.376s] Invoking command in '/workspace/build/aimee_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /workspace/build/aimee_msgs
+[154.417s] -- Install configuration: ""
+[154.423s] -- Execute custom install script
+[154.424s] -- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/rosidl_interfaces/aimee_msgs
+[154.468s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__functions.h
+[154.505s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__struct.h
+[154.544s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__type_support.h
+[154.582s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__functions.h
+[154.619s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__struct.h
+[154.657s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__type_support.h
+[154.696s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/execute_skill.h
+[154.735s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/llm_generate.h
+[154.773s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/camera_action.h
+[154.812s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__functions.h
+[154.850s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__struct.h
+[154.892s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__type_support.h
+[154.931s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__functions.h
+[154.970s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__struct.h
+[155.008s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__type_support.h
+[155.048s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__functions.h
+[155.087s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__struct.h
+[155.126s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__type_support.h
+[155.164s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__functions.h
+[155.202s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__struct.h
+[155.242s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__type_support.h
+[155.280s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__functions.h
+[155.318s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__struct.h
+[155.356s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__type_support.h
+[155.396s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__functions.h
+[155.434s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__struct.h
+[155.472s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__type_support.h
+[155.510s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__functions.h
+[155.550s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__struct.h
+[155.590s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__type_support.h
+[155.630s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__functions.h
+[155.668s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__struct.h
+[155.706s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__type_support.h
+[155.744s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__functions.h
+[155.783s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__struct.h
+[155.821s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__type_support.h
+[155.863s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/face_detection.h
+[155.901s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/intent.h
+[155.943s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/led_action.h
+[155.980s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/motor_action.h
+[156.019s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/robot_state.h
+[156.058s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_generator_c__visibility_control.h
+[156.098s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/tracking_command.h
+[156.135s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/transcription.h
+[156.181s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/wake_word_detection.h
+[156.221s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/library_path.sh
+[156.261s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/library_path.dsv
+[156.306s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_fastrtps_c.h
+[156.354s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_fastrtps_c.h
+[156.395s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_fastrtps_c.h
+[156.432s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__rosidl_typesupport_fastrtps_c.h
+[156.471s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h
+[156.508s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__rosidl_typesupport_fastrtps_c.h
+[156.547s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__rosidl_typesupport_fastrtps_c.h
+[156.588s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_fastrtps_c.h
+[156.628s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__rosidl_typesupport_fastrtps_c.h
+[156.669s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__rosidl_typesupport_fastrtps_c.h
+[156.708s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__rosidl_typesupport_fastrtps_c.h
+[156.752s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[156.796s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_introspection_c.h
+[156.840s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_introspection_c.h
+[156.890s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_introspection_c.h
+[156.936s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__rosidl_typesupport_introspection_c.h
+[156.982s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__rosidl_typesupport_introspection_c.h
+[157.029s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__rosidl_typesupport_introspection_c.h
+[157.072s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__rosidl_typesupport_introspection_c.h
+[157.115s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_introspection_c.h
+[157.160s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__rosidl_typesupport_introspection_c.h
+[157.204s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__rosidl_typesupport_introspection_c.h
+[157.249s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__rosidl_typesupport_introspection_c.h
+[157.292s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[157.346s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__builder.hpp
+[157.391s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__struct.hpp
+[157.436s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__traits.hpp
+[157.482s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__type_support.hpp
+[157.525s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__builder.hpp
+[157.569s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__struct.hpp
+[157.611s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__traits.hpp
+[157.654s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__type_support.hpp
+[157.699s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/execute_skill.hpp
+[157.742s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/llm_generate.hpp
+[157.786s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/camera_action.hpp
+[157.833s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__builder.hpp
+[157.874s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__struct.hpp
+[157.920s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__traits.hpp
+[157.966s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__type_support.hpp
+[158.010s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__builder.hpp
+[158.056s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__struct.hpp
+[158.100s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__traits.hpp
+[158.143s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__type_support.hpp
+[158.188s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__builder.hpp
+[158.232s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__struct.hpp
+[158.278s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__traits.hpp
+[158.322s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__type_support.hpp
+[158.366s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__builder.hpp
+[158.411s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__struct.hpp
+[158.455s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__traits.hpp
+[158.501s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__type_support.hpp
+[158.546s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__builder.hpp
+[158.590s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__struct.hpp
+[158.633s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__traits.hpp
+[158.678s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__type_support.hpp
+[158.722s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__builder.hpp
+[158.766s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__struct.hpp
+[158.809s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__traits.hpp
+[158.852s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__type_support.hpp
+[158.897s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__builder.hpp
+[158.943s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__struct.hpp
+[158.990s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__traits.hpp
+[159.034s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__type_support.hpp
+[159.081s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__builder.hpp
+[159.124s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__struct.hpp
+[159.167s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__traits.hpp
+[159.212s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__type_support.hpp
+[159.255s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__builder.hpp
+[159.298s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__struct.hpp
+[159.341s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__traits.hpp
+[159.385s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__type_support.hpp
+[159.429s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/face_detection.hpp
+[159.473s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/intent.hpp
+[159.516s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/led_action.hpp
+[159.565s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/motor_action.hpp
+[159.609s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/robot_state.hpp
+[159.652s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_generator_cpp__visibility_control.hpp
+[159.696s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/tracking_command.hpp
+[159.739s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/transcription.hpp
+[159.784s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/wake_word_detection.hpp
+[159.833s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_fastrtps_cpp.hpp
+[159.877s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_fastrtps_cpp.hpp
+[159.923s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_fastrtps_cpp.hpp
+[159.968s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__rosidl_typesupport_fastrtps_cpp.hpp
+[160.012s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_cpp.hpp
+[160.058s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__rosidl_typesupport_fastrtps_cpp.hpp
+[160.101s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__rosidl_typesupport_fastrtps_cpp.hpp
+[160.146s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_fastrtps_cpp.hpp
+[160.192s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__rosidl_typesupport_fastrtps_cpp.hpp
+[160.235s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__rosidl_typesupport_fastrtps_cpp.hpp
+[160.278s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__rosidl_typesupport_fastrtps_cpp.hpp
+[160.324s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[160.370s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_introspection_cpp.hpp
+[160.414s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_introspection_cpp.hpp
+[160.458s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_introspection_cpp.hpp
+[160.503s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__rosidl_typesupport_introspection_cpp.hpp
+[160.548s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__rosidl_typesupport_introspection_cpp.hpp
+[160.592s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__rosidl_typesupport_introspection_cpp.hpp
+[160.636s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__rosidl_typesupport_introspection_cpp.hpp
+[160.681s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_introspection_cpp.hpp
+[160.725s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__rosidl_typesupport_introspection_cpp.hpp
+[160.769s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__rosidl_typesupport_introspection_cpp.hpp
+[160.814s] -- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__rosidl_typesupport_introspection_cpp.hpp
+[160.860s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/pythonpath.sh
+[160.904s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/pythonpath.dsv
+[160.949s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info/PKG-INFO
+[160.992s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info/SOURCES.txt
+[161.037s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info/dependency_links.txt
+[161.080s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info/top_level.txt
+[161.129s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/__init__.py
+[161.179s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_c.c
+[161.225s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
+[161.268s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_introspection_c.c
+[161.312s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/__init__.py
+[161.357s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_execute_skill.py
+[161.400s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_execute_skill_s.c
+[161.444s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_llm_generate.py
+[161.487s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_llm_generate_s.c
+[161.531s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_c.cpython-310-aarch64-linux-gnu.so
+[161.574s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-aarch64-linux-gnu.so
+[161.619s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_introspection_c.cpython-310-aarch64-linux-gnu.so
+[161.663s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/libaimee_msgs__rosidl_generator_py.so
+[161.710s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/__init__.py
+[161.752s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_camera_action.py
+[161.795s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_camera_action_s.c
+[161.840s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_face_detection.py
+[161.883s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_face_detection_s.c
+[161.930s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_intent.py
+[161.974s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_intent_s.c
+[162.018s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_led_action.py
+[162.063s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_led_action_s.c
+[162.106s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_motor_action.py
+[162.150s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_motor_action_s.c
+[162.195s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_robot_state.py
+[162.240s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_robot_state_s.c
+[162.284s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_tracking_command.py
+[162.328s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_tracking_command_s.c
+[162.372s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_transcription.py
+[162.416s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_transcription_s.c
+[162.460s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_wake_word_detection.py
+[162.515s] -- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_wake_word_detection_s.c
+[162.567s] -- Up-to-date symlink: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-aarch64-linux-gnu.so
+[162.572s] -- Up-to-date symlink: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_introspection_c.cpython-310-aarch64-linux-gnu.so
+[162.576s] -- Up-to-date symlink: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_c.cpython-310-aarch64-linux-gnu.so
+[162.579s] -- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/rust_packages/aimee_msgs
+[162.630s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/Cargo.toml
+[162.673s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/build.rs
+[162.719s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/action.rs
+[162.764s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/action/rmw.rs
+[162.812s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/lib.rs
+[162.852s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/msg.rs
+[162.896s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/msg/rmw.rs
+[162.941s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/Intent.idl
+[162.985s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/Transcription.idl
+[163.028s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/RobotState.idl
+[163.075s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/FaceDetection.idl
+[163.121s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/TrackingCommand.idl
+[163.167s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/WakeWordDetection.idl
+[163.212s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/MotorAction.idl
+[163.256s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/CameraAction.idl
+[163.301s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/LEDAction.idl
+[163.345s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/action/LLMGenerate.idl
+[163.389s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/action/ExecuteSkill.idl
+[163.435s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/Intent.msg
+[163.479s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/Transcription.msg
+[163.524s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/RobotState.msg
+[163.570s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/FaceDetection.msg
+[163.615s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/TrackingCommand.msg
+[163.658s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/WakeWordDetection.msg
+[163.701s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/MotorAction.msg
+[163.748s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/CameraAction.msg
+[163.791s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/LEDAction.msg
+[163.835s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/action/LLMGenerate.action
+[163.880s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/action/ExecuteSkill.action
+[163.926s] -- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/package_run_dependencies/aimee_msgs
+[163.972s] -- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/parent_prefix_path/aimee_msgs
+[164.017s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/ament_prefix_path.sh
+[164.061s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/ament_prefix_path.dsv
+[164.106s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/path.sh
+[164.151s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/path.dsv
+[164.197s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/local_setup.bash
+[164.243s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/local_setup.sh
+[164.287s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/local_setup.zsh
+[164.331s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/local_setup.dsv
+[164.375s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/package.dsv
+[164.421s] -- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/packages/aimee_msgs
+[164.467s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/rosidl_cmake-extras.cmake
+[164.513s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/ament_cmake_export_dependencies-extras.cmake
+[164.557s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/ament_cmake_export_include_directories-extras.cmake
+[164.603s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/ament_cmake_export_libraries-extras.cmake
+[164.648s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/ament_cmake_export_targets-extras.cmake
+[164.692s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[164.739s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[164.785s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgsConfig.cmake
+[164.829s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgsConfig-version.cmake
+[164.874s] -- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/package.xml
+[164.920s] -- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_generator_c.so
+[164.927s] -- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_generator_c.so" to ""
+[164.928s] -- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_fastrtps_c.so
+[164.934s] -- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_fastrtps_c.so" to ""
+[164.935s] -- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_introspection_c.so
+[164.938s] -- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_introspection_c.so" to ""
+[164.939s] -- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_c.so
+[164.946s] -- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_c.so" to ""
+[164.947s] -- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_fastrtps_cpp.so
+[164.950s] -- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_fastrtps_cpp.so" to ""
+[164.951s] -- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_introspection_cpp.so
+[164.957s] -- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_introspection_cpp.so" to ""
+[164.958s] -- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_cpp.so
+[164.961s] -- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_cpp.so" to ""
+[165.361s] Listing '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs'...
+[165.362s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/__init__.py'...
+[165.362s] Listing '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action'...
+[165.363s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/__init__.py'...
+[165.363s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_execute_skill.py'...
+[165.364s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_llm_generate.py'...
+[165.364s] Listing '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg'...
+[165.365s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/__init__.py'...
+[165.365s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_camera_action.py'...
+[165.366s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_face_detection.py'...
+[165.367s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_intent.py'...
+[165.367s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_led_action.py'...
+[165.368s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_motor_action.py'...
+[165.369s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_robot_state.py'...
+[165.370s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_tracking_command.py'...
+[165.370s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_transcription.py'...
+[165.371s] Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_wake_word_detection.py'...
+[165.417s] -- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_generator_py.so
+[165.422s] -- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_generator_py.so" to ""
+[165.424s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_cExport.cmake
+[165.430s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_cExport-noconfig.cmake
+[165.435s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_typesupport_fastrtps_cExport.cmake
+[165.437s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[165.440s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_introspection_cExport.cmake
+[165.443s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[165.446s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_cExport.cmake
+[165.449s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_cExport-noconfig.cmake
+[165.452s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_cppExport.cmake
+[165.455s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_typesupport_fastrtps_cppExport.cmake
+[165.458s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[165.460s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_introspection_cppExport.cmake
+[165.463s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[165.464s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_cppExport.cmake
+[165.468s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_cppExport-noconfig.cmake
+[165.469s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_pyExport.cmake
+[165.471s] -- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_pyExport-noconfig.cmake
+[165.498s] Invoked command in '/workspace/build/aimee_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /workspace/build/aimee_msgs

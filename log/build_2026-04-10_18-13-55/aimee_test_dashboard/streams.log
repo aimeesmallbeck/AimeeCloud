@@ -1,0 +1,29 @@
+[10.964s] Invoking command in '/workspace/build/aimee_test_dashboard': AMENT_PREFIX_PATH=/workspace/install/aimee_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/workspace/install/aimee_msgs LD_LIBRARY_PATH=/workspace/install/aimee_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/workspace/build/aimee_test_dashboard/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_test_dashboard/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspace/build/aimee_test_dashboard/build --no-deps symlink_data
+[13.132s] running develop
+[14.546s] running egg_info
+[14.547s] creating aimee_test_dashboard.egg-info
+[14.552s] writing aimee_test_dashboard.egg-info/PKG-INFO
+[14.560s] writing dependency_links to aimee_test_dashboard.egg-info/dependency_links.txt
+[14.560s] writing entry points to aimee_test_dashboard.egg-info/entry_points.txt
+[14.562s] writing requirements to aimee_test_dashboard.egg-info/requires.txt
+[14.563s] writing top-level names to aimee_test_dashboard.egg-info/top_level.txt
+[14.568s] writing manifest file 'aimee_test_dashboard.egg-info/SOURCES.txt'
+[14.600s] reading manifest file 'aimee_test_dashboard.egg-info/SOURCES.txt'
+[14.611s] writing manifest file 'aimee_test_dashboard.egg-info/SOURCES.txt'
+[14.635s] running build_ext
+[14.641s] Creating /workspace/install/aimee_test_dashboard/lib/python3.10/site-packages/aimee-test-dashboard.egg-link (link to .)
+[14.662s] Installing dashboard_node script to /workspace/install/aimee_test_dashboard/lib/aimee_test_dashboard
+[14.675s] 
+[14.676s] Installed /workspace/build/aimee_test_dashboard
+[14.677s] running symlink_data
+[14.682s] creating /workspace/install/aimee_test_dashboard/share/ament_index
+[14.683s] creating /workspace/install/aimee_test_dashboard/share/ament_index/resource_index
+[14.684s] creating /workspace/install/aimee_test_dashboard/share/ament_index/resource_index/packages
+[14.689s] symbolically linking /workspace/build/aimee_test_dashboard/resource/aimee_test_dashboard -> /workspace/install/aimee_test_dashboard/share/ament_index/resource_index/packages
+[14.690s] symbolically linking /workspace/build/aimee_test_dashboard/package.xml -> /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard
+[14.691s] creating /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/config
+[14.692s] symbolically linking /workspace/build/aimee_test_dashboard/config/brick_config.yaml -> /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/config
+[14.693s] creating /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/web
+[14.702s] creating /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/web/templates
+[14.703s] symbolically linking /workspace/build/aimee_test_dashboard/aimee_test_dashboard/web/templates/index.html -> /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/web/templates
+[15.218s] Invoked command in '/workspace/build/aimee_test_dashboard' returned '0': AMENT_PREFIX_PATH=/workspace/install/aimee_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/workspace/install/aimee_msgs LD_LIBRARY_PATH=/workspace/install/aimee_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/workspace/build/aimee_test_dashboard/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_test_dashboard/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspace/build/aimee_test_dashboard/build --no-deps symlink_data

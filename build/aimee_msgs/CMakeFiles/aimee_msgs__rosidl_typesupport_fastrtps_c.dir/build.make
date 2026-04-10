@@ -84,6 +84,8 @@ rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_f
 rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h: rosidl_adapter/aimee_msgs/msg/TrackingCommand.idl
 rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h: rosidl_adapter/aimee_msgs/msg/WakeWordDetection.idl
 rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h: rosidl_adapter/aimee_msgs/msg/MotorAction.idl
+rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h: rosidl_adapter/aimee_msgs/msg/CameraAction.idl
+rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h: rosidl_adapter/aimee_msgs/msg/LEDAction.idl
 rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h: rosidl_adapter/aimee_msgs/action/LLMGenerate.idl
 rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h: rosidl_adapter/aimee_msgs/action/ExecuteSkill.idl
 rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h: /opt/ros/humble/share/builtin_interfaces/msg/Duration.idl
@@ -235,6 +237,18 @@ rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__rosidl_typesup
 rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp
 
+rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_fastrtps_c.h: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_fastrtps_c.h
+
+rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp
+
+rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__rosidl_typesupport_fastrtps_c.h: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__rosidl_typesupport_fastrtps_c.h
+
+rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp
+
 rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_fastrtps_c.h: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_fastrtps_c.h
 
@@ -345,10 +359,38 @@ CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fast
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp -o CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp.s
 
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/flags.make
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o -MF CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o.d -o CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o -c /workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp
+
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp > CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.i
+
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp -o CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.s
+
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/flags.make
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o -MF CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o.d -o CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o -c /workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp
+
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp > CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.i
+
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp -o CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.s
+
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/flags.make
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o: rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o -MF CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o.d -o CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o -c /workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp
 
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.i: cmake_force
@@ -362,7 +404,7 @@ CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fast
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/flags.make
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o: rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o -MF CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o.d -o CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o -c /workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp
 
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.i: cmake_force
@@ -382,6 +424,8 @@ aimee_msgs__rosidl_typesupport_fastrtps_c_OBJECTS = \
 "CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/tracking_command__type_support_c.cpp.o" \
 "CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/wake_word_detection__type_support_c.cpp.o" \
 "CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp.o" \
+"CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o" \
+"CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o" \
 "CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o" \
 "CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o"
 
@@ -395,6 +439,8 @@ libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_t
 libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/tracking_command__type_support_c.cpp.o
 libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/wake_word_detection__type_support_c.cpp.o
 libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp.o
+libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o
+libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o
 libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o
 libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o
 libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/build.make
@@ -420,7 +466,7 @@ libaimee_msgs__rosidl_typesupport_fastrtps_c.so: /opt/ros/humble/lib/libunique_i
 libaimee_msgs__rosidl_typesupport_fastrtps_c.so: /opt/ros/humble/lib/librosidl_runtime_c.so
 libaimee_msgs__rosidl_typesupport_fastrtps_c.so: /opt/ros/humble/lib/librcutils.so
 libaimee_msgs__rosidl_typesupport_fastrtps_c.so: CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX shared library libaimee_msgs__rosidl_typesupport_fastrtps_c.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/workspace/build/aimee_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Linking CXX shared library libaimee_msgs__rosidl_typesupport_fastrtps_c.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -435,10 +481,14 @@ CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupp
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_fastrtps_c.h
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_fastrtps_c.h
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/face_detection__rosidl_typesupport_fastrtps_c.h
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/face_detection__type_support_c.cpp
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__type_support_c.cpp
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__rosidl_typesupport_fastrtps_c.h
+CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__rosidl_typesupport_fastrtps_c.h
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp
 CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/depend: rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_fastrtps_c.h

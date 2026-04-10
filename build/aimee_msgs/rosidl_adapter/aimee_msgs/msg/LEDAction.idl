@@ -1,0 +1,29 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from aimee_msgs/msg/LEDAction.msg
+// generated code does not contain a copyright notice
+
+
+module aimee_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "LED action performed by a skill" "\n"
+      "Published in ExecuteSkill result")
+    struct LEDAction {
+      @verbatim (language="comment", text=
+        "Which LED (matrix, status, etc.)")
+      string led_id;
+
+      @verbatim (language="comment", text=
+        "RGB color values")
+      sequence<uint8> color;
+
+      @verbatim (language="comment", text=
+        "solid, blink, pulse, rainbow")
+      string pattern;
+
+      @verbatim (language="comment", text=
+        "How long to display")
+      float duration_sec;
+    };
+  };
+};

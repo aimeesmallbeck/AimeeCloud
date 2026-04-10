@@ -1,0 +1,26 @@
+[6.125s] Invoking command in '/workspace/build/aimee_voice_manager': AMENT_PREFIX_PATH=/workspace/install/aimee_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/workspace/install/aimee_msgs LD_LIBRARY_PATH=/workspace/install/aimee_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/workspace/build/aimee_voice_manager/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_voice_manager/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspace/build/aimee_voice_manager/build --no-deps symlink_data
+[8.079s] running develop
+[9.321s] running egg_info
+[9.337s] creating aimee_voice_manager.egg-info
+[9.338s] writing aimee_voice_manager.egg-info/PKG-INFO
+[9.355s] writing dependency_links to aimee_voice_manager.egg-info/dependency_links.txt
+[9.356s] writing entry points to aimee_voice_manager.egg-info/entry_points.txt
+[9.357s] writing requirements to aimee_voice_manager.egg-info/requires.txt
+[9.358s] writing top-level names to aimee_voice_manager.egg-info/top_level.txt
+[9.361s] writing manifest file 'aimee_voice_manager.egg-info/SOURCES.txt'
+[9.362s] reading manifest file 'aimee_voice_manager.egg-info/SOURCES.txt'
+[9.363s] writing manifest file 'aimee_voice_manager.egg-info/SOURCES.txt'
+[9.380s] running build_ext
+[9.381s] Creating /workspace/install/aimee_voice_manager/lib/python3.10/site-packages/aimee-voice-manager.egg-link (link to .)
+[9.392s] Installing voice_manager_node script to /workspace/install/aimee_voice_manager/lib/aimee_voice_manager
+[9.395s] 
+[9.398s] Installed /workspace/build/aimee_voice_manager
+[9.400s] running symlink_data
+[9.401s] creating /workspace/install/aimee_voice_manager/share/ament_index
+[9.402s] creating /workspace/install/aimee_voice_manager/share/ament_index/resource_index
+[9.404s] creating /workspace/install/aimee_voice_manager/share/ament_index/resource_index/packages
+[9.405s] symbolically linking /workspace/build/aimee_voice_manager/resource/aimee_voice_manager -> /workspace/install/aimee_voice_manager/share/ament_index/resource_index/packages
+[9.406s] symbolically linking /workspace/build/aimee_voice_manager/package.xml -> /workspace/install/aimee_voice_manager/share/aimee_voice_manager
+[9.408s] creating /workspace/install/aimee_voice_manager/share/aimee_voice_manager/config
+[9.409s] symbolically linking /workspace/build/aimee_voice_manager/config/brick_config.yaml -> /workspace/install/aimee_voice_manager/share/aimee_voice_manager/config
+[9.716s] Invoked command in '/workspace/build/aimee_voice_manager' returned '0': AMENT_PREFIX_PATH=/workspace/install/aimee_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/workspace/install/aimee_msgs LD_LIBRARY_PATH=/workspace/install/aimee_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/workspace/build/aimee_voice_manager/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_voice_manager/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspace/build/aimee_voice_manager/build --no-deps symlink_data

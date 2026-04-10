@@ -732,3 +732,165 @@ impl rosidl_runtime_rs::RmwMessage for MotorAction where Self: Sized {
 }
 
 
+#[link(name = "aimee_msgs__rosidl_typesupport_c")]
+extern "C" {
+    fn rosidl_typesupport_c__get_message_type_support_handle__aimee_msgs__msg__CameraAction() -> *const std::ffi::c_void;
+}
+
+#[link(name = "aimee_msgs__rosidl_generator_c")]
+extern "C" {
+    fn aimee_msgs__msg__CameraAction__init(msg: *mut CameraAction) -> bool;
+    fn aimee_msgs__msg__CameraAction__Sequence__init(seq: *mut rosidl_runtime_rs::Sequence<CameraAction>, size: usize) -> bool;
+    fn aimee_msgs__msg__CameraAction__Sequence__fini(seq: *mut rosidl_runtime_rs::Sequence<CameraAction>);
+    fn aimee_msgs__msg__CameraAction__Sequence__copy(in_seq: &rosidl_runtime_rs::Sequence<CameraAction>, out_seq: *mut rosidl_runtime_rs::Sequence<CameraAction>) -> bool;
+}
+
+// Corresponds to aimee_msgs__msg__CameraAction
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+
+/// Camera action performed by a skill
+/// Published in ExecuteSkill result
+
+#[repr(C)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct CameraAction {
+    /// track_face, stop_tracking, look_at_me, etc.
+    pub action_type: rosidl_runtime_rs::String,
+
+    /// Target object/person
+    pub target: rosidl_runtime_rs::String,
+
+    /// Detection confidence
+    pub confidence: f32,
+
+
+    // This member is not documented.
+    #[allow(missing_docs)]
+    pub execution_time: builtin_interfaces::msg::rmw::Duration,
+
+}
+
+
+
+impl Default for CameraAction {
+  fn default() -> Self {
+    unsafe {
+      let mut msg = std::mem::zeroed();
+      if !aimee_msgs__msg__CameraAction__init(&mut msg as *mut _) {
+        panic!("Call to aimee_msgs__msg__CameraAction__init() failed");
+      }
+      msg
+    }
+  }
+}
+
+impl rosidl_runtime_rs::SequenceAlloc for CameraAction {
+  fn sequence_init(seq: &mut rosidl_runtime_rs::Sequence<Self>, size: usize) -> bool {
+    // SAFETY: This is safe since the pointer is guaranteed to be valid/initialized.
+    unsafe { aimee_msgs__msg__CameraAction__Sequence__init(seq as *mut _, size) }
+  }
+  fn sequence_fini(seq: &mut rosidl_runtime_rs::Sequence<Self>) {
+    // SAFETY: This is safe since the pointer is guaranteed to be valid/initialized.
+    unsafe { aimee_msgs__msg__CameraAction__Sequence__fini(seq as *mut _) }
+  }
+  fn sequence_copy(in_seq: &rosidl_runtime_rs::Sequence<Self>, out_seq: &mut rosidl_runtime_rs::Sequence<Self>) -> bool {
+    // SAFETY: This is safe since the pointer is guaranteed to be valid/initialized.
+    unsafe { aimee_msgs__msg__CameraAction__Sequence__copy(in_seq, out_seq as *mut _) }
+  }
+}
+
+impl rosidl_runtime_rs::Message for CameraAction {
+  type RmwMsg = Self;
+  fn into_rmw_message(msg_cow: std::borrow::Cow<'_, Self>) -> std::borrow::Cow<'_, Self::RmwMsg> { msg_cow }
+  fn from_rmw_message(msg: Self::RmwMsg) -> Self { msg }
+}
+
+impl rosidl_runtime_rs::RmwMessage for CameraAction where Self: Sized {
+  const TYPE_NAME: &'static str = "aimee_msgs/msg/CameraAction";
+  fn get_type_support() -> *const std::ffi::c_void {
+    // SAFETY: No preconditions for this function.
+    unsafe { rosidl_typesupport_c__get_message_type_support_handle__aimee_msgs__msg__CameraAction() }
+  }
+}
+
+
+#[link(name = "aimee_msgs__rosidl_typesupport_c")]
+extern "C" {
+    fn rosidl_typesupport_c__get_message_type_support_handle__aimee_msgs__msg__LEDAction() -> *const std::ffi::c_void;
+}
+
+#[link(name = "aimee_msgs__rosidl_generator_c")]
+extern "C" {
+    fn aimee_msgs__msg__LEDAction__init(msg: *mut LEDAction) -> bool;
+    fn aimee_msgs__msg__LEDAction__Sequence__init(seq: *mut rosidl_runtime_rs::Sequence<LEDAction>, size: usize) -> bool;
+    fn aimee_msgs__msg__LEDAction__Sequence__fini(seq: *mut rosidl_runtime_rs::Sequence<LEDAction>);
+    fn aimee_msgs__msg__LEDAction__Sequence__copy(in_seq: &rosidl_runtime_rs::Sequence<LEDAction>, out_seq: *mut rosidl_runtime_rs::Sequence<LEDAction>) -> bool;
+}
+
+// Corresponds to aimee_msgs__msg__LEDAction
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+
+/// LED action performed by a skill
+/// Published in ExecuteSkill result
+
+#[repr(C)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct LEDAction {
+    /// Which LED (matrix, status, etc.)
+    pub led_id: rosidl_runtime_rs::String,
+
+    /// RGB color values
+    pub color: rosidl_runtime_rs::Sequence<u8>,
+
+    /// solid, blink, pulse, rainbow
+    pub pattern: rosidl_runtime_rs::String,
+
+    /// How long to display
+    pub duration_sec: f32,
+
+}
+
+
+
+impl Default for LEDAction {
+  fn default() -> Self {
+    unsafe {
+      let mut msg = std::mem::zeroed();
+      if !aimee_msgs__msg__LEDAction__init(&mut msg as *mut _) {
+        panic!("Call to aimee_msgs__msg__LEDAction__init() failed");
+      }
+      msg
+    }
+  }
+}
+
+impl rosidl_runtime_rs::SequenceAlloc for LEDAction {
+  fn sequence_init(seq: &mut rosidl_runtime_rs::Sequence<Self>, size: usize) -> bool {
+    // SAFETY: This is safe since the pointer is guaranteed to be valid/initialized.
+    unsafe { aimee_msgs__msg__LEDAction__Sequence__init(seq as *mut _, size) }
+  }
+  fn sequence_fini(seq: &mut rosidl_runtime_rs::Sequence<Self>) {
+    // SAFETY: This is safe since the pointer is guaranteed to be valid/initialized.
+    unsafe { aimee_msgs__msg__LEDAction__Sequence__fini(seq as *mut _) }
+  }
+  fn sequence_copy(in_seq: &rosidl_runtime_rs::Sequence<Self>, out_seq: &mut rosidl_runtime_rs::Sequence<Self>) -> bool {
+    // SAFETY: This is safe since the pointer is guaranteed to be valid/initialized.
+    unsafe { aimee_msgs__msg__LEDAction__Sequence__copy(in_seq, out_seq as *mut _) }
+  }
+}
+
+impl rosidl_runtime_rs::Message for LEDAction {
+  type RmwMsg = Self;
+  fn into_rmw_message(msg_cow: std::borrow::Cow<'_, Self>) -> std::borrow::Cow<'_, Self::RmwMsg> { msg_cow }
+  fn from_rmw_message(msg: Self::RmwMsg) -> Self { msg }
+}
+
+impl rosidl_runtime_rs::RmwMessage for LEDAction where Self: Sized {
+  const TYPE_NAME: &'static str = "aimee_msgs/msg/LEDAction";
+  fn get_type_support() -> *const std::ffi::c_void {
+    // SAFETY: No preconditions for this function.
+    unsafe { rosidl_typesupport_c__get_message_type_support_handle__aimee_msgs__msg__LEDAction() }
+  }
+}
+
+

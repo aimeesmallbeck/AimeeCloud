@@ -1,0 +1,16 @@
+package.xml
+setup.cfg
+setup.py
+aimee_skill_manager/__init__.py
+aimee_skill_manager/skill_manager_node.py
+aimee_skill_manager.egg-info/PKG-INFO
+aimee_skill_manager.egg-info/SOURCES.txt
+aimee_skill_manager.egg-info/dependency_links.txt
+aimee_skill_manager.egg-info/entry_points.txt
+aimee_skill_manager.egg-info/requires.txt
+aimee_skill_manager.egg-info/top_level.txt
+aimee_skill_manager.egg-info/zip-safe
+aimee_skill_manager/brick/__init__.py
+aimee_skill_manager/brick/skill_manager.py
+config/brick_config.yaml
+resource/aimee_skill_manager

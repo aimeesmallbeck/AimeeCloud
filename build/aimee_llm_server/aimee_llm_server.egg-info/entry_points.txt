@@ -1,0 +1,3 @@
+[console_scripts]
+llm_server_node = aimee_llm_server.llm_server_node:main
+

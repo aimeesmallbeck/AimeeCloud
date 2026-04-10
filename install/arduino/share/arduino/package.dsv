@@ -1,0 +1,6 @@
+source;share/arduino/hook/pythonpath.ps1
+source;share/arduino/hook/pythonpath.dsv
+source;share/arduino/hook/pythonpath.sh
+source;../../build/arduino/share/arduino/hook/pythonpath_develop.ps1
+source;../../build/arduino/share/arduino/hook/pythonpath_develop.dsv
+source;../../build/arduino/share/arduino/hook/pythonpath_develop.sh

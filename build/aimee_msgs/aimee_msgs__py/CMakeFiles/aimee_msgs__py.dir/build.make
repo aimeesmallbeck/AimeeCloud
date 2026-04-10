@@ -76,6 +76,8 @@ aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_fa
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_tracking_command.py
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_wake_word_detection.py
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_motor_action.py
+aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_camera_action.py
+aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_led_action.py
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/action/_llm_generate.py
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/action/_execute_skill.py
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/__init__.py
@@ -87,6 +89,8 @@ aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_fa
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_tracking_command_s.c
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_wake_word_detection_s.c
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_motor_action_s.c
+aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_camera_action_s.c
+aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_led_action_s.c
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/action/_llm_generate_s.c
 aimee_msgs__py/CMakeFiles/aimee_msgs__py: rosidl_generator_py/aimee_msgs/action/_execute_skill_s.c
 
@@ -110,6 +114,8 @@ rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c:
 rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/aimee_msgs/msg/TrackingCommand.idl
 rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/aimee_msgs/msg/WakeWordDetection.idl
 rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/aimee_msgs/msg/MotorAction.idl
+rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/aimee_msgs/msg/CameraAction.idl
+rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/aimee_msgs/msg/LEDAction.idl
 rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/aimee_msgs/action/LLMGenerate.idl
 rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/aimee_msgs/action/ExecuteSkill.idl
 rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/builtin_interfaces/msg/Duration.idl
@@ -249,6 +255,12 @@ rosidl_generator_py/aimee_msgs/msg/_wake_word_detection.py: rosidl_generator_py/
 rosidl_generator_py/aimee_msgs/msg/_motor_action.py: rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/aimee_msgs/msg/_motor_action.py
 
+rosidl_generator_py/aimee_msgs/msg/_camera_action.py: rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/aimee_msgs/msg/_camera_action.py
+
+rosidl_generator_py/aimee_msgs/msg/_led_action.py: rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/aimee_msgs/msg/_led_action.py
+
 rosidl_generator_py/aimee_msgs/action/_llm_generate.py: rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/aimee_msgs/action/_llm_generate.py
 
@@ -282,6 +294,12 @@ rosidl_generator_py/aimee_msgs/msg/_wake_word_detection_s.c: rosidl_generator_py
 rosidl_generator_py/aimee_msgs/msg/_motor_action_s.c: rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/aimee_msgs/msg/_motor_action_s.c
 
+rosidl_generator_py/aimee_msgs/msg/_camera_action_s.c: rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/aimee_msgs/msg/_camera_action_s.c
+
+rosidl_generator_py/aimee_msgs/msg/_led_action_s.c: rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/aimee_msgs/msg/_led_action_s.c
+
 rosidl_generator_py/aimee_msgs/action/_llm_generate_s.c: rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/aimee_msgs/action/_llm_generate_s.c
 
@@ -298,10 +316,14 @@ aimee_msgs__py: rosidl_generator_py/aimee_msgs/action/_execute_skill_s.c
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/action/_llm_generate.py
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/action/_llm_generate_s.c
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/__init__.py
+aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_camera_action.py
+aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_camera_action_s.c
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_face_detection.py
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_face_detection_s.c
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_intent.py
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_intent_s.c
+aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_led_action.py
+aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_led_action_s.c
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_motor_action.py
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_motor_action_s.c
 aimee_msgs__py: rosidl_generator_py/aimee_msgs/msg/_robot_state.py

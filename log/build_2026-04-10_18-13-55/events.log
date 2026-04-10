@@ -1,0 +1,2586 @@
+[0.000000] (-) TimerEvent: {}
+[0.002137] (aimee_msgs) JobQueued: {'identifier': 'aimee_msgs', 'dependencies': OrderedDict()}
+[0.002338] (aimee_tts) JobQueued: {'identifier': 'aimee_tts', 'dependencies': OrderedDict()}
+[0.002448] (arduino) JobQueued: {'identifier': 'arduino', 'dependencies': OrderedDict()}
+[0.002543] (aimee_intent_router) JobQueued: {'identifier': 'aimee_intent_router', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.002650] (aimee_llm_server) JobQueued: {'identifier': 'aimee_llm_server', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.002757] (aimee_skill_manager) JobQueued: {'identifier': 'aimee_skill_manager', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.002856] (aimee_test_dashboard) JobQueued: {'identifier': 'aimee_test_dashboard', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.002956] (aimee_voice_manager) JobQueued: {'identifier': 'aimee_voice_manager', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.003056] (aimee_wake_word_ei) JobQueued: {'identifier': 'aimee_wake_word_ei', 'dependencies': OrderedDict([('aimee_msgs', '/workspace/install/aimee_msgs')])}
+[0.003161] (aimee_msgs) JobStarted: {'identifier': 'aimee_msgs'}
+[0.050835] (aimee_tts) JobStarted: {'identifier': 'aimee_tts'}
+[0.081430] (arduino) JobStarted: {'identifier': 'arduino'}
+[0.096883] (-) TimerEvent: {}
+[0.109955] (aimee_msgs) JobProgress: {'identifier': 'aimee_msgs', 'progress': 'cmake'}
+[0.114178] (aimee_msgs) Command: {'cmd': ['/usr/bin/cmake', '/workspace/src/aimee_msgs', '-DAMENT_CMAKE_SYMLINK_INSTALL=1', '-DCMAKE_INSTALL_PREFIX=/workspace/install/aimee_msgs'], 'cwd': '/workspace/build/aimee_msgs', 'env': OrderedDict([('HOSTNAME', 'Ron'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('ROS_PYTHON_VERSION', '3'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('LANG', 'C.UTF-8'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/workspace/build/aimee_msgs'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.197079] (-) TimerEvent: {}
+[0.300726] (-) TimerEvent: {}
+[0.401387] (-) TimerEvent: {}
+[0.502013] (-) TimerEvent: {}
+[0.602610] (-) TimerEvent: {}
+[0.703788] (-) TimerEvent: {}
+[0.804963] (-) TimerEvent: {}
+[0.905616] (-) TimerEvent: {}
+[1.006571] (-) TimerEvent: {}
+[1.107190] (-) TimerEvent: {}
+[1.207756] (-) TimerEvent: {}
+[1.308766] (-) TimerEvent: {}
+[1.409630] (-) TimerEvent: {}
+[1.510718] (-) TimerEvent: {}
+[1.611347] (-) TimerEvent: {}
+[1.712009] (-) TimerEvent: {}
+[1.812958] (-) TimerEvent: {}
+[1.913712] (-) TimerEvent: {}
+[2.014465] (-) TimerEvent: {}
+[2.116133] (-) TimerEvent: {}
+[2.217126] (-) TimerEvent: {}
+[2.320718] (-) TimerEvent: {}
+[2.421347] (-) TimerEvent: {}
+[2.522291] (-) TimerEvent: {}
+[2.623305] (-) TimerEvent: {}
+[2.723924] (-) TimerEvent: {}
+[2.824979] (-) TimerEvent: {}
+[2.925568] (-) TimerEvent: {}
+[3.026604] (-) TimerEvent: {}
+[3.127593] (-) TimerEvent: {}
+[3.228752] (-) TimerEvent: {}
+[3.330095] (-) TimerEvent: {}
+[3.431098] (-) TimerEvent: {}
+[3.531682] (-) TimerEvent: {}
+[3.632295] (-) TimerEvent: {}
+[3.733191] (-) TimerEvent: {}
+[3.833836] (-) TimerEvent: {}
+[3.936783] (-) TimerEvent: {}
+[4.013710] (aimee_msgs) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[4.016108] (aimee_msgs) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[4.018375] (aimee_msgs) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[4.019291] (aimee_msgs) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[4.020163] (aimee_msgs) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[4.022844] (aimee_msgs) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[4.024617] (aimee_msgs) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[4.029903] (aimee_msgs) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[4.031985] (aimee_msgs) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[4.035921] (aimee_msgs) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[4.037008] (-) TimerEvent: {}
+[4.037251] (aimee_msgs) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[4.037998] (aimee_msgs) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[4.038651] (aimee_msgs) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[4.039363] (aimee_msgs) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter \n'}
+[4.040068] (aimee_msgs) StdoutLine: {'line': b'-- Override CMake install command with custom implementation using symlinks instead of copying resources\n'}
+[4.045140] (aimee_msgs) StdoutLine: {'line': b'-- Found rosidl_default_generators: 1.2.1 (/opt/ros/humble/share/rosidl_default_generators/cmake)\n'}
+[4.046890] (aimee_msgs) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[4.047942] (aimee_msgs) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[4.052359] (aimee_msgs) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[4.053529] (aimee_msgs) StdoutLine: {'line': b'-- Found builtin_interfaces: 1.2.2 (/opt/ros/humble/share/builtin_interfaces/cmake)\n'}
+[4.137453] (-) TimerEvent: {}
+[4.140808] (aimee_msgs) StdoutLine: {'line': b'-- Found std_msgs: 4.9.1 (/opt/ros/humble/share/std_msgs/cmake)\n'}
+[4.237764] (-) TimerEvent: {}
+[4.244781] (aimee_msgs) StdoutLine: {'line': b'-- Found geometry_msgs: 4.9.1 (/opt/ros/humble/share/geometry_msgs/cmake)\n'}
+[4.338050] (-) TimerEvent: {}
+[4.350895] (aimee_msgs) StdoutLine: {'line': b'-- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)\n'}
+[4.438353] (-) TimerEvent: {}
+[4.486614] (aimee_msgs) StdoutLine: {'line': b'-- Found nav_msgs: 4.9.1 (/opt/ros/humble/share/nav_msgs/cmake)\n'}
+[4.538620] (-) TimerEvent: {}
+[4.625450] (aimee_msgs) StdoutLine: {'line': b'-- Found action_msgs: 1.2.2 (/opt/ros/humble/share/action_msgs/cmake)\n'}
+[4.639241] (-) TimerEvent: {}
+[4.739935] (-) TimerEvent: {}
+[4.840617] (-) TimerEvent: {}
+[4.941386] (-) TimerEvent: {}
+[5.043256] (-) TimerEvent: {}
+[5.147418] (-) TimerEvent: {}
+[5.248062] (-) TimerEvent: {}
+[5.348719] (-) TimerEvent: {}
+[5.449363] (-) TimerEvent: {}
+[5.550002] (-) TimerEvent: {}
+[5.650646] (-) TimerEvent: {}
+[5.751253] (-) TimerEvent: {}
+[5.851893] (-) TimerEvent: {}
+[5.952547] (-) TimerEvent: {}
+[6.055867] (-) TimerEvent: {}
+[6.156528] (-) TimerEvent: {}
+[6.257682] (-) TimerEvent: {}
+[6.361662] (-) TimerEvent: {}
+[6.462879] (-) TimerEvent: {}
+[6.565172] (-) TimerEvent: {}
+[6.665816] (-) TimerEvent: {}
+[6.705909] (arduino) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/build/arduino/build', '--no-deps'], 'cwd': '/workspace/build/arduino', 'env': {'HOSTNAME': 'Ron', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'PWD': '/workspace/build/arduino', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/build/arduino/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/arduino/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1'}, 'shell': False}
+[6.746732] (aimee_tts) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/build/aimee_tts/build', '--no-deps', 'symlink_data'], 'cwd': '/workspace/build/aimee_tts', 'env': {'HOSTNAME': 'Ron', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'PWD': '/workspace/build/aimee_tts', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/build/aimee_tts/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_tts/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1'}, 'shell': False}
+[6.767531] (-) TimerEvent: {}
+[6.868234] (-) TimerEvent: {}
+[6.972717] (-) TimerEvent: {}
+[7.073319] (-) TimerEvent: {}
+[7.173979] (-) TimerEvent: {}
+[7.274669] (-) TimerEvent: {}
+[7.375271] (-) TimerEvent: {}
+[7.475939] (-) TimerEvent: {}
+[7.576674] (-) TimerEvent: {}
+[7.680410] (-) TimerEvent: {}
+[7.781104] (-) TimerEvent: {}
+[7.881779] (-) TimerEvent: {}
+[7.982410] (-) TimerEvent: {}
+[8.084729] (-) TimerEvent: {}
+[8.185380] (-) TimerEvent: {}
+[8.286100] (-) TimerEvent: {}
+[8.388765] (-) TimerEvent: {}
+[8.461620] (aimee_msgs) StdoutLine: {'line': b'-- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)\n'}
+[8.492735] (-) TimerEvent: {}
+[8.593374] (-) TimerEvent: {}
+[8.694104] (-) TimerEvent: {}
+[8.794805] (-) TimerEvent: {}
+[8.848422] (arduino) StdoutLine: {'line': b'running develop\n'}
+[8.904744] (-) TimerEvent: {}
+[9.008728] (-) TimerEvent: {}
+[9.065578] (aimee_tts) StdoutLine: {'line': b'running develop\n'}
+[9.108952] (-) TimerEvent: {}
+[9.212759] (-) TimerEvent: {}
+[9.313405] (-) TimerEvent: {}
+[9.414085] (-) TimerEvent: {}
+[9.514714] (-) TimerEvent: {}
+[9.615296] (-) TimerEvent: {}
+[9.715947] (-) TimerEvent: {}
+[9.820771] (-) TimerEvent: {}
+[9.921435] (-) TimerEvent: {}
+[10.022061] (-) TimerEvent: {}
+[10.122684] (-) TimerEvent: {}
+[10.170746] (arduino) StdoutLine: {'line': b'running egg_info\n'}
+[10.171811] (arduino) StdoutLine: {'line': b'creating arduino.egg-info\n'}
+[10.173818] (arduino) StdoutLine: {'line': b'writing arduino.egg-info/PKG-INFO\n'}
+[10.176111] (arduino) StdoutLine: {'line': b'writing dependency_links to arduino.egg-info/dependency_links.txt\n'}
+[10.177959] (arduino) StdoutLine: {'line': b'writing top-level names to arduino.egg-info/top_level.txt\n'}
+[10.178797] (arduino) StdoutLine: {'line': b"writing manifest file 'arduino.egg-info/SOURCES.txt'\n"}
+[10.188426] (arduino) StdoutLine: {'line': b"reading manifest file 'arduino.egg-info/SOURCES.txt'\n"}
+[10.192870] (arduino) StdoutLine: {'line': b"writing manifest file 'arduino.egg-info/SOURCES.txt'\n"}
+[10.209815] (arduino) StdoutLine: {'line': b'running build_ext\n'}
+[10.211883] (arduino) StdoutLine: {'line': b'Creating /workspace/install/arduino/lib/python3.10/site-packages/arduino.egg-link (link to .)\n'}
+[10.219984] (arduino) StdoutLine: {'line': b'\n'}
+[10.221239] (arduino) StdoutLine: {'line': b'Installed /workspace/build/arduino\n'}
+[10.222929] (-) TimerEvent: {}
+[10.269511] (aimee_tts) StdoutLine: {'line': b'running egg_info\n'}
+[10.272118] (aimee_tts) StdoutLine: {'line': b'creating aimee_tts.egg-info\n'}
+[10.273278] (aimee_tts) StdoutLine: {'line': b'writing aimee_tts.egg-info/PKG-INFO\n'}
+[10.275987] (aimee_tts) StdoutLine: {'line': b'writing dependency_links to aimee_tts.egg-info/dependency_links.txt\n'}
+[10.278412] (aimee_tts) StdoutLine: {'line': b'writing entry points to aimee_tts.egg-info/entry_points.txt\n'}
+[10.279234] (aimee_tts) StdoutLine: {'line': b'writing requirements to aimee_tts.egg-info/requires.txt\n'}
+[10.280019] (aimee_tts) StdoutLine: {'line': b'writing top-level names to aimee_tts.egg-info/top_level.txt\n'}
+[10.281913] (aimee_tts) StdoutLine: {'line': b"writing manifest file 'aimee_tts.egg-info/SOURCES.txt'\n"}
+[10.292293] (aimee_tts) StdoutLine: {'line': b"reading manifest file 'aimee_tts.egg-info/SOURCES.txt'\n"}
+[10.297702] (aimee_tts) StdoutLine: {'line': b"writing manifest file 'aimee_tts.egg-info/SOURCES.txt'\n"}
+[10.313168] (aimee_tts) StdoutLine: {'line': b'running build_ext\n'}
+[10.315941] (aimee_tts) StdoutLine: {'line': b'Creating /workspace/install/aimee_tts/lib/python3.10/site-packages/aimee-tts.egg-link (link to .)\n'}
+[10.324849] (-) TimerEvent: {}
+[10.330414] (aimee_tts) StdoutLine: {'line': b'Installing tts_node script to /workspace/install/aimee_tts/lib/aimee_tts\n'}
+[10.331438] (aimee_tts) StdoutLine: {'line': b'\n'}
+[10.332264] (aimee_tts) StdoutLine: {'line': b'Installed /workspace/build/aimee_tts\n'}
+[10.336183] (aimee_tts) StdoutLine: {'line': b'running symlink_data\n'}
+[10.337222] (aimee_tts) StdoutLine: {'line': b'creating /workspace/install/aimee_tts/share/ament_index\n'}
+[10.338047] (aimee_tts) StdoutLine: {'line': b'creating /workspace/install/aimee_tts/share/ament_index/resource_index\n'}
+[10.338844] (aimee_tts) StdoutLine: {'line': b'creating /workspace/install/aimee_tts/share/ament_index/resource_index/packages\n'}
+[10.339679] (aimee_tts) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_tts/resource/aimee_tts -> /workspace/install/aimee_tts/share/ament_index/resource_index/packages\n'}
+[10.340587] (aimee_tts) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_tts/package.xml -> /workspace/install/aimee_tts/share/aimee_tts\n'}
+[10.341637] (aimee_tts) StdoutLine: {'line': b'creating /workspace/install/aimee_tts/share/aimee_tts/config\n'}
+[10.342473] (aimee_tts) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_tts/config/brick_config.yaml -> /workspace/install/aimee_tts/share/aimee_tts/config\n'}
+[10.428818] (-) TimerEvent: {}
+[10.529517] (-) TimerEvent: {}
+[10.551164] (arduino) CommandEnded: {'returncode': 0}
+[10.632789] (-) TimerEvent: {}
+[10.659513] (arduino) JobEnded: {'identifier': 'arduino', 'rc': 0}
+[10.670113] (aimee_tts) CommandEnded: {'returncode': 0}
+[10.732075] (aimee_tts) JobEnded: {'identifier': 'aimee_tts', 'rc': 0}
+[10.734417] (-) TimerEvent: {}
+[10.835024] (-) TimerEvent: {}
+[10.926483] (aimee_msgs) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[10.935360] (-) TimerEvent: {}
+[11.036181] (-) TimerEvent: {}
+[11.137165] (-) TimerEvent: {}
+[11.237736] (-) TimerEvent: {}
+[11.338367] (-) TimerEvent: {}
+[11.439378] (-) TimerEvent: {}
+[11.540272] (-) TimerEvent: {}
+[11.641143] (-) TimerEvent: {}
+[11.741993] (-) TimerEvent: {}
+[11.842613] (-) TimerEvent: {}
+[11.943620] (-) TimerEvent: {}
+[12.044742] (-) TimerEvent: {}
+[12.145957] (-) TimerEvent: {}
+[12.246634] (-) TimerEvent: {}
+[12.347456] (-) TimerEvent: {}
+[12.448720] (-) TimerEvent: {}
+[12.549421] (-) TimerEvent: {}
+[12.650029] (-) TimerEvent: {}
+[12.751009] (-) TimerEvent: {}
+[12.851888] (-) TimerEvent: {}
+[12.952687] (-) TimerEvent: {}
+[13.053656] (-) TimerEvent: {}
+[13.154778] (-) TimerEvent: {}
+[13.255765] (-) TimerEvent: {}
+[13.356637] (-) TimerEvent: {}
+[13.386937] (aimee_msgs) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[13.457200] (-) TimerEvent: {}
+[13.487671] (aimee_msgs) StdoutLine: {'line': b'-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.12", minimum required is "3.6") \n'}
+[13.494206] (aimee_msgs) StdoutLine: {'line': b'-- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)\n'}
+[13.557448] (-) TimerEvent: {}
+[13.618043] (aimee_msgs) StdoutLine: {'line': b'-- Found PythonLibs: /usr/lib/aarch64-linux-gnu/libpython3.10.so (found suitable version "3.10.12", minimum required is "3.5") \n'}
+[13.619188] (aimee_msgs) StdoutLine: {'line': b'-- Using PYTHON_EXECUTABLE: /usr/bin/python3\n'}
+[13.620019] (aimee_msgs) StdoutLine: {'line': b'-- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10\n'}
+[13.621041] (aimee_msgs) StdoutLine: {'line': b'-- Using PYTHON_LIBRARIES: /usr/lib/aarch64-linux-gnu/libpython3.10.so\n'}
+[13.657745] (-) TimerEvent: {}
+[13.742469] (aimee_msgs) StdoutLine: {'line': b'-- Found PythonExtra: .so  \n'}
+[13.758048] (-) TimerEvent: {}
+[13.858678] (-) TimerEvent: {}
+[13.959585] (-) TimerEvent: {}
+[14.060387] (-) TimerEvent: {}
+[14.161264] (-) TimerEvent: {}
+[14.261887] (-) TimerEvent: {}
+[14.362721] (-) TimerEvent: {}
+[14.463480] (-) TimerEvent: {}
+[14.564514] (-) TimerEvent: {}
+[14.665294] (-) TimerEvent: {}
+[14.765907] (-) TimerEvent: {}
+[14.866656] (-) TimerEvent: {}
+[14.967359] (-) TimerEvent: {}
+[14.993209] (aimee_msgs) StdoutLine: {'line': b'-- Configuring done\n'}
+[15.067722] (-) TimerEvent: {}
+[15.168861] (-) TimerEvent: {}
+[15.269517] (-) TimerEvent: {}
+[15.370157] (-) TimerEvent: {}
+[15.408828] (aimee_msgs) StdoutLine: {'line': b'-- Generating done\n'}
+[15.470443] (-) TimerEvent: {}
+[15.514147] (aimee_msgs) StdoutLine: {'line': b'-- Build files have been written to: /workspace/build/aimee_msgs\n'}
+[15.570787] (-) TimerEvent: {}
+[15.598663] (aimee_msgs) CommandEnded: {'returncode': 0}
+[15.602241] (aimee_msgs) JobProgress: {'identifier': 'aimee_msgs', 'progress': 'build'}
+[15.607112] (aimee_msgs) Command: {'cmd': ['/usr/bin/cmake', '--build', '/workspace/build/aimee_msgs', '--', '-j4', '-l4'], 'cwd': '/workspace/build/aimee_msgs', 'env': OrderedDict([('HOSTNAME', 'Ron'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('ROS_PYTHON_VERSION', '3'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('LANG', 'C.UTF-8'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/workspace/build/aimee_msgs'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[15.671071] (-) TimerEvent: {}
+[15.772013] (-) TimerEvent: {}
+[15.873089] (-) TimerEvent: {}
+[15.887297] (aimee_msgs) StdoutLine: {'line': b'[  1%] Generating C code for ROS interfaces\n'}
+[15.964780] (aimee_msgs) StdoutLine: {'line': b'[  1%] Generating C++ code for ROS interfaces\n'}
+[15.980769] (-) TimerEvent: {}
+[15.992797] (aimee_msgs) StdoutLine: {'line': b'[  2%] Generating Rust code for ROS interfaces\n'}
+[16.053892] (aimee_msgs) StdoutLine: {'line': b'[  2%] Built target ament_cmake_python_symlink_aimee_msgs\n'}
+[16.084801] (-) TimerEvent: {}
+[16.185410] (-) TimerEvent: {}
+[16.286078] (-) TimerEvent: {}
+[16.386718] (-) TimerEvent: {}
+[16.492753] (-) TimerEvent: {}
+[16.593380] (-) TimerEvent: {}
+[16.694010] (-) TimerEvent: {}
+[16.794649] (-) TimerEvent: {}
+[16.895321] (-) TimerEvent: {}
+[16.995991] (-) TimerEvent: {}
+[17.096666] (-) TimerEvent: {}
+[17.208729] (-) TimerEvent: {}
+[17.309327] (-) TimerEvent: {}
+[17.412715] (-) TimerEvent: {}
+[17.513305] (-) TimerEvent: {}
+[17.613913] (-) TimerEvent: {}
+[17.714544] (-) TimerEvent: {}
+[17.816777] (-) TimerEvent: {}
+[17.917372] (-) TimerEvent: {}
+[18.020736] (-) TimerEvent: {}
+[18.121347] (-) TimerEvent: {}
+[18.221960] (-) TimerEvent: {}
+[18.322626] (-) TimerEvent: {}
+[18.388971] (aimee_msgs) StdoutLine: {'line': b'running egg_info\n'}
+[18.391012] (aimee_msgs) StdoutLine: {'line': b'creating aimee_msgs.egg-info\n'}
+[18.391855] (aimee_msgs) StdoutLine: {'line': b'writing aimee_msgs.egg-info/PKG-INFO\n'}
+[18.398310] (aimee_msgs) StdoutLine: {'line': b'writing dependency_links to aimee_msgs.egg-info/dependency_links.txt\n'}
+[18.399232] (aimee_msgs) StdoutLine: {'line': b'writing top-level names to aimee_msgs.egg-info/top_level.txt\n'}
+[18.399844] (aimee_msgs) StdoutLine: {'line': b"writing manifest file 'aimee_msgs.egg-info/SOURCES.txt'\n"}
+[18.410624] (aimee_msgs) StdoutLine: {'line': b"reading manifest file 'aimee_msgs.egg-info/SOURCES.txt'\n"}
+[18.415773] (aimee_msgs) StdoutLine: {'line': b"writing manifest file 'aimee_msgs.egg-info/SOURCES.txt'\n"}
+[18.422892] (-) TimerEvent: {}
+[18.523543] (-) TimerEvent: {}
+[18.624167] (-) TimerEvent: {}
+[18.688996] (aimee_msgs) StdoutLine: {'line': b'[  2%] Built target ament_cmake_python_build_aimee_msgs_egg\n'}
+[18.724831] (-) TimerEvent: {}
+[18.825433] (-) TimerEvent: {}
+[18.928736] (-) TimerEvent: {}
+[19.029352] (-) TimerEvent: {}
+[19.130029] (-) TimerEvent: {}
+[19.230656] (-) TimerEvent: {}
+[19.331281] (-) TimerEvent: {}
+[19.431918] (-) TimerEvent: {}
+[19.532671] (-) TimerEvent: {}
+[19.636751] (-) TimerEvent: {}
+[19.737379] (-) TimerEvent: {}
+[19.840757] (-) TimerEvent: {}
+[19.944732] (-) TimerEvent: {}
+[20.045315] (-) TimerEvent: {}
+[20.145942] (-) TimerEvent: {}
+[20.246607] (-) TimerEvent: {}
+[20.347823] (-) TimerEvent: {}
+[20.448936] (-) TimerEvent: {}
+[20.549527] (-) TimerEvent: {}
+[20.650118] (-) TimerEvent: {}
+[20.750759] (-) TimerEvent: {}
+[20.851810] (-) TimerEvent: {}
+[20.952439] (-) TimerEvent: {}
+[21.053624] (-) TimerEvent: {}
+[21.154250] (-) TimerEvent: {}
+[21.255179] (-) TimerEvent: {}
+[21.356168] (-) TimerEvent: {}
+[21.457845] (-) TimerEvent: {}
+[21.558456] (-) TimerEvent: {}
+[21.659450] (-) TimerEvent: {}
+[21.760542] (-) TimerEvent: {}
+[21.861128] (-) TimerEvent: {}
+[21.966355] (-) TimerEvent: {}
+[22.066996] (-) TimerEvent: {}
+[22.167626] (-) TimerEvent: {}
+[22.268252] (-) TimerEvent: {}
+[22.371244] (-) TimerEvent: {}
+[22.472209] (-) TimerEvent: {}
+[22.576757] (-) TimerEvent: {}
+[22.677352] (-) TimerEvent: {}
+[22.778273] (-) TimerEvent: {}
+[22.879276] (-) TimerEvent: {}
+[22.984436] (-) TimerEvent: {}
+[23.093612] (-) TimerEvent: {}
+[23.196838] (-) TimerEvent: {}
+[23.297518] (-) TimerEvent: {}
+[23.398146] (-) TimerEvent: {}
+[23.498801] (-) TimerEvent: {}
+[23.599457] (-) TimerEvent: {}
+[23.700084] (-) TimerEvent: {}
+[23.800743] (-) TimerEvent: {}
+[23.901376] (-) TimerEvent: {}
+[24.002027] (-) TimerEvent: {}
+[24.104980] (-) TimerEvent: {}
+[24.205674] (-) TimerEvent: {}
+[24.306335] (-) TimerEvent: {}
+[24.406968] (-) TimerEvent: {}
+[24.507599] (-) TimerEvent: {}
+[24.608269] (-) TimerEvent: {}
+[24.708955] (-) TimerEvent: {}
+[24.809589] (-) TimerEvent: {}
+[24.910172] (-) TimerEvent: {}
+[25.010853] (-) TimerEvent: {}
+[25.111501] (-) TimerEvent: {}
+[25.212149] (-) TimerEvent: {}
+[25.312863] (-) TimerEvent: {}
+[25.413449] (-) TimerEvent: {}
+[25.514109] (-) TimerEvent: {}
+[25.616847] (-) TimerEvent: {}
+[25.717497] (-) TimerEvent: {}
+[25.818349] (-) TimerEvent: {}
+[25.919023] (-) TimerEvent: {}
+[26.019950] (-) TimerEvent: {}
+[26.120636] (-) TimerEvent: {}
+[26.221206] (-) TimerEvent: {}
+[26.325188] (-) TimerEvent: {}
+[26.425758] (-) TimerEvent: {}
+[26.526378] (-) TimerEvent: {}
+[26.627442] (-) TimerEvent: {}
+[26.728092] (-) TimerEvent: {}
+[26.832550] (-) TimerEvent: {}
+[26.934607] (-) TimerEvent: {}
+[27.035183] (-) TimerEvent: {}
+[27.135930] (-) TimerEvent: {}
+[27.237161] (-) TimerEvent: {}
+[27.338686] (-) TimerEvent: {}
+[27.439302] (-) TimerEvent: {}
+[27.539920] (-) TimerEvent: {}
+[27.640615] (-) TimerEvent: {}
+[27.741197] (-) TimerEvent: {}
+[27.841830] (-) TimerEvent: {}
+[27.945217] (-) TimerEvent: {}
+[28.045826] (-) TimerEvent: {}
+[28.146878] (-) TimerEvent: {}
+[28.248582] (-) TimerEvent: {}
+[28.349484] (-) TimerEvent: {}
+[28.450198] (-) TimerEvent: {}
+[28.550887] (-) TimerEvent: {}
+[28.651901] (-) TimerEvent: {}
+[28.752874] (-) TimerEvent: {}
+[28.853680] (-) TimerEvent: {}
+[28.954745] (-) TimerEvent: {}
+[29.055762] (-) TimerEvent: {}
+[29.156718] (-) TimerEvent: {}
+[29.261264] (-) TimerEvent: {}
+[29.361960] (-) TimerEvent: {}
+[29.441029] (aimee_msgs) StdoutLine: {'line': b'[  2%] Built target aimee_msgs__rs\n'}
+[29.462208] (-) TimerEvent: {}
+[29.562874] (-) TimerEvent: {}
+[29.663451] (-) TimerEvent: {}
+[29.764032] (-) TimerEvent: {}
+[29.864664] (-) TimerEvent: {}
+[29.966611] (-) TimerEvent: {}
+[30.069413] (-) TimerEvent: {}
+[30.170022] (-) TimerEvent: {}
+[30.270652] (-) TimerEvent: {}
+[30.376809] (-) TimerEvent: {}
+[30.477465] (-) TimerEvent: {}
+[30.580865] (-) TimerEvent: {}
+[30.681571] (-) TimerEvent: {}
+[30.782141] (-) TimerEvent: {}
+[30.882795] (-) TimerEvent: {}
+[30.983836] (-) TimerEvent: {}
+[31.084581] (-) TimerEvent: {}
+[31.185181] (-) TimerEvent: {}
+[31.285789] (-) TimerEvent: {}
+[31.386384] (-) TimerEvent: {}
+[31.487025] (-) TimerEvent: {}
+[31.587962] (-) TimerEvent: {}
+[31.688899] (-) TimerEvent: {}
+[31.792844] (-) TimerEvent: {}
+[31.893632] (-) TimerEvent: {}
+[31.994218] (-) TimerEvent: {}
+[32.095236] (-) TimerEvent: {}
+[32.196302] (-) TimerEvent: {}
+[32.297424] (-) TimerEvent: {}
+[32.400087] (-) TimerEvent: {}
+[32.501172] (-) TimerEvent: {}
+[32.601754] (-) TimerEvent: {}
+[32.702306] (-) TimerEvent: {}
+[32.804895] (-) TimerEvent: {}
+[32.905534] (-) TimerEvent: {}
+[33.008784] (-) TimerEvent: {}
+[33.109432] (-) TimerEvent: {}
+[33.210086] (-) TimerEvent: {}
+[33.310760] (-) TimerEvent: {}
+[33.411401] (-) TimerEvent: {}
+[33.512050] (-) TimerEvent: {}
+[33.612762] (-) TimerEvent: {}
+[33.716744] (-) TimerEvent: {}
+[33.820788] (-) TimerEvent: {}
+[33.924752] (-) TimerEvent: {}
+[34.028904] (-) TimerEvent: {}
+[34.129636] (-) TimerEvent: {}
+[34.232884] (-) TimerEvent: {}
+[34.336760] (-) TimerEvent: {}
+[34.437475] (-) TimerEvent: {}
+[34.538242] (-) TimerEvent: {}
+[34.638958] (-) TimerEvent: {}
+[34.739679] (-) TimerEvent: {}
+[34.840697] (-) TimerEvent: {}
+[34.941445] (-) TimerEvent: {}
+[35.047704] (-) TimerEvent: {}
+[35.148413] (-) TimerEvent: {}
+[35.249487] (-) TimerEvent: {}
+[35.290669] (aimee_msgs) StdoutLine: {'line': b'[  2%] Built target aimee_msgs__cpp\n'}
+[35.356737] (-) TimerEvent: {}
+[35.388801] (aimee_msgs) StdoutLine: {'line': b'[  3%] Generating C++ type support for eProsima Fast-RTPS\n'}
+[35.445519] (aimee_msgs) StdoutLine: {'line': b'[  4%] Generating C++ type support dispatch for ROS interfaces\n'}
+[35.457003] (-) TimerEvent: {}
+[35.464763] (aimee_msgs) StdoutLine: {'line': b'[  5%] Generating C++ introspection for ROS interfaces\n'}
+[35.557259] (-) TimerEvent: {}
+[35.657909] (-) TimerEvent: {}
+[35.758546] (-) TimerEvent: {}
+[35.860324] (-) TimerEvent: {}
+[35.964757] (-) TimerEvent: {}
+[36.065357] (-) TimerEvent: {}
+[36.165966] (-) TimerEvent: {}
+[36.246316] (aimee_msgs) StdoutLine: {'line': b'[  6%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/intent__functions.c.o\n'}
+[36.266279] (-) TimerEvent: {}
+[36.366925] (-) TimerEvent: {}
+[36.467621] (-) TimerEvent: {}
+[36.568284] (-) TimerEvent: {}
+[36.612726] (aimee_msgs) StdoutLine: {'line': b'[  7%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/transcription__functions.c.o\n'}
+[36.668581] (-) TimerEvent: {}
+[36.772723] (-) TimerEvent: {}
+[36.873336] (-) TimerEvent: {}
+[36.953388] (aimee_msgs) StdoutLine: {'line': b'[  8%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/robot_state__functions.c.o\n'}
+[36.973628] (-) TimerEvent: {}
+[37.074304] (-) TimerEvent: {}
+[37.174995] (-) TimerEvent: {}
+[37.275653] (-) TimerEvent: {}
+[37.328740] (aimee_msgs) StdoutLine: {'line': b'[  9%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/face_detection__functions.c.o\n'}
+[37.375966] (-) TimerEvent: {}
+[37.476650] (-) TimerEvent: {}
+[37.577275] (-) TimerEvent: {}
+[37.648176] (aimee_msgs) StdoutLine: {'line': b'[ 10%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/tracking_command__functions.c.o\n'}
+[37.677575] (-) TimerEvent: {}
+[37.778221] (-) TimerEvent: {}
+[37.878883] (-) TimerEvent: {}
+[37.981246] (-) TimerEvent: {}
+[37.996829] (aimee_msgs) StdoutLine: {'line': b'[ 11%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/wake_word_detection__functions.c.o\n'}
+[38.081511] (-) TimerEvent: {}
+[38.182188] (-) TimerEvent: {}
+[38.282868] (-) TimerEvent: {}
+[38.321454] (aimee_msgs) StdoutLine: {'line': b'[ 11%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/motor_action__functions.c.o\n'}
+[38.383172] (-) TimerEvent: {}
+[38.483842] (-) TimerEvent: {}
+[38.588659] (-) TimerEvent: {}
+[38.636095] (aimee_msgs) StdoutLine: {'line': b'[ 12%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.c.o\n'}
+[38.688906] (-) TimerEvent: {}
+[38.797044] (-) TimerEvent: {}
+[38.897638] (-) TimerEvent: {}
+[38.992826] (aimee_msgs) StdoutLine: {'line': b'[ 13%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/msg/detail/led_action__functions.c.o\n'}
+[38.997934] (-) TimerEvent: {}
+[39.098586] (-) TimerEvent: {}
+[39.199235] (-) TimerEvent: {}
+[39.316914] (-) TimerEvent: {}
+[39.420804] (-) TimerEvent: {}
+[39.441508] (aimee_msgs) StdoutLine: {'line': b'[ 14%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/llm_generate__functions.c.o\n'}
+[39.521076] (-) TimerEvent: {}
+[39.624784] (-) TimerEvent: {}
+[39.725463] (-) TimerEvent: {}
+[39.828752] (-) TimerEvent: {}
+[39.929380] (-) TimerEvent: {}
+[40.030058] (-) TimerEvent: {}
+[40.131768] (-) TimerEvent: {}
+[40.240837] (-) TimerEvent: {}
+[40.341476] (-) TimerEvent: {}
+[40.442168] (-) TimerEvent: {}
+[40.542863] (-) TimerEvent: {}
+[40.643531] (-) TimerEvent: {}
+[40.744217] (-) TimerEvent: {}
+[40.844922] (-) TimerEvent: {}
+[40.855597] (aimee_msgs) StdoutLine: {'line': b'[ 15%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_c.dir/rosidl_generator_c/aimee_msgs/action/detail/execute_skill__functions.c.o\n'}
+[40.948076] (-) TimerEvent: {}
+[41.048753] (-) TimerEvent: {}
+[41.149382] (-) TimerEvent: {}
+[41.250047] (-) TimerEvent: {}
+[41.350726] (-) TimerEvent: {}
+[41.451391] (-) TimerEvent: {}
+[41.552065] (-) TimerEvent: {}
+[41.652737] (-) TimerEvent: {}
+[41.753355] (-) TimerEvent: {}
+[41.854007] (-) TimerEvent: {}
+[41.956765] (-) TimerEvent: {}
+[42.057396] (-) TimerEvent: {}
+[42.092755] (aimee_msgs) StdoutLine: {'line': b'[ 16%] Linking C shared library libaimee_msgs__rosidl_generator_c.so\n'}
+[42.157726] (-) TimerEvent: {}
+[42.258371] (-) TimerEvent: {}
+[42.358947] (-) TimerEvent: {}
+[42.459525] (-) TimerEvent: {}
+[42.468766] (aimee_msgs) StdoutLine: {'line': b'[ 16%] Built target aimee_msgs__rosidl_generator_c\n'}
+[42.522978] (aimee_msgs) StdoutLine: {'line': b'[ 17%] Generating C type support for eProsima Fast-RTPS\n'}
+[42.564766] (-) TimerEvent: {}
+[42.667384] (-) TimerEvent: {}
+[42.768073] (-) TimerEvent: {}
+[42.868738] (-) TimerEvent: {}
+[42.972117] (-) TimerEvent: {}
+[43.072746] (-) TimerEvent: {}
+[43.173349] (-) TimerEvent: {}
+[43.273970] (-) TimerEvent: {}
+[43.374607] (-) TimerEvent: {}
+[43.475220] (-) TimerEvent: {}
+[43.575875] (-) TimerEvent: {}
+[43.676546] (-) TimerEvent: {}
+[43.777755] (-) TimerEvent: {}
+[43.880727] (-) TimerEvent: {}
+[43.981314] (-) TimerEvent: {}
+[44.081924] (-) TimerEvent: {}
+[44.182503] (-) TimerEvent: {}
+[44.283149] (-) TimerEvent: {}
+[44.383790] (-) TimerEvent: {}
+[44.484517] (-) TimerEvent: {}
+[44.588725] (-) TimerEvent: {}
+[44.689343] (-) TimerEvent: {}
+[44.789964] (-) TimerEvent: {}
+[44.890591] (-) TimerEvent: {}
+[44.991413] (-) TimerEvent: {}
+[45.092415] (-) TimerEvent: {}
+[45.193190] (-) TimerEvent: {}
+[45.296741] (-) TimerEvent: {}
+[45.399509] (-) TimerEvent: {}
+[45.500167] (-) TimerEvent: {}
+[45.600806] (-) TimerEvent: {}
+[45.708741] (-) TimerEvent: {}
+[45.811609] (-) TimerEvent: {}
+[45.912728] (-) TimerEvent: {}
+[46.029453] (-) TimerEvent: {}
+[46.132718] (-) TimerEvent: {}
+[46.233389] (-) TimerEvent: {}
+[46.334029] (-) TimerEvent: {}
+[46.434646] (-) TimerEvent: {}
+[46.535311] (-) TimerEvent: {}
+[46.635986] (-) TimerEvent: {}
+[46.736681] (-) TimerEvent: {}
+[46.838065] (-) TimerEvent: {}
+[46.940761] (-) TimerEvent: {}
+[47.041457] (-) TimerEvent: {}
+[47.142116] (-) TimerEvent: {}
+[47.242765] (-) TimerEvent: {}
+[47.343386] (-) TimerEvent: {}
+[47.464802] (-) TimerEvent: {}
+[47.574074] (-) TimerEvent: {}
+[47.674778] (-) TimerEvent: {}
+[47.775493] (-) TimerEvent: {}
+[47.876169] (-) TimerEvent: {}
+[47.976777] (-) TimerEvent: {}
+[48.077408] (-) TimerEvent: {}
+[48.178053] (-) TimerEvent: {}
+[48.278690] (-) TimerEvent: {}
+[48.379354] (-) TimerEvent: {}
+[48.480033] (-) TimerEvent: {}
+[48.580717] (-) TimerEvent: {}
+[48.688747] (-) TimerEvent: {}
+[48.789380] (-) TimerEvent: {}
+[48.891121] (-) TimerEvent: {}
+[48.991767] (-) TimerEvent: {}
+[49.099783] (-) TimerEvent: {}
+[49.200750] (-) TimerEvent: {}
+[49.301374] (-) TimerEvent: {}
+[49.401996] (-) TimerEvent: {}
+[49.502606] (-) TimerEvent: {}
+[49.603225] (-) TimerEvent: {}
+[49.703819] (-) TimerEvent: {}
+[49.804681] (-) TimerEvent: {}
+[49.908353] (-) TimerEvent: {}
+[50.009055] (-) TimerEvent: {}
+[50.110797] (-) TimerEvent: {}
+[50.211947] (-) TimerEvent: {}
+[50.316714] (-) TimerEvent: {}
+[50.417351] (-) TimerEvent: {}
+[50.517947] (-) TimerEvent: {}
+[50.618503] (-) TimerEvent: {}
+[50.719146] (-) TimerEvent: {}
+[50.819807] (-) TimerEvent: {}
+[50.920544] (-) TimerEvent: {}
+[51.026793] (-) TimerEvent: {}
+[51.127535] (-) TimerEvent: {}
+[51.228184] (-) TimerEvent: {}
+[51.328887] (-) TimerEvent: {}
+[51.429495] (-) TimerEvent: {}
+[51.530126] (-) TimerEvent: {}
+[51.630773] (-) TimerEvent: {}
+[51.731397] (-) TimerEvent: {}
+[51.785093] (aimee_msgs) StdoutLine: {'line': b'[ 18%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/intent__type_support.cpp.o\n'}
+[51.832839] (-) TimerEvent: {}
+[51.933458] (-) TimerEvent: {}
+[52.036723] (-) TimerEvent: {}
+[52.137326] (-) TimerEvent: {}
+[52.237989] (-) TimerEvent: {}
+[52.338667] (-) TimerEvent: {}
+[52.439335] (-) TimerEvent: {}
+[52.539996] (-) TimerEvent: {}
+[52.640688] (-) TimerEvent: {}
+[52.744731] (-) TimerEvent: {}
+[52.845366] (-) TimerEvent: {}
+[52.946006] (-) TimerEvent: {}
+[53.046691] (-) TimerEvent: {}
+[53.147439] (-) TimerEvent: {}
+[53.248220] (-) TimerEvent: {}
+[53.352764] (-) TimerEvent: {}
+[53.453412] (-) TimerEvent: {}
+[53.554063] (-) TimerEvent: {}
+[53.654732] (-) TimerEvent: {}
+[53.755407] (-) TimerEvent: {}
+[53.856098] (-) TimerEvent: {}
+[53.960787] (-) TimerEvent: {}
+[54.061500] (-) TimerEvent: {}
+[54.162240] (-) TimerEvent: {}
+[54.262945] (-) TimerEvent: {}
+[54.344798] (aimee_msgs) StdoutLine: {'line': b'[ 19%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/transcription__type_support.cpp.o\n'}
+[54.363240] (-) TimerEvent: {}
+[54.388761] (aimee_msgs) StdoutLine: {'line': b'[ 20%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/intent__type_support.cpp.o\n'}
+[54.463565] (-) TimerEvent: {}
+[54.564234] (-) TimerEvent: {}
+[54.669018] (-) TimerEvent: {}
+[54.769666] (-) TimerEvent: {}
+[54.870344] (-) TimerEvent: {}
+[54.971051] (-) TimerEvent: {}
+[55.071757] (-) TimerEvent: {}
+[55.172527] (-) TimerEvent: {}
+[55.274937] (-) TimerEvent: {}
+[55.375669] (-) TimerEvent: {}
+[55.476402] (-) TimerEvent: {}
+[55.584782] (-) TimerEvent: {}
+[55.685436] (-) TimerEvent: {}
+[55.786148] (-) TimerEvent: {}
+[55.886881] (-) TimerEvent: {}
+[55.996812] (-) TimerEvent: {}
+[56.097445] (-) TimerEvent: {}
+[56.198143] (-) TimerEvent: {}
+[56.298861] (-) TimerEvent: {}
+[56.399559] (-) TimerEvent: {}
+[56.504789] (-) TimerEvent: {}
+[56.605547] (-) TimerEvent: {}
+[56.706199] (-) TimerEvent: {}
+[56.807038] (-) TimerEvent: {}
+[56.912772] (-) TimerEvent: {}
+[57.013480] (-) TimerEvent: {}
+[57.114149] (-) TimerEvent: {}
+[57.172525] (aimee_msgs) StdoutLine: {'line': b'[ 21%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/robot_state__type_support.cpp.o\n'}
+[57.210077] (aimee_msgs) StdoutLine: {'line': b'[ 22%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/intent__type_support.cpp.o\n'}
+[57.214421] (-) TimerEvent: {}
+[57.320725] (-) TimerEvent: {}
+[57.421338] (-) TimerEvent: {}
+[57.522215] (-) TimerEvent: {}
+[57.622896] (-) TimerEvent: {}
+[57.723613] (-) TimerEvent: {}
+[57.824338] (-) TimerEvent: {}
+[57.925397] (-) TimerEvent: {}
+[58.028754] (-) TimerEvent: {}
+[58.131482] (-) TimerEvent: {}
+[58.232214] (-) TimerEvent: {}
+[58.336773] (-) TimerEvent: {}
+[58.437496] (-) TimerEvent: {}
+[58.538207] (-) TimerEvent: {}
+[58.638896] (-) TimerEvent: {}
+[58.664013] (aimee_msgs) StdoutLine: {'line': b'[ 23%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/transcription__type_support.cpp.o\n'}
+[58.740813] (-) TimerEvent: {}
+[58.844683] (-) TimerEvent: {}
+[58.945373] (-) TimerEvent: {}
+[59.046082] (-) TimerEvent: {}
+[59.147295] (-) TimerEvent: {}
+[59.247989] (-) TimerEvent: {}
+[59.348683] (-) TimerEvent: {}
+[59.451548] (-) TimerEvent: {}
+[59.552292] (-) TimerEvent: {}
+[59.653121] (-) TimerEvent: {}
+[59.753848] (-) TimerEvent: {}
+[59.856137] (-) TimerEvent: {}
+[59.956810] (-) TimerEvent: {}
+[60.060940] (-) TimerEvent: {}
+[60.068439] (aimee_msgs) StdoutLine: {'line': b'[ 23%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/face_detection__type_support.cpp.o\n'}
+[60.162823] (-) TimerEvent: {}
+[60.263583] (-) TimerEvent: {}
+[60.368839] (-) TimerEvent: {}
+[60.469538] (-) TimerEvent: {}
+[60.570276] (-) TimerEvent: {}
+[60.671010] (-) TimerEvent: {}
+[60.771746] (-) TimerEvent: {}
+[60.872547] (-) TimerEvent: {}
+[60.973260] (-) TimerEvent: {}
+[61.076822] (-) TimerEvent: {}
+[61.178580] (-) TimerEvent: {}
+[61.279322] (-) TimerEvent: {}
+[61.380061] (-) TimerEvent: {}
+[61.480780] (-) TimerEvent: {}
+[61.550169] (aimee_msgs) StdoutLine: {'line': b'[ 24%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/transcription__type_support.cpp.o\n'}
+[61.581081] (-) TimerEvent: {}
+[61.681799] (-) TimerEvent: {}
+[61.784766] (-) TimerEvent: {}
+[61.885379] (-) TimerEvent: {}
+[61.986027] (-) TimerEvent: {}
+[62.086771] (-) TimerEvent: {}
+[62.187511] (-) TimerEvent: {}
+[62.288853] (-) TimerEvent: {}
+[62.389518] (-) TimerEvent: {}
+[62.409561] (aimee_msgs) StdoutLine: {'line': b'[ 25%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/tracking_command__type_support.cpp.o\n'}
+[62.464789] (aimee_msgs) StdoutLine: {'line': b'[ 26%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/robot_state__type_support.cpp.o\n'}
+[62.489812] (-) TimerEvent: {}
+[62.590519] (-) TimerEvent: {}
+[62.691246] (-) TimerEvent: {}
+[62.792009] (-) TimerEvent: {}
+[62.896782] (-) TimerEvent: {}
+[62.997570] (-) TimerEvent: {}
+[63.099679] (-) TimerEvent: {}
+[63.200516] (-) TimerEvent: {}
+[63.308789] (-) TimerEvent: {}
+[63.409519] (-) TimerEvent: {}
+[63.510241] (-) TimerEvent: {}
+[63.626976] (-) TimerEvent: {}
+[63.727724] (-) TimerEvent: {}
+[63.832770] (-) TimerEvent: {}
+[63.936949] (-) TimerEvent: {}
+[64.052793] (-) TimerEvent: {}
+[64.153507] (-) TimerEvent: {}
+[64.256750] (-) TimerEvent: {}
+[64.360805] (-) TimerEvent: {}
+[64.461536] (-) TimerEvent: {}
+[64.564772] (-) TimerEvent: {}
+[64.657927] (aimee_msgs) StdoutLine: {'line': b'[ 27%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/wake_word_detection__type_support.cpp.o\n'}
+[64.668819] (-) TimerEvent: {}
+[64.769604] (-) TimerEvent: {}
+[64.873345] (-) TimerEvent: {}
+[64.974041] (-) TimerEvent: {}
+[65.074740] (-) TimerEvent: {}
+[65.177552] (-) TimerEvent: {}
+[65.238245] (aimee_msgs) StdoutLine: {'line': b'[ 27%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/intent__type_support_c.cpp.o\n'}
+[65.275760] (-) TimerEvent: {}
+[65.376691] (-) TimerEvent: {}
+[65.480258] (-) TimerEvent: {}
+[65.581090] (-) TimerEvent: {}
+[65.600837] (aimee_msgs) StdoutLine: {'line': b'[ 28%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/robot_state__type_support.cpp.o\n'}
+[65.681408] (-) TimerEvent: {}
+[65.793398] (-) TimerEvent: {}
+[65.894148] (-) TimerEvent: {}
+[65.997908] (-) TimerEvent: {}
+[66.098605] (-) TimerEvent: {}
+[66.200780] (-) TimerEvent: {}
+[66.303709] (-) TimerEvent: {}
+[66.404782] (-) TimerEvent: {}
+[66.508786] (-) TimerEvent: {}
+[66.609506] (-) TimerEvent: {}
+[66.710253] (-) TimerEvent: {}
+[66.746605] (aimee_msgs) StdoutLine: {'line': b'[ 28%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/face_detection__type_support.cpp.o\n'}
+[66.812812] (-) TimerEvent: {}
+[66.913524] (-) TimerEvent: {}
+[67.014241] (-) TimerEvent: {}
+[67.114969] (-) TimerEvent: {}
+[67.215740] (-) TimerEvent: {}
+[67.316553] (-) TimerEvent: {}
+[67.320959] (aimee_msgs) StdoutLine: {'line': b'[ 29%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/motor_action__type_support.cpp.o\n'}
+[67.416783] (-) TimerEvent: {}
+[67.517503] (-) TimerEvent: {}
+[67.618207] (-) TimerEvent: {}
+[67.720787] (-) TimerEvent: {}
+[67.821501] (-) TimerEvent: {}
+[67.922237] (-) TimerEvent: {}
+[68.022969] (-) TimerEvent: {}
+[68.123713] (-) TimerEvent: {}
+[68.224441] (-) TimerEvent: {}
+[68.328776] (-) TimerEvent: {}
+[68.429466] (-) TimerEvent: {}
+[68.539146] (-) TimerEvent: {}
+[68.648283] (-) TimerEvent: {}
+[68.752948] (-) TimerEvent: {}
+[68.853616] (-) TimerEvent: {}
+[68.954418] (-) TimerEvent: {}
+[69.023461] (aimee_msgs) StdoutLine: {'line': b'[ 30%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/transcription__type_support_c.cpp.o\n'}
+[69.060253] (-) TimerEvent: {}
+[69.161286] (-) TimerEvent: {}
+[69.261949] (-) TimerEvent: {}
+[69.365513] (-) TimerEvent: {}
+[69.468761] (-) TimerEvent: {}
+[69.569432] (-) TimerEvent: {}
+[69.672815] (-) TimerEvent: {}
+[69.773535] (-) TimerEvent: {}
+[69.876777] (-) TimerEvent: {}
+[69.980780] (-) TimerEvent: {}
+[70.084765] (-) TimerEvent: {}
+[70.185508] (-) TimerEvent: {}
+[70.286284] (-) TimerEvent: {}
+[70.387015] (-) TimerEvent: {}
+[70.469994] (aimee_msgs) StdoutLine: {'line': b'[ 31%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/camera_action__type_support.cpp.o\n'}
+[70.487304] (-) TimerEvent: {}
+[70.592839] (-) TimerEvent: {}
+[70.696771] (-) TimerEvent: {}
+[70.800777] (-) TimerEvent: {}
+[70.826496] (aimee_msgs) StdoutLine: {'line': b'[ 31%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/face_detection__type_support.cpp.o\n'}
+[70.901088] (-) TimerEvent: {}
+[71.002695] (-) TimerEvent: {}
+[71.103912] (-) TimerEvent: {}
+[71.204652] (-) TimerEvent: {}
+[71.309121] (-) TimerEvent: {}
+[71.409872] (-) TimerEvent: {}
+[71.510690] (-) TimerEvent: {}
+[71.611561] (-) TimerEvent: {}
+[71.712324] (-) TimerEvent: {}
+[71.817221] (-) TimerEvent: {}
+[71.913816] (aimee_msgs) StdoutLine: {'line': b'[ 32%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/tracking_command__type_support.cpp.o\n'}
+[71.917524] (-) TimerEvent: {}
+[72.020782] (-) TimerEvent: {}
+[72.121526] (-) TimerEvent: {}
+[72.222281] (-) TimerEvent: {}
+[72.323017] (-) TimerEvent: {}
+[72.423756] (-) TimerEvent: {}
+[72.524580] (-) TimerEvent: {}
+[72.628682] (-) TimerEvent: {}
+[72.729232] (-) TimerEvent: {}
+[72.829795] (-) TimerEvent: {}
+[72.837205] (aimee_msgs) StdoutLine: {'line': b'[ 33%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/robot_state__type_support_c.cpp.o\n'}
+[72.854014] (aimee_msgs) StdoutLine: {'line': b'[ 34%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/msg/led_action__type_support.cpp.o\n'}
+[72.932658] (-) TimerEvent: {}
+[73.033197] (-) TimerEvent: {}
+[73.133719] (-) TimerEvent: {}
+[73.234264] (-) TimerEvent: {}
+[73.334849] (-) TimerEvent: {}
+[73.435450] (-) TimerEvent: {}
+[73.536012] (-) TimerEvent: {}
+[73.636613] (-) TimerEvent: {}
+[73.740697] (-) TimerEvent: {}
+[73.841249] (-) TimerEvent: {}
+[73.941815] (-) TimerEvent: {}
+[74.042376] (-) TimerEvent: {}
+[74.142960] (-) TimerEvent: {}
+[74.243532] (-) TimerEvent: {}
+[74.344059] (-) TimerEvent: {}
+[74.444673] (-) TimerEvent: {}
+[74.548708] (-) TimerEvent: {}
+[74.617173] (aimee_msgs) StdoutLine: {'line': b'[ 35%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/tracking_command__type_support.cpp.o\n'}
+[74.633061] (aimee_msgs) StdoutLine: {'line': b'[ 36%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/action/llm_generate__type_support.cpp.o\n'}
+[74.648967] (-) TimerEvent: {}
+[74.672513] (aimee_msgs) StdoutLine: {'line': b'[ 37%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/wake_word_detection__type_support.cpp.o\n'}
+[74.752701] (-) TimerEvent: {}
+[74.853237] (-) TimerEvent: {}
+[74.953762] (-) TimerEvent: {}
+[75.055841] (-) TimerEvent: {}
+[75.163196] (-) TimerEvent: {}
+[75.263765] (-) TimerEvent: {}
+[75.364335] (-) TimerEvent: {}
+[75.468687] (-) TimerEvent: {}
+[75.556740] (aimee_msgs) StdoutLine: {'line': b'[ 38%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/face_detection__type_support_c.cpp.o\n'}
+[75.568924] (-) TimerEvent: {}
+[75.669495] (-) TimerEvent: {}
+[75.770075] (-) TimerEvent: {}
+[75.870624] (-) TimerEvent: {}
+[75.971185] (-) TimerEvent: {}
+[76.071757] (-) TimerEvent: {}
+[76.172318] (-) TimerEvent: {}
+[76.272993] (-) TimerEvent: {}
+[76.376691] (-) TimerEvent: {}
+[76.477235] (-) TimerEvent: {}
+[76.577790] (-) TimerEvent: {}
+[76.678353] (-) TimerEvent: {}
+[76.778906] (-) TimerEvent: {}
+[76.879462] (-) TimerEvent: {}
+[76.980020] (-) TimerEvent: {}
+[77.080617] (-) TimerEvent: {}
+[77.184700] (-) TimerEvent: {}
+[77.285244] (-) TimerEvent: {}
+[77.385838] (-) TimerEvent: {}
+[77.486416] (-) TimerEvent: {}
+[77.560664] (aimee_msgs) StdoutLine: {'line': b'[ 39%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/wake_word_detection__type_support.cpp.o\n'}
+[77.586652] (-) TimerEvent: {}
+[77.688707] (-) TimerEvent: {}
+[77.790224] (-) TimerEvent: {}
+[77.870131] (aimee_msgs) StdoutLine: {'line': b'[ 40%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/motor_action__type_support.cpp.o\n'}
+[77.892697] (-) TimerEvent: {}
+[77.995709] (-) TimerEvent: {}
+[78.096334] (-) TimerEvent: {}
+[78.200686] (-) TimerEvent: {}
+[78.219976] (aimee_msgs) StdoutLine: {'line': b'[ 41%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/tracking_command__type_support_c.cpp.o\n'}
+[78.300920] (-) TimerEvent: {}
+[78.376667] (aimee_msgs) StdoutLine: {'line': b'[ 42%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aimee_msgs/action/execute_skill__type_support.cpp.o\n'}
+[78.401199] (-) TimerEvent: {}
+[78.503743] (-) TimerEvent: {}
+[78.604254] (-) TimerEvent: {}
+[78.708700] (-) TimerEvent: {}
+[78.809248] (-) TimerEvent: {}
+[78.909798] (-) TimerEvent: {}
+[79.012686] (-) TimerEvent: {}
+[79.113276] (-) TimerEvent: {}
+[79.213986] (-) TimerEvent: {}
+[79.314670] (-) TimerEvent: {}
+[79.415363] (-) TimerEvent: {}
+[79.516091] (-) TimerEvent: {}
+[79.616773] (-) TimerEvent: {}
+[79.719357] (-) TimerEvent: {}
+[79.824811] (-) TimerEvent: {}
+[79.925548] (-) TimerEvent: {}
+[80.026269] (-) TimerEvent: {}
+[80.127018] (-) TimerEvent: {}
+[80.232788] (-) TimerEvent: {}
+[80.333489] (-) TimerEvent: {}
+[80.434201] (-) TimerEvent: {}
+[80.535821] (-) TimerEvent: {}
+[80.636661] (-) TimerEvent: {}
+[80.737359] (-) TimerEvent: {}
+[80.840766] (-) TimerEvent: {}
+[80.941442] (-) TimerEvent: {}
+[81.044787] (-) TimerEvent: {}
+[81.145540] (-) TimerEvent: {}
+[81.248788] (-) TimerEvent: {}
+[81.349464] (-) TimerEvent: {}
+[81.450206] (-) TimerEvent: {}
+[81.555612] (-) TimerEvent: {}
+[81.656296] (-) TimerEvent: {}
+[81.760819] (-) TimerEvent: {}
+[81.762893] (aimee_msgs) StdoutLine: {'line': b'[ 43%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/motor_action__type_support.cpp.o\n'}
+[81.869420] (-) TimerEvent: {}
+[81.960789] (aimee_msgs) StdoutLine: {'line': b'[ 44%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/wake_word_detection__type_support_c.cpp.o\n'}
+[81.969705] (-) TimerEvent: {}
+[82.072750] (-) TimerEvent: {}
+[82.173431] (-) TimerEvent: {}
+[82.274083] (-) TimerEvent: {}
+[82.333424] (aimee_msgs) StdoutLine: {'line': b'[ 45%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/camera_action__type_support.cpp.o\n'}
+[82.374383] (-) TimerEvent: {}
+[82.475080] (-) TimerEvent: {}
+[82.576804] (-) TimerEvent: {}
+[82.680786] (-) TimerEvent: {}
+[82.781507] (-) TimerEvent: {}
+[82.882244] (-) TimerEvent: {}
+[82.982985] (-) TimerEvent: {}
+[83.083756] (-) TimerEvent: {}
+[83.184608] (-) TimerEvent: {}
+[83.252814] (aimee_msgs) StdoutLine: {'line': b'[ 46%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_cpp.so\n'}
+[83.288791] (-) TimerEvent: {}
+[83.389541] (-) TimerEvent: {}
+[83.491079] (-) TimerEvent: {}
+[83.590913] (aimee_msgs) StdoutLine: {'line': b'[ 46%] Built target aimee_msgs__rosidl_typesupport_cpp\n'}
+[83.592366] (-) TimerEvent: {}
+[83.668789] (aimee_msgs) StdoutLine: {'line': b'[ 47%] Generating C introspection for ROS interfaces\n'}
+[83.692785] (-) TimerEvent: {}
+[83.796069] (-) TimerEvent: {}
+[83.900782] (-) TimerEvent: {}
+[84.004747] (-) TimerEvent: {}
+[84.105440] (-) TimerEvent: {}
+[84.206138] (-) TimerEvent: {}
+[84.308766] (-) TimerEvent: {}
+[84.409453] (-) TimerEvent: {}
+[84.510217] (-) TimerEvent: {}
+[84.612760] (-) TimerEvent: {}
+[84.713483] (-) TimerEvent: {}
+[84.814176] (-) TimerEvent: {}
+[84.916762] (-) TimerEvent: {}
+[85.020821] (-) TimerEvent: {}
+[85.122511] (-) TimerEvent: {}
+[85.226367] (-) TimerEvent: {}
+[85.327090] (-) TimerEvent: {}
+[85.428796] (-) TimerEvent: {}
+[85.536758] (-) TimerEvent: {}
+[85.651838] (-) TimerEvent: {}
+[85.688808] (aimee_msgs) StdoutLine: {'line': b'[ 48%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/motor_action__type_support_c.cpp.o\n'}
+[85.752136] (-) TimerEvent: {}
+[85.856774] (-) TimerEvent: {}
+[85.957427] (-) TimerEvent: {}
+[86.058111] (-) TimerEvent: {}
+[86.158777] (-) TimerEvent: {}
+[86.259478] (-) TimerEvent: {}
+[86.360267] (-) TimerEvent: {}
+[86.412789] (aimee_msgs) StdoutLine: {'line': b'[ 49%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/led_action__type_support.cpp.o\n'}
+[86.460567] (-) TimerEvent: {}
+[86.520760] (aimee_msgs) StdoutLine: {'line': b'[ 50%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/camera_action__type_support.cpp.o\n'}
+[86.560798] (-) TimerEvent: {}
+[86.664757] (-) TimerEvent: {}
+[86.765361] (-) TimerEvent: {}
+[86.865987] (-) TimerEvent: {}
+[86.966692] (-) TimerEvent: {}
+[87.067384] (-) TimerEvent: {}
+[87.168051] (-) TimerEvent: {}
+[87.268744] (-) TimerEvent: {}
+[87.372764] (-) TimerEvent: {}
+[87.473453] (-) TimerEvent: {}
+[87.574203] (-) TimerEvent: {}
+[87.674884] (-) TimerEvent: {}
+[87.775556] (-) TimerEvent: {}
+[87.876245] (-) TimerEvent: {}
+[87.980765] (-) TimerEvent: {}
+[88.083527] (-) TimerEvent: {}
+[88.184190] (-) TimerEvent: {}
+[88.285178] (-) TimerEvent: {}
+[88.385852] (-) TimerEvent: {}
+[88.486542] (-) TimerEvent: {}
+[88.587211] (-) TimerEvent: {}
+[88.660583] (aimee_msgs) StdoutLine: {'line': b'[ 51%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/camera_action__type_support_c.cpp.o\n'}
+[88.687528] (-) TimerEvent: {}
+[88.788253] (-) TimerEvent: {}
+[88.889026] (-) TimerEvent: {}
+[88.989718] (-) TimerEvent: {}
+[89.092754] (-) TimerEvent: {}
+[89.193411] (-) TimerEvent: {}
+[89.294094] (-) TimerEvent: {}
+[89.394790] (-) TimerEvent: {}
+[89.495480] (-) TimerEvent: {}
+[89.596135] (-) TimerEvent: {}
+[89.700129] (-) TimerEvent: {}
+[89.761734] (aimee_msgs) StdoutLine: {'line': b'[ 52%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/llm_generate__type_support.cpp.o\n'}
+[89.800515] (-) TimerEvent: {}
+[89.901158] (-) TimerEvent: {}
+[89.940295] (aimee_msgs) StdoutLine: {'line': b'[ 53%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/dds_fastrtps/led_action__type_support.cpp.o\n'}
+[90.001450] (-) TimerEvent: {}
+[90.102125] (-) TimerEvent: {}
+[90.202775] (-) TimerEvent: {}
+[90.303416] (-) TimerEvent: {}
+[90.408745] (-) TimerEvent: {}
+[90.517260] (-) TimerEvent: {}
+[90.617959] (-) TimerEvent: {}
+[90.718711] (-) TimerEvent: {}
+[90.819452] (-) TimerEvent: {}
+[90.920105] (-) TimerEvent: {}
+[91.024775] (-) TimerEvent: {}
+[91.125488] (-) TimerEvent: {}
+[91.227407] (-) TimerEvent: {}
+[91.332934] (-) TimerEvent: {}
+[91.454221] (-) TimerEvent: {}
+[91.559965] (-) TimerEvent: {}
+[91.663905] (-) TimerEvent: {}
+[91.765036] (-) TimerEvent: {}
+[91.871155] (-) TimerEvent: {}
+[91.971857] (-) TimerEvent: {}
+[92.075182] (-) TimerEvent: {}
+[92.176149] (-) TimerEvent: {}
+[92.183849] (aimee_msgs) StdoutLine: {'line': b'[ 54%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/led_action__type_support_c.cpp.o\n'}
+[92.279990] (-) TimerEvent: {}
+[92.380704] (-) TimerEvent: {}
+[92.481413] (-) TimerEvent: {}
+[92.582155] (-) TimerEvent: {}
+[92.684760] (-) TimerEvent: {}
+[92.785431] (-) TimerEvent: {}
+[92.886159] (-) TimerEvent: {}
+[92.988767] (-) TimerEvent: {}
+[93.089429] (-) TimerEvent: {}
+[93.192761] (-) TimerEvent: {}
+[93.293451] (-) TimerEvent: {}
+[93.394134] (-) TimerEvent: {}
+[93.494824] (-) TimerEvent: {}
+[93.595509] (-) TimerEvent: {}
+[93.696174] (-) TimerEvent: {}
+[93.797113] (-) TimerEvent: {}
+[93.900797] (-) TimerEvent: {}
+[94.002334] (-) TimerEvent: {}
+[94.103003] (-) TimerEvent: {}
+[94.203644] (-) TimerEvent: {}
+[94.304562] (-) TimerEvent: {}
+[94.408758] (-) TimerEvent: {}
+[94.509419] (-) TimerEvent: {}
+[94.610101] (-) TimerEvent: {}
+[94.710779] (-) TimerEvent: {}
+[94.785070] (aimee_msgs) StdoutLine: {'line': b'[ 55%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/llm_generate__type_support.cpp.o\n'}
+[94.811116] (-) TimerEvent: {}
+[94.911779] (-) TimerEvent: {}
+[95.012425] (-) TimerEvent: {}
+[95.116748] (-) TimerEvent: {}
+[95.217403] (-) TimerEvent: {}
+[95.318031] (-) TimerEvent: {}
+[95.405487] (aimee_msgs) StdoutLine: {'line': b'[ 55%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/llm_generate__type_support_c.cpp.o\n'}
+[95.420969] (-) TimerEvent: {}
+[95.521936] (-) TimerEvent: {}
+[95.622617] (-) TimerEvent: {}
+[95.723331] (-) TimerEvent: {}
+[95.823984] (-) TimerEvent: {}
+[95.924880] (-) TimerEvent: {}
+[96.028760] (-) TimerEvent: {}
+[96.129432] (-) TimerEvent: {}
+[96.219769] (aimee_msgs) StdoutLine: {'line': b'[ 56%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aimee_msgs/action/detail/execute_skill__type_support.cpp.o\n'}
+[96.229749] (-) TimerEvent: {}
+[96.332755] (-) TimerEvent: {}
+[96.433383] (-) TimerEvent: {}
+[96.533989] (-) TimerEvent: {}
+[96.634609] (-) TimerEvent: {}
+[96.735255] (-) TimerEvent: {}
+[96.835959] (-) TimerEvent: {}
+[96.936714] (-) TimerEvent: {}
+[97.046265] (-) TimerEvent: {}
+[97.147210] (-) TimerEvent: {}
+[97.247923] (-) TimerEvent: {}
+[97.376805] (-) TimerEvent: {}
+[97.484782] (-) TimerEvent: {}
+[97.585454] (-) TimerEvent: {}
+[97.700823] (-) TimerEvent: {}
+[97.801528] (-) TimerEvent: {}
+[97.902233] (-) TimerEvent: {}
+[98.002990] (-) TimerEvent: {}
+[98.104735] (-) TimerEvent: {}
+[98.208749] (-) TimerEvent: {}
+[98.312771] (-) TimerEvent: {}
+[98.413479] (-) TimerEvent: {}
+[98.514184] (-) TimerEvent: {}
+[98.614913] (-) TimerEvent: {}
+[98.715633] (-) TimerEvent: {}
+[98.835927] (-) TimerEvent: {}
+[98.948830] (-) TimerEvent: {}
+[98.988776] (aimee_msgs) StdoutLine: {'line': b'[ 57%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aimee_msgs/action/detail/execute_skill__type_support_c.cpp.o\n'}
+[99.052770] (-) TimerEvent: {}
+[99.153468] (-) TimerEvent: {}
+[99.254141] (-) TimerEvent: {}
+[99.354835] (-) TimerEvent: {}
+[99.455533] (-) TimerEvent: {}
+[99.556203] (-) TimerEvent: {}
+[99.656942] (-) TimerEvent: {}
+[99.760760] (-) TimerEvent: {}
+[99.861429] (-) TimerEvent: {}
+[99.964288] (-) TimerEvent: {}
+[100.064981] (-) TimerEvent: {}
+[100.165640] (-) TimerEvent: {}
+[100.212165] (aimee_msgs) StdoutLine: {'line': b'[ 58%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aimee_msgs/action/detail/dds_fastrtps/execute_skill__type_support.cpp.o\n'}
+[100.265946] (-) TimerEvent: {}
+[100.369217] (-) TimerEvent: {}
+[100.469818] (-) TimerEvent: {}
+[100.570557] (-) TimerEvent: {}
+[100.671194] (-) TimerEvent: {}
+[100.771858] (-) TimerEvent: {}
+[100.872644] (-) TimerEvent: {}
+[100.976791] (-) TimerEvent: {}
+[101.077460] (-) TimerEvent: {}
+[101.178119] (-) TimerEvent: {}
+[101.278757] (-) TimerEvent: {}
+[101.379359] (-) TimerEvent: {}
+[101.479980] (-) TimerEvent: {}
+[101.580731] (-) TimerEvent: {}
+[101.684744] (-) TimerEvent: {}
+[101.785395] (-) TimerEvent: {}
+[101.886057] (-) TimerEvent: {}
+[101.986676] (-) TimerEvent: {}
+[102.087323] (-) TimerEvent: {}
+[102.188011] (-) TimerEvent: {}
+[102.292762] (-) TimerEvent: {}
+[102.393423] (-) TimerEvent: {}
+[102.494072] (-) TimerEvent: {}
+[102.594765] (-) TimerEvent: {}
+[102.695431] (-) TimerEvent: {}
+[102.796096] (-) TimerEvent: {}
+[102.874537] (aimee_msgs) StdoutLine: {'line': b'[ 59%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_fastrtps_c.so\n'}
+[102.896651] (-) TimerEvent: {}
+[102.997622] (-) TimerEvent: {}
+[103.100760] (-) TimerEvent: {}
+[103.201410] (-) TimerEvent: {}
+[103.302065] (-) TimerEvent: {}
+[103.402740] (-) TimerEvent: {}
+[103.503408] (-) TimerEvent: {}
+[103.604010] (-) TimerEvent: {}
+[103.681546] (aimee_msgs) StdoutLine: {'line': b'[ 59%] Built target aimee_msgs__rosidl_typesupport_fastrtps_c\n'}
+[103.704310] (-) TimerEvent: {}
+[103.808720] (-) TimerEvent: {}
+[103.909349] (-) TimerEvent: {}
+[104.012876] (-) TimerEvent: {}
+[104.113608] (-) TimerEvent: {}
+[104.214281] (-) TimerEvent: {}
+[104.314947] (-) TimerEvent: {}
+[104.415613] (-) TimerEvent: {}
+[104.516290] (-) TimerEvent: {}
+[104.617196] (-) TimerEvent: {}
+[104.718231] (-) TimerEvent: {}
+[104.818892] (-) TimerEvent: {}
+[104.919540] (-) TimerEvent: {}
+[105.021105] (-) TimerEvent: {}
+[105.114166] (aimee_msgs) StdoutLine: {'line': b'[ 60%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_introspection_cpp.so\n'}
+[105.121416] (-) TimerEvent: {}
+[105.222161] (-) TimerEvent: {}
+[105.322997] (-) TimerEvent: {}
+[105.429181] (-) TimerEvent: {}
+[105.529808] (-) TimerEvent: {}
+[105.630819] (-) TimerEvent: {}
+[105.731852] (-) TimerEvent: {}
+[105.835284] (-) TimerEvent: {}
+[105.881303] (aimee_msgs) StdoutLine: {'line': b'[ 60%] Built target aimee_msgs__rosidl_typesupport_introspection_cpp\n'}
+[105.936796] (-) TimerEvent: {}
+[105.944950] (aimee_msgs) StdoutLine: {'line': b'[ 61%] Generating C type support dispatch for ROS interfaces\n'}
+[106.045487] (-) TimerEvent: {}
+[106.146213] (-) TimerEvent: {}
+[106.246898] (-) TimerEvent: {}
+[106.268102] (aimee_msgs) StdoutLine: {'line': b'[ 61%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/intent__type_support.c.o\n'}
+[106.276761] (aimee_msgs) StdoutLine: {'line': b'[ 62%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/transcription__type_support.c.o\n'}
+[106.347195] (-) TimerEvent: {}
+[106.447874] (-) TimerEvent: {}
+[106.497680] (aimee_msgs) StdoutLine: {'line': b'[ 63%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/robot_state__type_support.c.o\n'}
+[106.501480] (aimee_msgs) StdoutLine: {'line': b'[ 64%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/face_detection__type_support.c.o\n'}
+[106.548198] (-) TimerEvent: {}
+[106.649070] (-) TimerEvent: {}
+[106.752747] (-) TimerEvent: {}
+[106.768669] (aimee_msgs) StdoutLine: {'line': b'[ 65%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/tracking_command__type_support.c.o\n'}
+[106.825658] (aimee_msgs) StdoutLine: {'line': b'[ 66%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/wake_word_detection__type_support.c.o\n'}
+[106.856395] (-) TimerEvent: {}
+[106.957057] (-) TimerEvent: {}
+[106.998541] (aimee_msgs) StdoutLine: {'line': b'[ 67%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/motor_action__type_support.c.o\n'}
+[107.047757] (aimee_msgs) StdoutLine: {'line': b'[ 68%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/camera_action__type_support.c.o\n'}
+[107.057392] (-) TimerEvent: {}
+[107.157995] (-) TimerEvent: {}
+[107.238201] (aimee_msgs) StdoutLine: {'line': b'[ 69%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/led_action__type_support.c.o\n'}
+[107.249581] (aimee_msgs) StdoutLine: {'line': b'[ 70%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_fastrtps_cpp.so\n'}
+[107.260835] (-) TimerEvent: {}
+[107.276106] (aimee_msgs) StdoutLine: {'line': b'[ 70%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/action/detail/llm_generate__type_support.c.o\n'}
+[107.361128] (-) TimerEvent: {}
+[107.461857] (-) TimerEvent: {}
+[107.508800] (aimee_msgs) StdoutLine: {'line': b'[ 71%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aimee_msgs/action/detail/execute_skill__type_support.c.o\n'}
+[107.562209] (-) TimerEvent: {}
+[107.664169] (-) TimerEvent: {}
+[107.764819] (-) TimerEvent: {}
+[107.865421] (-) TimerEvent: {}
+[107.921399] (aimee_msgs) StdoutLine: {'line': b'[ 72%] Linking C shared library libaimee_msgs__rosidl_typesupport_introspection_c.so\n'}
+[107.964344] (aimee_msgs) StdoutLine: {'line': b'[ 72%] Built target aimee_msgs__rosidl_typesupport_fastrtps_cpp\n'}
+[107.965442] (-) TimerEvent: {}
+[108.065951] (-) TimerEvent: {}
+[108.137728] (aimee_msgs) StdoutLine: {'line': b'[ 72%] Built target aimee_msgs__rosidl_typesupport_introspection_c\n'}
+[108.166192] (-) TimerEvent: {}
+[108.266772] (-) TimerEvent: {}
+[108.367685] (-) TimerEvent: {}
+[108.468512] (-) TimerEvent: {}
+[108.569443] (-) TimerEvent: {}
+[108.670313] (-) TimerEvent: {}
+[108.771149] (-) TimerEvent: {}
+[108.871978] (-) TimerEvent: {}
+[108.972871] (-) TimerEvent: {}
+[109.073414] (-) TimerEvent: {}
+[109.174343] (-) TimerEvent: {}
+[109.275226] (-) TimerEvent: {}
+[109.376086] (-) TimerEvent: {}
+[109.477086] (-) TimerEvent: {}
+[109.578022] (-) TimerEvent: {}
+[109.678788] (-) TimerEvent: {}
+[109.779691] (-) TimerEvent: {}
+[109.880542] (-) TimerEvent: {}
+[109.981238] (-) TimerEvent: {}
+[110.081873] (-) TimerEvent: {}
+[110.182424] (-) TimerEvent: {}
+[110.283170] (-) TimerEvent: {}
+[110.384010] (-) TimerEvent: {}
+[110.484967] (-) TimerEvent: {}
+[110.585525] (-) TimerEvent: {}
+[110.686071] (-) TimerEvent: {}
+[110.788834] (-) TimerEvent: {}
+[110.889464] (-) TimerEvent: {}
+[110.990051] (-) TimerEvent: {}
+[111.090825] (-) TimerEvent: {}
+[111.191561] (-) TimerEvent: {}
+[111.292163] (-) TimerEvent: {}
+[111.393189] (-) TimerEvent: {}
+[111.493756] (-) TimerEvent: {}
+[111.594730] (-) TimerEvent: {}
+[111.695311] (-) TimerEvent: {}
+[111.796509] (-) TimerEvent: {}
+[111.897211] (-) TimerEvent: {}
+[111.997764] (-) TimerEvent: {}
+[112.098349] (-) TimerEvent: {}
+[112.198979] (-) TimerEvent: {}
+[112.299545] (-) TimerEvent: {}
+[112.400403] (-) TimerEvent: {}
+[112.501335] (-) TimerEvent: {}
+[112.601881] (-) TimerEvent: {}
+[112.702437] (-) TimerEvent: {}
+[112.803397] (-) TimerEvent: {}
+[112.903975] (-) TimerEvent: {}
+[113.004793] (-) TimerEvent: {}
+[113.105562] (-) TimerEvent: {}
+[113.206138] (-) TimerEvent: {}
+[113.307031] (-) TimerEvent: {}
+[113.407918] (-) TimerEvent: {}
+[113.508799] (-) TimerEvent: {}
+[113.609798] (-) TimerEvent: {}
+[113.710550] (-) TimerEvent: {}
+[113.811462] (-) TimerEvent: {}
+[113.912277] (-) TimerEvent: {}
+[114.013284] (-) TimerEvent: {}
+[114.113843] (-) TimerEvent: {}
+[114.214600] (-) TimerEvent: {}
+[114.315431] (-) TimerEvent: {}
+[114.416196] (-) TimerEvent: {}
+[114.517200] (-) TimerEvent: {}
+[114.618074] (-) TimerEvent: {}
+[114.719084] (-) TimerEvent: {}
+[114.819878] (-) TimerEvent: {}
+[114.920656] (-) TimerEvent: {}
+[115.021228] (-) TimerEvent: {}
+[115.121859] (-) TimerEvent: {}
+[115.222802] (-) TimerEvent: {}
+[115.323654] (-) TimerEvent: {}
+[115.424407] (-) TimerEvent: {}
+[115.525423] (-) TimerEvent: {}
+[115.625951] (-) TimerEvent: {}
+[115.726752] (-) TimerEvent: {}
+[115.827680] (-) TimerEvent: {}
+[115.928300] (-) TimerEvent: {}
+[116.029181] (-) TimerEvent: {}
+[116.129750] (-) TimerEvent: {}
+[116.230312] (-) TimerEvent: {}
+[116.331066] (-) TimerEvent: {}
+[116.432001] (-) TimerEvent: {}
+[116.532931] (-) TimerEvent: {}
+[116.633481] (-) TimerEvent: {}
+[116.734049] (-) TimerEvent: {}
+[116.834842] (-) TimerEvent: {}
+[116.935706] (-) TimerEvent: {}
+[117.036652] (-) TimerEvent: {}
+[117.137243] (-) TimerEvent: {}
+[117.237791] (-) TimerEvent: {}
+[117.338758] (-) TimerEvent: {}
+[117.439744] (-) TimerEvent: {}
+[117.540690] (-) TimerEvent: {}
+[117.641437] (-) TimerEvent: {}
+[117.742349] (-) TimerEvent: {}
+[117.843318] (-) TimerEvent: {}
+[117.944413] (-) TimerEvent: {}
+[118.045260] (-) TimerEvent: {}
+[118.145931] (-) TimerEvent: {}
+[118.246924] (-) TimerEvent: {}
+[118.254435] (aimee_msgs) StdoutLine: {'line': b'[ 74%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/transcription__type_support.cpp.o\n'}
+[118.255539] (aimee_msgs) StdoutLine: {'line': b'[ 74%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/robot_state__type_support.cpp.o\n'}
+[118.256345] (aimee_msgs) StdoutLine: {'line': b'[ 74%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/intent__type_support.cpp.o\n'}
+[118.348760] (-) TimerEvent: {}
+[118.414592] (aimee_msgs) StdoutLine: {'line': b'[ 76%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/tracking_command__type_support.cpp.o\n'}
+[118.415562] (aimee_msgs) StdoutLine: {'line': b'[ 76%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/face_detection__type_support.cpp.o\n'}
+[118.434532] (aimee_msgs) StdoutLine: {'line': b'[ 77%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/wake_word_detection__type_support.cpp.o\n'}
+[118.449083] (-) TimerEvent: {}
+[118.550186] (-) TimerEvent: {}
+[118.581595] (aimee_msgs) StdoutLine: {'line': b'[ 78%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/motor_action__type_support.cpp.o\n'}
+[118.584037] (aimee_msgs) StdoutLine: {'line': b'[ 79%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/camera_action__type_support.cpp.o\n'}
+[118.596975] (aimee_msgs) StdoutLine: {'line': b'[ 80%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/msg/led_action__type_support.cpp.o\n'}
+[118.650476] (-) TimerEvent: {}
+[118.739107] (aimee_msgs) StdoutLine: {'line': b'[ 80%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/action/llm_generate__type_support.cpp.o\n'}
+[118.742281] (aimee_msgs) StdoutLine: {'line': b'[ 81%] Building CXX object CMakeFiles/aimee_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/aimee_msgs/action/execute_skill__type_support.cpp.o\n'}
+[118.750878] (-) TimerEvent: {}
+[118.851994] (-) TimerEvent: {}
+[118.953010] (-) TimerEvent: {}
+[119.022901] (aimee_msgs) StdoutLine: {'line': b'[ 82%] Linking CXX shared library libaimee_msgs__rosidl_typesupport_c.so\n'}
+[119.053151] (-) TimerEvent: {}
+[119.153800] (-) TimerEvent: {}
+[119.254428] (-) TimerEvent: {}
+[119.255956] (aimee_msgs) StdoutLine: {'line': b'[ 82%] Built target aimee_msgs__rosidl_typesupport_c\n'}
+[119.354715] (-) TimerEvent: {}
+[119.360665] (aimee_msgs) StdoutLine: {'line': b'[ 82%] Built target aimee_msgs\n'}
+[119.455289] (-) TimerEvent: {}
+[119.475093] (aimee_msgs) StdoutLine: {'line': b'[ 83%] Generating Python code for ROS interfaces\n'}
+[119.555893] (-) TimerEvent: {}
+[119.656831] (-) TimerEvent: {}
+[119.757773] (-) TimerEvent: {}
+[119.858680] (-) TimerEvent: {}
+[119.959283] (-) TimerEvent: {}
+[120.059827] (-) TimerEvent: {}
+[120.160370] (-) TimerEvent: {}
+[120.261239] (-) TimerEvent: {}
+[120.361797] (-) TimerEvent: {}
+[120.462589] (-) TimerEvent: {}
+[120.563500] (-) TimerEvent: {}
+[120.664312] (-) TimerEvent: {}
+[120.765267] (-) TimerEvent: {}
+[120.865813] (-) TimerEvent: {}
+[120.966354] (-) TimerEvent: {}
+[121.067214] (-) TimerEvent: {}
+[121.168045] (-) TimerEvent: {}
+[121.268891] (-) TimerEvent: {}
+[121.369729] (-) TimerEvent: {}
+[121.470588] (-) TimerEvent: {}
+[121.571400] (-) TimerEvent: {}
+[121.672194] (-) TimerEvent: {}
+[121.773140] (-) TimerEvent: {}
+[121.873631] (-) TimerEvent: {}
+[121.974111] (-) TimerEvent: {}
+[122.074668] (-) TimerEvent: {}
+[122.175216] (-) TimerEvent: {}
+[122.276023] (-) TimerEvent: {}
+[122.376910] (-) TimerEvent: {}
+[122.477776] (-) TimerEvent: {}
+[122.578710] (-) TimerEvent: {}
+[122.679561] (-) TimerEvent: {}
+[122.780366] (-) TimerEvent: {}
+[122.881348] (-) TimerEvent: {}
+[122.981931] (-) TimerEvent: {}
+[123.082924] (-) TimerEvent: {}
+[123.183714] (-) TimerEvent: {}
+[123.284264] (-) TimerEvent: {}
+[123.384902] (-) TimerEvent: {}
+[123.485442] (-) TimerEvent: {}
+[123.586260] (-) TimerEvent: {}
+[123.687043] (-) TimerEvent: {}
+[123.787619] (-) TimerEvent: {}
+[123.888585] (-) TimerEvent: {}
+[123.989485] (-) TimerEvent: {}
+[124.090040] (-) TimerEvent: {}
+[124.190566] (-) TimerEvent: {}
+[124.291485] (-) TimerEvent: {}
+[124.392410] (-) TimerEvent: {}
+[124.493356] (-) TimerEvent: {}
+[124.594121] (-) TimerEvent: {}
+[124.694889] (-) TimerEvent: {}
+[124.795711] (-) TimerEvent: {}
+[124.896250] (-) TimerEvent: {}
+[124.997206] (-) TimerEvent: {}
+[125.098028] (-) TimerEvent: {}
+[125.198551] (-) TimerEvent: {}
+[125.299294] (-) TimerEvent: {}
+[125.400214] (-) TimerEvent: {}
+[125.500879] (-) TimerEvent: {}
+[125.601409] (-) TimerEvent: {}
+[125.702291] (-) TimerEvent: {}
+[125.803045] (-) TimerEvent: {}
+[125.903818] (-) TimerEvent: {}
+[126.004595] (-) TimerEvent: {}
+[126.105163] (-) TimerEvent: {}
+[126.206066] (-) TimerEvent: {}
+[126.306954] (-) TimerEvent: {}
+[126.407764] (-) TimerEvent: {}
+[126.508814] (-) TimerEvent: {}
+[126.609387] (-) TimerEvent: {}
+[126.709980] (-) TimerEvent: {}
+[126.810790] (-) TimerEvent: {}
+[126.911385] (-) TimerEvent: {}
+[127.011984] (-) TimerEvent: {}
+[127.112737] (-) TimerEvent: {}
+[127.213434] (-) TimerEvent: {}
+[127.314318] (-) TimerEvent: {}
+[127.415157] (-) TimerEvent: {}
+[127.515994] (-) TimerEvent: {}
+[127.616585] (-) TimerEvent: {}
+[127.717489] (-) TimerEvent: {}
+[127.818281] (-) TimerEvent: {}
+[127.919152] (-) TimerEvent: {}
+[128.019897] (-) TimerEvent: {}
+[128.120726] (-) TimerEvent: {}
+[128.221267] (-) TimerEvent: {}
+[128.322046] (-) TimerEvent: {}
+[128.422836] (-) TimerEvent: {}
+[128.523633] (-) TimerEvent: {}
+[128.624426] (-) TimerEvent: {}
+[128.725319] (-) TimerEvent: {}
+[128.826158] (-) TimerEvent: {}
+[128.927034] (-) TimerEvent: {}
+[129.027812] (-) TimerEvent: {}
+[129.128667] (-) TimerEvent: {}
+[129.229514] (-) TimerEvent: {}
+[129.330334] (-) TimerEvent: {}
+[129.431132] (-) TimerEvent: {}
+[129.532007] (-) TimerEvent: {}
+[129.632633] (-) TimerEvent: {}
+[129.733450] (-) TimerEvent: {}
+[129.834021] (-) TimerEvent: {}
+[129.934610] (-) TimerEvent: {}
+[130.035175] (-) TimerEvent: {}
+[130.135964] (-) TimerEvent: {}
+[130.236829] (-) TimerEvent: {}
+[130.337534] (-) TimerEvent: {}
+[130.438128] (-) TimerEvent: {}
+[130.538664] (-) TimerEvent: {}
+[130.639378] (-) TimerEvent: {}
+[130.740219] (-) TimerEvent: {}
+[130.840892] (-) TimerEvent: {}
+[130.941452] (-) TimerEvent: {}
+[131.042095] (-) TimerEvent: {}
+[131.142616] (-) TimerEvent: {}
+[131.243320] (-) TimerEvent: {}
+[131.344065] (-) TimerEvent: {}
+[131.444874] (-) TimerEvent: {}
+[131.545661] (-) TimerEvent: {}
+[131.646221] (-) TimerEvent: {}
+[131.747018] (-) TimerEvent: {}
+[131.848017] (-) TimerEvent: {}
+[131.948715] (-) TimerEvent: {}
+[132.049272] (-) TimerEvent: {}
+[132.149858] (-) TimerEvent: {}
+[132.250443] (-) TimerEvent: {}
+[132.350951] (-) TimerEvent: {}
+[132.451702] (-) TimerEvent: {}
+[132.552679] (-) TimerEvent: {}
+[132.653444] (-) TimerEvent: {}
+[132.754281] (-) TimerEvent: {}
+[132.855051] (-) TimerEvent: {}
+[132.956074] (-) TimerEvent: {}
+[133.057061] (-) TimerEvent: {}
+[133.157663] (-) TimerEvent: {}
+[133.258199] (-) TimerEvent: {}
+[133.358810] (-) TimerEvent: {}
+[133.459584] (-) TimerEvent: {}
+[133.560371] (-) TimerEvent: {}
+[133.661269] (-) TimerEvent: {}
+[133.762322] (-) TimerEvent: {}
+[133.863060] (-) TimerEvent: {}
+[133.964079] (-) TimerEvent: {}
+[134.065021] (-) TimerEvent: {}
+[134.165565] (-) TimerEvent: {}
+[134.266377] (-) TimerEvent: {}
+[134.367194] (-) TimerEvent: {}
+[134.467964] (-) TimerEvent: {}
+[134.568792] (-) TimerEvent: {}
+[134.669562] (-) TimerEvent: {}
+[134.770151] (-) TimerEvent: {}
+[134.870924] (-) TimerEvent: {}
+[134.971706] (-) TimerEvent: {}
+[135.072633] (-) TimerEvent: {}
+[135.173278] (-) TimerEvent: {}
+[135.273819] (-) TimerEvent: {}
+[135.374347] (-) TimerEvent: {}
+[135.475270] (-) TimerEvent: {}
+[135.575787] (-) TimerEvent: {}
+[135.676654] (-) TimerEvent: {}
+[135.777475] (-) TimerEvent: {}
+[135.878009] (-) TimerEvent: {}
+[135.978795] (-) TimerEvent: {}
+[136.079616] (-) TimerEvent: {}
+[136.180383] (-) TimerEvent: {}
+[136.281208] (-) TimerEvent: {}
+[136.381823] (-) TimerEvent: {}
+[136.482358] (-) TimerEvent: {}
+[136.583283] (-) TimerEvent: {}
+[136.684096] (-) TimerEvent: {}
+[136.784812] (-) TimerEvent: {}
+[136.885619] (-) TimerEvent: {}
+[136.986244] (-) TimerEvent: {}
+[137.087025] (-) TimerEvent: {}
+[137.187929] (-) TimerEvent: {}
+[137.288568] (-) TimerEvent: {}
+[137.389385] (-) TimerEvent: {}
+[137.490176] (-) TimerEvent: {}
+[137.590984] (-) TimerEvent: {}
+[137.691623] (-) TimerEvent: {}
+[137.792625] (-) TimerEvent: {}
+[137.893415] (-) TimerEvent: {}
+[137.993955] (-) TimerEvent: {}
+[138.094803] (-) TimerEvent: {}
+[138.195645] (-) TimerEvent: {}
+[138.296560] (-) TimerEvent: {}
+[138.397175] (-) TimerEvent: {}
+[138.498049] (-) TimerEvent: {}
+[138.598924] (-) TimerEvent: {}
+[138.699776] (-) TimerEvent: {}
+[138.800796] (-) TimerEvent: {}
+[138.901354] (-) TimerEvent: {}
+[139.001948] (-) TimerEvent: {}
+[139.102497] (-) TimerEvent: {}
+[139.203140] (-) TimerEvent: {}
+[139.303883] (-) TimerEvent: {}
+[139.404822] (-) TimerEvent: {}
+[139.505761] (-) TimerEvent: {}
+[139.606332] (-) TimerEvent: {}
+[139.706998] (-) TimerEvent: {}
+[139.807942] (-) TimerEvent: {}
+[139.908708] (-) TimerEvent: {}
+[140.009473] (-) TimerEvent: {}
+[140.110971] (-) TimerEvent: {}
+[140.211755] (-) TimerEvent: {}
+[140.312612] (-) TimerEvent: {}
+[140.413406] (-) TimerEvent: {}
+[140.513975] (-) TimerEvent: {}
+[140.614752] (-) TimerEvent: {}
+[140.715699] (-) TimerEvent: {}
+[140.816668] (-) TimerEvent: {}
+[140.917245] (-) TimerEvent: {}
+[141.017801] (-) TimerEvent: {}
+[141.118385] (-) TimerEvent: {}
+[141.219252] (-) TimerEvent: {}
+[141.320019] (-) TimerEvent: {}
+[141.420948] (-) TimerEvent: {}
+[141.521784] (-) TimerEvent: {}
+[141.622353] (-) TimerEvent: {}
+[141.723258] (-) TimerEvent: {}
+[141.824056] (-) TimerEvent: {}
+[141.924898] (-) TimerEvent: {}
+[142.025713] (-) TimerEvent: {}
+[142.126299] (-) TimerEvent: {}
+[142.227031] (-) TimerEvent: {}
+[142.327778] (-) TimerEvent: {}
+[142.428760] (-) TimerEvent: {}
+[142.529384] (-) TimerEvent: {}
+[142.630262] (-) TimerEvent: {}
+[142.731197] (-) TimerEvent: {}
+[142.831735] (-) TimerEvent: {}
+[142.932737] (-) TimerEvent: {}
+[143.033395] (-) TimerEvent: {}
+[143.133962] (-) TimerEvent: {}
+[143.234542] (-) TimerEvent: {}
+[143.335480] (-) TimerEvent: {}
+[143.436258] (-) TimerEvent: {}
+[143.537146] (-) TimerEvent: {}
+[143.637722] (-) TimerEvent: {}
+[143.738757] (-) TimerEvent: {}
+[143.839318] (-) TimerEvent: {}
+[143.940166] (-) TimerEvent: {}
+[144.041048] (-) TimerEvent: {}
+[144.141892] (-) TimerEvent: {}
+[144.242435] (-) TimerEvent: {}
+[144.343234] (-) TimerEvent: {}
+[144.444001] (-) TimerEvent: {}
+[144.545074] (-) TimerEvent: {}
+[144.645962] (-) TimerEvent: {}
+[144.746522] (-) TimerEvent: {}
+[144.847407] (-) TimerEvent: {}
+[144.948204] (-) TimerEvent: {}
+[145.048841] (-) TimerEvent: {}
+[145.149481] (-) TimerEvent: {}
+[145.250075] (-) TimerEvent: {}
+[145.350629] (-) TimerEvent: {}
+[145.451355] (-) TimerEvent: {}
+[145.552294] (-) TimerEvent: {}
+[145.653015] (-) TimerEvent: {}
+[145.753578] (-) TimerEvent: {}
+[145.854137] (-) TimerEvent: {}
+[145.954688] (-) TimerEvent: {}
+[146.055517] (-) TimerEvent: {}
+[146.156224] (-) TimerEvent: {}
+[146.260779] (-) TimerEvent: {}
+[146.361675] (-) TimerEvent: {}
+[146.462608] (-) TimerEvent: {}
+[146.563551] (-) TimerEvent: {}
+[146.664132] (-) TimerEvent: {}
+[146.765029] (-) TimerEvent: {}
+[146.865598] (-) TimerEvent: {}
+[146.966158] (-) TimerEvent: {}
+[147.066719] (-) TimerEvent: {}
+[147.167295] (-) TimerEvent: {}
+[147.267874] (-) TimerEvent: {}
+[147.368589] (-) TimerEvent: {}
+[147.469681] (-) TimerEvent: {}
+[147.570541] (-) TimerEvent: {}
+[147.671430] (-) TimerEvent: {}
+[147.772303] (-) TimerEvent: {}
+[147.873052] (-) TimerEvent: {}
+[147.973628] (-) TimerEvent: {}
+[148.074597] (-) TimerEvent: {}
+[148.175472] (-) TimerEvent: {}
+[148.276072] (-) TimerEvent: {}
+[148.376962] (-) TimerEvent: {}
+[148.477846] (-) TimerEvent: {}
+[148.578671] (-) TimerEvent: {}
+[148.679584] (-) TimerEvent: {}
+[148.780785] (-) TimerEvent: {}
+[148.881495] (-) TimerEvent: {}
+[148.984798] (-) TimerEvent: {}
+[149.085685] (-) TimerEvent: {}
+[149.186401] (-) TimerEvent: {}
+[149.236302] (aimee_msgs) StdoutLine: {'line': b'[ 83%] Built target aimee_msgs__py\n'}
+[149.286912] (-) TimerEvent: {}
+[149.340825] (aimee_msgs) StdoutLine: {'line': b'[ 85%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_transcription_s.c.o\n'}
+[149.341974] (aimee_msgs) StdoutLine: {'line': b'[ 86%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_robot_state_s.c.o\n'}
+[149.347110] (aimee_msgs) StdoutLine: {'line': b'[ 86%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_face_detection_s.c.o\n'}
+[149.348312] (aimee_msgs) StdoutLine: {'line': b'[ 86%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_intent_s.c.o\n'}
+[149.388811] (-) TimerEvent: {}
+[149.491573] (-) TimerEvent: {}
+[149.592303] (-) TimerEvent: {}
+[149.696752] (-) TimerEvent: {}
+[149.797419] (-) TimerEvent: {}
+[149.903574] (-) TimerEvent: {}
+[150.004314] (-) TimerEvent: {}
+[150.069580] (aimee_msgs) StdoutLine: {'line': b'[ 87%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_tracking_command_s.c.o\n'}
+[150.104772] (-) TimerEvent: {}
+[150.150121] (aimee_msgs) StdoutLine: {'line': b'[ 88%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_wake_word_detection_s.c.o\n'}
+[150.151205] (aimee_msgs) StdoutLine: {'line': b'[ 89%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_motor_action_s.c.o\n'}
+[150.205283] (-) TimerEvent: {}
+[150.306093] (-) TimerEvent: {}
+[150.314791] (aimee_msgs) StdoutLine: {'line': b'[ 90%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_camera_action_s.c.o\n'}
+[150.406862] (-) TimerEvent: {}
+[150.508818] (-) TimerEvent: {}
+[150.612781] (-) TimerEvent: {}
+[150.713499] (-) TimerEvent: {}
+[150.782630] (aimee_msgs) StdoutLine: {'line': b'[ 91%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/msg/_led_action_s.c.o\n'}
+[150.813840] (-) TimerEvent: {}
+[150.832185] (aimee_msgs) StdoutLine: {'line': b'[ 92%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/action/_llm_generate_s.c.o\n'}
+[150.860880] (aimee_msgs) StdoutLine: {'line': b'[ 93%] Building C object CMakeFiles/aimee_msgs__rosidl_generator_py.dir/rosidl_generator_py/aimee_msgs/action/_execute_skill_s.c.o\n'}
+[150.916771] (-) TimerEvent: {}
+[151.017531] (-) TimerEvent: {}
+[151.118965] (-) TimerEvent: {}
+[151.219638] (-) TimerEvent: {}
+[151.320343] (-) TimerEvent: {}
+[151.426772] (-) TimerEvent: {}
+[151.528034] (-) TimerEvent: {}
+[151.629295] (-) TimerEvent: {}
+[151.730123] (-) TimerEvent: {}
+[151.831162] (-) TimerEvent: {}
+[151.932133] (-) TimerEvent: {}
+[152.006021] (aimee_msgs) StdoutLine: {'line': b'[ 94%] Linking C shared library rosidl_generator_py/aimee_msgs/libaimee_msgs__rosidl_generator_py.so\n'}
+[152.032899] (-) TimerEvent: {}
+[152.133578] (-) TimerEvent: {}
+[152.234510] (-) TimerEvent: {}
+[152.335557] (-) TimerEvent: {}
+[152.397218] (aimee_msgs) StdoutLine: {'line': b'[ 94%] Built target aimee_msgs__rosidl_generator_py\n'}
+[152.436815] (-) TimerEvent: {}
+[152.506918] (aimee_msgs) StdoutLine: {'line': b'[ 96%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_introspection_c__pyext.dir/rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_introspection_c.c.o\n'}
+[152.507969] (aimee_msgs) StdoutLine: {'line': b'[ 96%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c.o\n'}
+[152.508924] (aimee_msgs) StdoutLine: {'line': b'[ 97%] Building C object CMakeFiles/aimee_msgs__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_c.c.o\n'}
+[152.541014] (-) TimerEvent: {}
+[152.641679] (-) TimerEvent: {}
+[152.742359] (-) TimerEvent: {}
+[152.842974] (-) TimerEvent: {}
+[152.943597] (-) TimerEvent: {}
+[153.044239] (-) TimerEvent: {}
+[153.145001] (-) TimerEvent: {}
+[153.248930] (-) TimerEvent: {}
+[153.349670] (-) TimerEvent: {}
+[153.450357] (-) TimerEvent: {}
+[153.551050] (-) TimerEvent: {}
+[153.651727] (-) TimerEvent: {}
+[153.684561] (aimee_msgs) StdoutLine: {'line': b'[ 99%] Linking C shared library rosidl_generator_py/aimee_msgs/aimee_msgs_s__rosidl_typesupport_introspection_c.cpython-310-aarch64-linux-gnu.so\n'}
+[153.685664] (aimee_msgs) StdoutLine: {'line': b'[ 99%] Linking C shared library rosidl_generator_py/aimee_msgs/aimee_msgs_s__rosidl_typesupport_c.cpython-310-aarch64-linux-gnu.so\n'}
+[153.733431] (aimee_msgs) StdoutLine: {'line': b'[100%] Linking C shared library rosidl_generator_py/aimee_msgs/aimee_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-aarch64-linux-gnu.so\n'}
+[153.752054] (-) TimerEvent: {}
+[153.852936] (-) TimerEvent: {}
+[153.954592] (-) TimerEvent: {}
+[154.057400] (-) TimerEvent: {}
+[154.158298] (-) TimerEvent: {}
+[154.208009] (aimee_msgs) StdoutLine: {'line': b'[100%] Built target aimee_msgs__rosidl_typesupport_c__pyext\n'}
+[154.210831] (aimee_msgs) StdoutLine: {'line': b'[100%] Built target aimee_msgs__rosidl_typesupport_introspection_c__pyext\n'}
+[154.258655] (-) TimerEvent: {}
+[154.259906] (aimee_msgs) StdoutLine: {'line': b'[100%] Built target aimee_msgs__rosidl_typesupport_fastrtps_c__pyext\n'}
+[154.322786] (aimee_msgs) CommandEnded: {'returncode': 0}
+[154.331349] (aimee_msgs) JobProgress: {'identifier': 'aimee_msgs', 'progress': 'install'}
+[154.358973] (-) TimerEvent: {}
+[154.378634] (aimee_msgs) Command: {'cmd': ['/usr/bin/cmake', '--install', '/workspace/build/aimee_msgs'], 'cwd': '/workspace/build/aimee_msgs', 'env': OrderedDict([('HOSTNAME', 'Ron'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/root'), ('ROS_PYTHON_VERSION', '3'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('LANG', 'C.UTF-8'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('PWD', '/workspace/build/aimee_msgs'), ('LC_ALL', 'C.UTF-8'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[154.419696] (aimee_msgs) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[154.424704] (aimee_msgs) StdoutLine: {'line': b'-- Execute custom install script\n'}
+[154.426667] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/rosidl_interfaces/aimee_msgs\n'}
+[154.459668] (-) TimerEvent: {}
+[154.470533] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__functions.h\n'}
+[154.507681] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__struct.h\n'}
+[154.546107] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__type_support.h\n'}
+[154.560346] (-) TimerEvent: {}
+[154.584008] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__functions.h\n'}
+[154.621483] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__struct.h\n'}
+[154.659864] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__type_support.h\n'}
+[154.660984] (-) TimerEvent: {}
+[154.698830] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/execute_skill.h\n'}
+[154.737024] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/llm_generate.h\n'}
+[154.761289] (-) TimerEvent: {}
+[154.775342] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/camera_action.h\n'}
+[154.814550] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__functions.h\n'}
+[154.852098] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__struct.h\n'}
+[154.862671] (-) TimerEvent: {}
+[154.894633] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__type_support.h\n'}
+[154.933432] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__functions.h\n'}
+[154.962987] (-) TimerEvent: {}
+[154.972069] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__struct.h\n'}
+[155.010512] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__type_support.h\n'}
+[155.050895] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__functions.h\n'}
+[155.063292] (-) TimerEvent: {}
+[155.089921] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__struct.h\n'}
+[155.128180] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__type_support.h\n'}
+[155.164030] (-) TimerEvent: {}
+[155.166464] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__functions.h\n'}
+[155.204361] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__struct.h\n'}
+[155.244848] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__type_support.h\n'}
+[155.264852] (-) TimerEvent: {}
+[155.281960] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__functions.h\n'}
+[155.320015] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__struct.h\n'}
+[155.358550] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__type_support.h\n'}
+[155.365381] (-) TimerEvent: {}
+[155.398227] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__functions.h\n'}
+[155.436294] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__struct.h\n'}
+[155.465639] (-) TimerEvent: {}
+[155.474823] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__type_support.h\n'}
+[155.512083] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__functions.h\n'}
+[155.551983] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__struct.h\n'}
+[155.565959] (-) TimerEvent: {}
+[155.592425] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__type_support.h\n'}
+[155.632546] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__functions.h\n'}
+[155.666249] (-) TimerEvent: {}
+[155.670776] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__struct.h\n'}
+[155.708677] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__type_support.h\n'}
+[155.746341] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__functions.h\n'}
+[155.766584] (-) TimerEvent: {}
+[155.785678] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__struct.h\n'}
+[155.823004] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__type_support.h\n'}
+[155.865152] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/face_detection.h\n'}
+[155.866812] (-) TimerEvent: {}
+[155.903270] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/intent.h\n'}
+[155.945351] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/led_action.h\n'}
+[155.967113] (-) TimerEvent: {}
+[155.982101] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/motor_action.h\n'}
+[156.021703] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/robot_state.h\n'}
+[156.060886] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_generator_c__visibility_control.h\n'}
+[156.067431] (-) TimerEvent: {}
+[156.099781] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/tracking_command.h\n'}
+[156.137470] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/transcription.h\n'}
+[156.167750] (-) TimerEvent: {}
+[156.183014] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/wake_word_detection.h\n'}
+[156.223637] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/library_path.sh\n'}
+[156.263181] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/library_path.dsv\n'}
+[156.268426] (-) TimerEvent: {}
+[156.308390] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_fastrtps_c.h\n'}
+[156.356519] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_fastrtps_c.h\n'}
+[156.369216] (-) TimerEvent: {}
+[156.396928] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_fastrtps_c.h\n'}
+[156.434957] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__rosidl_typesupport_fastrtps_c.h\n'}
+[156.469485] (-) TimerEvent: {}
+[156.473467] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_c.h\n'}
+[156.511011] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__rosidl_typesupport_fastrtps_c.h\n'}
+[156.548981] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__rosidl_typesupport_fastrtps_c.h\n'}
+[156.569845] (-) TimerEvent: {}
+[156.590739] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_fastrtps_c.h\n'}
+[156.630870] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__rosidl_typesupport_fastrtps_c.h\n'}
+[156.670104] (-) TimerEvent: {}
+[156.671273] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__rosidl_typesupport_fastrtps_c.h\n'}
+[156.710013] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__rosidl_typesupport_fastrtps_c.h\n'}
+[156.753711] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h\n'}
+[156.770662] (-) TimerEvent: {}
+[156.798278] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_introspection_c.h\n'}
+[156.842063] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_introspection_c.h\n'}
+[156.870990] (-) TimerEvent: {}
+[156.891935] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_introspection_c.h\n'}
+[156.937697] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__rosidl_typesupport_introspection_c.h\n'}
+[156.971492] (-) TimerEvent: {}
+[156.984160] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__rosidl_typesupport_introspection_c.h\n'}
+[157.030745] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__rosidl_typesupport_introspection_c.h\n'}
+[157.072158] (-) TimerEvent: {}
+[157.074130] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__rosidl_typesupport_introspection_c.h\n'}
+[157.116700] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_introspection_c.h\n'}
+[157.161668] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__rosidl_typesupport_introspection_c.h\n'}
+[157.172624] (-) TimerEvent: {}
+[157.205899] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__rosidl_typesupport_introspection_c.h\n'}
+[157.250857] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__rosidl_typesupport_introspection_c.h\n'}
+[157.273185] (-) TimerEvent: {}
+[157.294434] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_typesupport_introspection_c__visibility_control.h\n'}
+[157.347587] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__builder.hpp\n'}
+[157.373678] (-) TimerEvent: {}
+[157.392675] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__struct.hpp\n'}
+[157.437948] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__traits.hpp\n'}
+[157.473964] (-) TimerEvent: {}
+[157.483465] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__type_support.hpp\n'}
+[157.527078] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__builder.hpp\n'}
+[157.570819] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__struct.hpp\n'}
+[157.574291] (-) TimerEvent: {}
+[157.613455] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__traits.hpp\n'}
+[157.655882] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__type_support.hpp\n'}
+[157.674510] (-) TimerEvent: {}
+[157.700345] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/execute_skill.hpp\n'}
+[157.744705] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/llm_generate.hpp\n'}
+[157.775113] (-) TimerEvent: {}
+[157.787973] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/camera_action.hpp\n'}
+[157.834931] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__builder.hpp\n'}
+[157.876281] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__struct.hpp\n'}
+[157.878030] (-) TimerEvent: {}
+[157.921796] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__traits.hpp\n'}
+[157.968546] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__type_support.hpp\n'}
+[157.978347] (-) TimerEvent: {}
+[158.012059] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__builder.hpp\n'}
+[158.058069] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__struct.hpp\n'}
+[158.078627] (-) TimerEvent: {}
+[158.102094] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__traits.hpp\n'}
+[158.145051] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__type_support.hpp\n'}
+[158.179268] (-) TimerEvent: {}
+[158.190152] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__builder.hpp\n'}
+[158.233984] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__struct.hpp\n'}
+[158.279852] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__traits.hpp\n'}
+[158.281470] (-) TimerEvent: {}
+[158.324205] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__type_support.hpp\n'}
+[158.368352] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__builder.hpp\n'}
+[158.381789] (-) TimerEvent: {}
+[158.412713] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__struct.hpp\n'}
+[158.457176] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__traits.hpp\n'}
+[158.482093] (-) TimerEvent: {}
+[158.503189] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__type_support.hpp\n'}
+[158.547933] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__builder.hpp\n'}
+[158.582697] (-) TimerEvent: {}
+[158.591867] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__struct.hpp\n'}
+[158.635396] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__traits.hpp\n'}
+[158.680283] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__type_support.hpp\n'}
+[158.682914] (-) TimerEvent: {}
+[158.724858] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__builder.hpp\n'}
+[158.768094] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__struct.hpp\n'}
+[158.783643] (-) TimerEvent: {}
+[158.811588] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__traits.hpp\n'}
+[158.854209] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__type_support.hpp\n'}
+[158.884292] (-) TimerEvent: {}
+[158.899469] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__builder.hpp\n'}
+[158.944423] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__struct.hpp\n'}
+[158.985149] (-) TimerEvent: {}
+[158.991990] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__traits.hpp\n'}
+[159.036407] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__type_support.hpp\n'}
+[159.082814] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__builder.hpp\n'}
+[159.085342] (-) TimerEvent: {}
+[159.125635] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__struct.hpp\n'}
+[159.169079] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__traits.hpp\n'}
+[159.185882] (-) TimerEvent: {}
+[159.213709] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__type_support.hpp\n'}
+[159.256786] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__builder.hpp\n'}
+[159.286186] (-) TimerEvent: {}
+[159.300044] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__struct.hpp\n'}
+[159.343048] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__traits.hpp\n'}
+[159.387152] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__type_support.hpp\n'}
+[159.388252] (-) TimerEvent: {}
+[159.430848] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/face_detection.hpp\n'}
+[159.474838] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/intent.hpp\n'}
+[159.489061] (-) TimerEvent: {}
+[159.518583] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/led_action.hpp\n'}
+[159.566918] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/motor_action.hpp\n'}
+[159.590477] (-) TimerEvent: {}
+[159.611621] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/robot_state.hpp\n'}
+[159.654270] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_generator_cpp__visibility_control.hpp\n'}
+[159.690766] (-) TimerEvent: {}
+[159.697612] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/tracking_command.hpp\n'}
+[159.740378] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/transcription.hpp\n'}
+[159.785575] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/wake_word_detection.hpp\n'}
+[159.791369] (-) TimerEvent: {}
+[159.834691] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[159.878983] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[159.891792] (-) TimerEvent: {}
+[159.925143] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[159.970055] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[159.992258] (-) TimerEvent: {}
+[160.013789] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[160.059876] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[160.092711] (-) TimerEvent: {}
+[160.102942] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[160.148003] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[160.193848] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[160.195255] (-) TimerEvent: {}
+[160.237177] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[160.280194] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[160.295981] (-) TimerEvent: {}
+[160.325982] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h\n'}
+[160.372399] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/execute_skill__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.396909] (-) TimerEvent: {}
+[160.416142] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/action/detail/llm_generate__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.460305] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.497403] (-) TimerEvent: {}
+[160.505340] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/face_detection__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.550036] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/intent__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.593439] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/led_action__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.597682] (-) TimerEvent: {}
+[160.637668] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/motor_action__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.683316] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.697956] (-) TimerEvent: {}
+[160.727044] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/tracking_command__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.771270] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/transcription__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.798245] (-) TimerEvent: {}
+[160.815703] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/include/aimee_msgs/aimee_msgs/msg/detail/wake_word_detection__rosidl_typesupport_introspection_cpp.hpp\n'}
+[160.862187] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/pythonpath.sh\n'}
+[160.898893] (-) TimerEvent: {}
+[160.906766] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/pythonpath.dsv\n'}
+[160.951112] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info/PKG-INFO\n'}
+[160.994596] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info/SOURCES.txt\n'}
+[160.999163] (-) TimerEvent: {}
+[161.039361] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info/dependency_links.txt\n'}
+[161.081997] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs-0.1.0-py3.10.egg-info/top_level.txt\n'}
+[161.099892] (-) TimerEvent: {}
+[161.131199] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/__init__.py\n'}
+[161.181678] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_c.c\n'}
+[161.200205] (-) TimerEvent: {}
+[161.226918] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_fastrtps_c.c\n'}
+[161.270148] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/_aimee_msgs_s.ep.rosidl_typesupport_introspection_c.c\n'}
+[161.301058] (-) TimerEvent: {}
+[161.314530] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/__init__.py\n'}
+[161.359345] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_execute_skill.py\n'}
+[161.402466] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_execute_skill_s.c\n'}
+[161.403728] (-) TimerEvent: {}
+[161.445861] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_llm_generate.py\n'}
+[161.489381] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_llm_generate_s.c\n'}
+[161.504556] (-) TimerEvent: {}
+[161.533627] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_c.cpython-310-aarch64-linux-gnu.so\n'}
+[161.576082] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-aarch64-linux-gnu.so\n'}
+[161.604753] (-) TimerEvent: {}
+[161.620431] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_introspection_c.cpython-310-aarch64-linux-gnu.so\n'}
+[161.664785] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/libaimee_msgs__rosidl_generator_py.so\n'}
+[161.705184] (-) TimerEvent: {}
+[161.711559] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/__init__.py\n'}
+[161.753831] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_camera_action.py\n'}
+[161.797431] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_camera_action_s.c\n'}
+[161.805491] (-) TimerEvent: {}
+[161.842190] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_face_detection.py\n'}
+[161.885347] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_face_detection_s.c\n'}
+[161.905772] (-) TimerEvent: {}
+[161.931362] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_intent.py\n'}
+[161.975896] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_intent_s.c\n'}
+[162.006098] (-) TimerEvent: {}
+[162.020133] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_led_action.py\n'}
+[162.065419] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_led_action_s.c\n'}
+[162.106498] (-) TimerEvent: {}
+[162.108365] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_motor_action.py\n'}
+[162.152328] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_motor_action_s.c\n'}
+[162.197153] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_robot_state.py\n'}
+[162.206814] (-) TimerEvent: {}
+[162.241550] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_robot_state_s.c\n'}
+[162.285804] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_tracking_command.py\n'}
+[162.307326] (-) TimerEvent: {}
+[162.329964] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_tracking_command_s.c\n'}
+[162.374466] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_transcription.py\n'}
+[162.407999] (-) TimerEvent: {}
+[162.418416] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_transcription_s.c\n'}
+[162.462291] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_wake_word_detection.py\n'}
+[162.508888] (-) TimerEvent: {}
+[162.517556] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_wake_word_detection_s.c\n'}
+[162.569119] (aimee_msgs) StdoutLine: {'line': b'-- Up-to-date symlink: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-aarch64-linux-gnu.so\n'}
+[162.573602] (aimee_msgs) StdoutLine: {'line': b'-- Up-to-date symlink: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_introspection_c.cpython-310-aarch64-linux-gnu.so\n'}
+[162.578021] (aimee_msgs) StdoutLine: {'line': b'-- Up-to-date symlink: /workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/aimee_msgs_s__rosidl_typesupport_c.cpython-310-aarch64-linux-gnu.so\n'}
+[162.581074] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/rust_packages/aimee_msgs\n'}
+[162.609178] (-) TimerEvent: {}
+[162.631267] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/Cargo.toml\n'}
+[162.675350] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/build.rs\n'}
+[162.709571] (-) TimerEvent: {}
+[162.721006] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/action.rs\n'}
+[162.766023] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/action/rmw.rs\n'}
+[162.810250] (-) TimerEvent: {}
+[162.813943] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/lib.rs\n'}
+[162.854301] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/msg.rs\n'}
+[162.898389] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/rust/src/msg/rmw.rs\n'}
+[162.910894] (-) TimerEvent: {}
+[162.943080] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/Intent.idl\n'}
+[162.986696] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/Transcription.idl\n'}
+[163.011586] (-) TimerEvent: {}
+[163.030403] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/RobotState.idl\n'}
+[163.077313] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/FaceDetection.idl\n'}
+[163.112289] (-) TimerEvent: {}
+[163.122799] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/TrackingCommand.idl\n'}
+[163.168626] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/WakeWordDetection.idl\n'}
+[163.213018] (-) TimerEvent: {}
+[163.214515] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/MotorAction.idl\n'}
+[163.258391] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/CameraAction.idl\n'}
+[163.302974] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/LEDAction.idl\n'}
+[163.313334] (-) TimerEvent: {}
+[163.347332] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/action/LLMGenerate.idl\n'}
+[163.391167] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/action/ExecuteSkill.idl\n'}
+[163.413628] (-) TimerEvent: {}
+[163.437134] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/Intent.msg\n'}
+[163.480705] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/Transcription.msg\n'}
+[163.513905] (-) TimerEvent: {}
+[163.526215] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/RobotState.msg\n'}
+[163.571744] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/FaceDetection.msg\n'}
+[163.614262] (-) TimerEvent: {}
+[163.617662] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/TrackingCommand.msg\n'}
+[163.659829] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/WakeWordDetection.msg\n'}
+[163.703130] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/MotorAction.msg\n'}
+[163.714605] (-) TimerEvent: {}
+[163.749554] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/CameraAction.msg\n'}
+[163.793188] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/msg/LEDAction.msg\n'}
+[163.815268] (-) TimerEvent: {}
+[163.837233] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/action/LLMGenerate.action\n'}
+[163.882388] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/action/ExecuteSkill.action\n'}
+[163.915988] (-) TimerEvent: {}
+[163.928085] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/package_run_dependencies/aimee_msgs\n'}
+[163.974308] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/parent_prefix_path/aimee_msgs\n'}
+[164.016406] (-) TimerEvent: {}
+[164.018761] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/ament_prefix_path.sh\n'}
+[164.063271] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/ament_prefix_path.dsv\n'}
+[164.107948] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/path.sh\n'}
+[164.117203] (-) TimerEvent: {}
+[164.153320] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/environment/path.dsv\n'}
+[164.198868] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/local_setup.bash\n'}
+[164.217473] (-) TimerEvent: {}
+[164.245029] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/local_setup.sh\n'}
+[164.289581] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/local_setup.zsh\n'}
+[164.318023] (-) TimerEvent: {}
+[164.333313] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/local_setup.dsv\n'}
+[164.377459] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/package.dsv\n'}
+[164.418324] (-) TimerEvent: {}
+[164.423197] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/ament_index/resource_index/packages/aimee_msgs\n'}
+[164.469062] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/rosidl_cmake-extras.cmake\n'}
+[164.514855] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/ament_cmake_export_dependencies-extras.cmake\n'}
+[164.518947] (-) TimerEvent: {}
+[164.558909] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/ament_cmake_export_include_directories-extras.cmake\n'}
+[164.604760] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/ament_cmake_export_libraries-extras.cmake\n'}
+[164.619276] (-) TimerEvent: {}
+[164.649882] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/ament_cmake_export_targets-extras.cmake\n'}
+[164.693922] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake\n'}
+[164.719983] (-) TimerEvent: {}
+[164.741460] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake\n'}
+[164.787036] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgsConfig.cmake\n'}
+[164.820324] (-) TimerEvent: {}
+[164.831303] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgsConfig-version.cmake\n'}
+[164.875674] (aimee_msgs) StdoutLine: {'line': b'-- Symlinking: /workspace/install/aimee_msgs/share/aimee_msgs/package.xml\n'}
+[164.920732] (-) TimerEvent: {}
+[164.922146] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_generator_c.so\n'}
+[164.928741] (aimee_msgs) StdoutLine: {'line': b'-- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_generator_c.so" to ""\n'}
+[164.930631] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_fastrtps_c.so\n'}
+[164.935449] (aimee_msgs) StdoutLine: {'line': b'-- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_fastrtps_c.so" to ""\n'}
+[164.937278] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_introspection_c.so\n'}
+[164.940441] (aimee_msgs) StdoutLine: {'line': b'-- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_introspection_c.so" to ""\n'}
+[164.941806] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_c.so\n'}
+[164.947988] (aimee_msgs) StdoutLine: {'line': b'-- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_c.so" to ""\n'}
+[164.949405] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_fastrtps_cpp.so\n'}
+[164.952321] (aimee_msgs) StdoutLine: {'line': b'-- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_fastrtps_cpp.so" to ""\n'}
+[164.953816] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_introspection_cpp.so\n'}
+[164.959566] (aimee_msgs) StdoutLine: {'line': b'-- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_introspection_cpp.so" to ""\n'}
+[164.961025] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_cpp.so\n'}
+[164.963095] (aimee_msgs) StdoutLine: {'line': b'-- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_typesupport_cpp.so" to ""\n'}
+[165.020998] (-) TimerEvent: {}
+[165.121651] (-) TimerEvent: {}
+[165.222225] (-) TimerEvent: {}
+[165.322843] (-) TimerEvent: {}
+[165.362878] (aimee_msgs) StdoutLine: {'line': b"Listing '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs'...\n"}
+[165.364199] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/__init__.py'...\n"}
+[165.365202] (aimee_msgs) StdoutLine: {'line': b"Listing '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action'...\n"}
+[165.365781] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/__init__.py'...\n"}
+[165.366286] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_execute_skill.py'...\n"}
+[165.366755] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/action/_llm_generate.py'...\n"}
+[165.367207] (aimee_msgs) StdoutLine: {'line': b"Listing '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg'...\n"}
+[165.367633] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/__init__.py'...\n"}
+[165.368156] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_camera_action.py'...\n"}
+[165.368822] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_face_detection.py'...\n"}
+[165.369512] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_intent.py'...\n"}
+[165.370049] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_led_action.py'...\n"}
+[165.370606] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_motor_action.py'...\n"}
+[165.371507] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_robot_state.py'...\n"}
+[165.372326] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_tracking_command.py'...\n"}
+[165.373195] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_transcription.py'...\n"}
+[165.373756] (aimee_msgs) StdoutLine: {'line': b"Compiling '/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages/aimee_msgs/msg/_wake_word_detection.py'...\n"}
+[165.419865] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_generator_py.so\n'}
+[165.423765] (aimee_msgs) StdoutLine: {'line': b'-- Set runtime path of "/workspace/install/aimee_msgs/lib/libaimee_msgs__rosidl_generator_py.so" to ""\n'}
+[165.425634] (-) TimerEvent: {}
+[165.426001] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_cExport.cmake\n'}
+[165.432073] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_cExport-noconfig.cmake\n'}
+[165.435527] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_typesupport_fastrtps_cExport.cmake\n'}
+[165.438413] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_typesupport_fastrtps_cExport-noconfig.cmake\n'}
+[165.441238] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_introspection_cExport.cmake\n'}
+[165.443813] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_introspection_cExport-noconfig.cmake\n'}
+[165.446529] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_cExport.cmake\n'}
+[165.450288] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_cExport-noconfig.cmake\n'}
+[165.453170] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_cppExport.cmake\n'}
+[165.455933] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_typesupport_fastrtps_cppExport.cmake\n'}
+[165.458616] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake\n'}
+[165.462333] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_introspection_cppExport.cmake\n'}
+[165.464846] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_introspection_cppExport-noconfig.cmake\n'}
+[165.466455] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_cppExport.cmake\n'}
+[165.470019] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/aimee_msgs__rosidl_typesupport_cppExport-noconfig.cmake\n'}
+[165.471537] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_pyExport.cmake\n'}
+[165.472924] (aimee_msgs) StdoutLine: {'line': b'-- Installing: /workspace/install/aimee_msgs/share/aimee_msgs/cmake/export_aimee_msgs__rosidl_generator_pyExport-noconfig.cmake\n'}
+[165.492198] (aimee_msgs) CommandEnded: {'returncode': 0}
+[165.526230] (-) TimerEvent: {}
+[165.627458] (-) TimerEvent: {}
+[165.680193] (aimee_msgs) JobEnded: {'identifier': 'aimee_msgs', 'rc': 0}
+[165.686243] (aimee_intent_router) JobStarted: {'identifier': 'aimee_intent_router'}
+[165.716898] (aimee_llm_server) JobStarted: {'identifier': 'aimee_llm_server'}
+[165.729509] (-) TimerEvent: {}
+[165.744820] (aimee_skill_manager) JobStarted: {'identifier': 'aimee_skill_manager'}
+[165.776172] (aimee_test_dashboard) JobStarted: {'identifier': 'aimee_test_dashboard'}
+[165.829808] (-) TimerEvent: {}
+[165.930422] (-) TimerEvent: {}
+[166.031153] (-) TimerEvent: {}
+[166.132249] (-) TimerEvent: {}
+[166.233216] (-) TimerEvent: {}
+[166.334050] (-) TimerEvent: {}
+[166.434638] (-) TimerEvent: {}
+[166.535238] (-) TimerEvent: {}
+[166.635852] (-) TimerEvent: {}
+[166.737064] (-) TimerEvent: {}
+[166.837601] (-) TimerEvent: {}
+[166.938137] (-) TimerEvent: {}
+[167.038694] (-) TimerEvent: {}
+[167.139605] (-) TimerEvent: {}
+[167.240675] (-) TimerEvent: {}
+[167.341669] (-) TimerEvent: {}
+[167.442403] (-) TimerEvent: {}
+[167.542999] (-) TimerEvent: {}
+[167.643669] (-) TimerEvent: {}
+[167.744774] (-) TimerEvent: {}
+[167.845428] (-) TimerEvent: {}
+[167.945985] (-) TimerEvent: {}
+[168.046548] (-) TimerEvent: {}
+[168.147554] (-) TimerEvent: {}
+[168.248562] (-) TimerEvent: {}
+[168.349549] (-) TimerEvent: {}
+[168.450475] (-) TimerEvent: {}
+[168.551409] (-) TimerEvent: {}
+[168.652388] (-) TimerEvent: {}
+[168.753071] (-) TimerEvent: {}
+[168.854045] (-) TimerEvent: {}
+[168.954978] (-) TimerEvent: {}
+[169.055682] (-) TimerEvent: {}
+[169.156533] (-) TimerEvent: {}
+[169.257611] (-) TimerEvent: {}
+[169.361014] (-) TimerEvent: {}
+[169.461613] (-) TimerEvent: {}
+[169.562207] (-) TimerEvent: {}
+[169.663209] (-) TimerEvent: {}
+[169.764209] (-) TimerEvent: {}
+[169.865136] (-) TimerEvent: {}
+[169.965751] (-) TimerEvent: {}
+[170.066358] (-) TimerEvent: {}
+[170.166949] (-) TimerEvent: {}
+[170.267583] (-) TimerEvent: {}
+[170.368157] (-) TimerEvent: {}
+[170.469312] (-) TimerEvent: {}
+[170.569850] (-) TimerEvent: {}
+[170.670801] (-) TimerEvent: {}
+[170.771835] (-) TimerEvent: {}
+[170.872915] (-) TimerEvent: {}
+[170.973504] (-) TimerEvent: {}
+[171.074090] (-) TimerEvent: {}
+[171.174658] (-) TimerEvent: {}
+[171.275452] (-) TimerEvent: {}
+[171.376366] (-) TimerEvent: {}
+[171.477107] (-) TimerEvent: {}
+[171.577705] (-) TimerEvent: {}
+[171.678286] (-) TimerEvent: {}
+[171.779223] (-) TimerEvent: {}
+[171.880132] (-) TimerEvent: {}
+[171.980792] (-) TimerEvent: {}
+[172.081428] (-) TimerEvent: {}
+[172.181958] (-) TimerEvent: {}
+[172.282581] (-) TimerEvent: {}
+[172.383255] (-) TimerEvent: {}
+[172.484307] (-) TimerEvent: {}
+[172.595524] (-) TimerEvent: {}
+[172.728745] (-) TimerEvent: {}
+[172.829386] (-) TimerEvent: {}
+[172.932760] (-) TimerEvent: {}
+[173.036776] (-) TimerEvent: {}
+[173.137409] (-) TimerEvent: {}
+[173.240936] (-) TimerEvent: {}
+[173.360356] (-) TimerEvent: {}
+[173.461083] (-) TimerEvent: {}
+[173.561722] (-) TimerEvent: {}
+[173.662364] (-) TimerEvent: {}
+[173.763004] (-) TimerEvent: {}
+[173.864687] (-) TimerEvent: {}
+[173.965884] (-) TimerEvent: {}
+[174.068724] (-) TimerEvent: {}
+[174.172730] (-) TimerEvent: {}
+[174.273379] (-) TimerEvent: {}
+[174.376726] (-) TimerEvent: {}
+[174.479243] (-) TimerEvent: {}
+[174.579962] (-) TimerEvent: {}
+[174.684722] (-) TimerEvent: {}
+[174.785382] (-) TimerEvent: {}
+[174.886034] (-) TimerEvent: {}
+[174.986717] (-) TimerEvent: {}
+[175.087394] (-) TimerEvent: {}
+[175.188222] (-) TimerEvent: {}
+[175.289060] (-) TimerEvent: {}
+[175.393556] (-) TimerEvent: {}
+[175.494383] (-) TimerEvent: {}
+[175.595020] (-) TimerEvent: {}
+[175.695656] (-) TimerEvent: {}
+[175.804876] (-) TimerEvent: {}
+[175.906183] (-) TimerEvent: {}
+[176.008445] (-) TimerEvent: {}
+[176.109358] (-) TimerEvent: {}
+[176.212752] (-) TimerEvent: {}
+[176.313958] (-) TimerEvent: {}
+[176.416781] (-) TimerEvent: {}
+[176.517491] (-) TimerEvent: {}
+[176.618292] (-) TimerEvent: {}
+[176.681851] (aimee_skill_manager) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/build/aimee_skill_manager/build', '--no-deps', 'symlink_data'], 'cwd': '/workspace/build/aimee_skill_manager', 'env': {'HOSTNAME': 'Ron', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/workspace/install/aimee_msgs/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/workspace/install/aimee_msgs:/opt/ros/humble', 'PWD': '/workspace/build/aimee_skill_manager', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/build/aimee_skill_manager/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_skill_manager/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/workspace/install/aimee_msgs'}, 'shell': False}
+[176.705828] (aimee_intent_router) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/build/aimee_intent_router/build', '--no-deps', 'symlink_data'], 'cwd': '/workspace/build/aimee_intent_router', 'env': {'HOSTNAME': 'Ron', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/workspace/install/aimee_msgs/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/workspace/install/aimee_msgs:/opt/ros/humble', 'PWD': '/workspace/build/aimee_intent_router', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/build/aimee_intent_router/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_intent_router/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/workspace/install/aimee_msgs'}, 'shell': False}
+[176.720119] (-) TimerEvent: {}
+[176.734151] (aimee_test_dashboard) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/build/aimee_test_dashboard/build', '--no-deps', 'symlink_data'], 'cwd': '/workspace/build/aimee_test_dashboard', 'env': {'HOSTNAME': 'Ron', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/workspace/install/aimee_msgs/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/workspace/install/aimee_msgs:/opt/ros/humble', 'PWD': '/workspace/build/aimee_test_dashboard', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/build/aimee_test_dashboard/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_test_dashboard/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/workspace/install/aimee_msgs'}, 'shell': False}
+[176.769644] (aimee_llm_server) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/build/aimee_llm_server/build', '--no-deps', 'symlink_data'], 'cwd': '/workspace/build/aimee_llm_server', 'env': {'HOSTNAME': 'Ron', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/workspace/install/aimee_msgs/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/workspace/install/aimee_msgs:/opt/ros/humble', 'PWD': '/workspace/build/aimee_llm_server', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/build/aimee_llm_server/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_llm_server/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/workspace/install/aimee_msgs'}, 'shell': False}
+[176.820444] (-) TimerEvent: {}
+[176.921133] (-) TimerEvent: {}
+[177.024759] (-) TimerEvent: {}
+[177.125387] (-) TimerEvent: {}
+[177.226019] (-) TimerEvent: {}
+[177.326689] (-) TimerEvent: {}
+[177.427338] (-) TimerEvent: {}
+[177.533947] (-) TimerEvent: {}
+[177.634570] (-) TimerEvent: {}
+[177.735214] (-) TimerEvent: {}
+[177.835978] (-) TimerEvent: {}
+[177.940716] (-) TimerEvent: {}
+[178.041312] (-) TimerEvent: {}
+[178.141947] (-) TimerEvent: {}
+[178.242590] (-) TimerEvent: {}
+[178.343231] (-) TimerEvent: {}
+[178.443865] (-) TimerEvent: {}
+[178.544556] (-) TimerEvent: {}
+[178.645154] (-) TimerEvent: {}
+[178.748790] (-) TimerEvent: {}
+[178.781507] (aimee_skill_manager) StdoutLine: {'line': b'running develop\n'}
+[178.804158] (aimee_llm_server) StdoutLine: {'line': b'running develop\n'}
+[178.852728] (-) TimerEvent: {}
+[178.890846] (aimee_intent_router) StdoutLine: {'line': b'running develop\n'}
+[178.910603] (aimee_test_dashboard) StdoutLine: {'line': b'running develop\n'}
+[178.952977] (-) TimerEvent: {}
+[179.054559] (-) TimerEvent: {}
+[179.155672] (-) TimerEvent: {}
+[179.256305] (-) TimerEvent: {}
+[179.358211] (-) TimerEvent: {}
+[179.460773] (-) TimerEvent: {}
+[179.561375] (-) TimerEvent: {}
+[179.662020] (-) TimerEvent: {}
+[179.762641] (-) TimerEvent: {}
+[179.863224] (-) TimerEvent: {}
+[179.968730] (-) TimerEvent: {}
+[180.069357] (-) TimerEvent: {}
+[180.084721] (aimee_llm_server) StdoutLine: {'line': b'running egg_info\n'}
+[180.085623] (aimee_llm_server) StdoutLine: {'line': b'creating aimee_llm_server.egg-info\n'}
+[180.086423] (aimee_llm_server) StdoutLine: {'line': b'writing aimee_llm_server.egg-info/PKG-INFO\n'}
+[180.089153] (aimee_llm_server) StdoutLine: {'line': b'writing dependency_links to aimee_llm_server.egg-info/dependency_links.txt\n'}
+[180.100746] (aimee_llm_server) StdoutLine: {'line': b'writing entry points to aimee_llm_server.egg-info/entry_points.txt\n'}
+[180.101709] (aimee_llm_server) StdoutLine: {'line': b'writing requirements to aimee_llm_server.egg-info/requires.txt\n'}
+[180.102694] (aimee_llm_server) StdoutLine: {'line': b'writing top-level names to aimee_llm_server.egg-info/top_level.txt\n'}
+[180.103503] (aimee_skill_manager) StdoutLine: {'line': b'running egg_info\n'}
+[180.104387] (aimee_skill_manager) StdoutLine: {'line': b'creating aimee_skill_manager.egg-info\n'}
+[180.109580] (aimee_llm_server) StdoutLine: {'line': b"writing manifest file 'aimee_llm_server.egg-info/SOURCES.txt'\n"}
+[180.110450] (aimee_skill_manager) StdoutLine: {'line': b'writing aimee_skill_manager.egg-info/PKG-INFO\n'}
+[180.121402] (aimee_skill_manager) StdoutLine: {'line': b'writing dependency_links to aimee_skill_manager.egg-info/dependency_links.txt\n'}
+[180.122471] (aimee_skill_manager) StdoutLine: {'line': b'writing entry points to aimee_skill_manager.egg-info/entry_points.txt\n'}
+[180.123291] (aimee_skill_manager) StdoutLine: {'line': b'writing requirements to aimee_skill_manager.egg-info/requires.txt\n'}
+[180.123995] (aimee_skill_manager) StdoutLine: {'line': b'writing top-level names to aimee_skill_manager.egg-info/top_level.txt\n'}
+[180.134283] (aimee_llm_server) StdoutLine: {'line': b"reading manifest file 'aimee_llm_server.egg-info/SOURCES.txt'\n"}
+[180.135218] (aimee_llm_server) StdoutLine: {'line': b"writing manifest file 'aimee_llm_server.egg-info/SOURCES.txt'\n"}
+[180.136008] (aimee_skill_manager) StdoutLine: {'line': b"writing manifest file 'aimee_skill_manager.egg-info/SOURCES.txt'\n"}
+[180.141308] (aimee_intent_router) StdoutLine: {'line': b'running egg_info\n'}
+[180.142249] (aimee_intent_router) StdoutLine: {'line': b'creating aimee_intent_router.egg-info\n'}
+[180.144235] (aimee_intent_router) StdoutLine: {'line': b'writing aimee_intent_router.egg-info/PKG-INFO\n'}
+[180.145152] (aimee_intent_router) StdoutLine: {'line': b'writing dependency_links to aimee_intent_router.egg-info/dependency_links.txt\n'}
+[180.145869] (aimee_intent_router) StdoutLine: {'line': b'writing entry points to aimee_intent_router.egg-info/entry_points.txt\n'}
+[180.150023] (aimee_intent_router) StdoutLine: {'line': b'writing requirements to aimee_intent_router.egg-info/requires.txt\n'}
+[180.150879] (aimee_intent_router) StdoutLine: {'line': b'writing top-level names to aimee_intent_router.egg-info/top_level.txt\n'}
+[180.158013] (aimee_intent_router) StdoutLine: {'line': b"writing manifest file 'aimee_intent_router.egg-info/SOURCES.txt'\n"}
+[180.159112] (aimee_skill_manager) StdoutLine: {'line': b"reading manifest file 'aimee_skill_manager.egg-info/SOURCES.txt'\n"}
+[180.163219] (aimee_llm_server) StdoutLine: {'line': b'running build_ext\n'}
+[180.169711] (aimee_llm_server) StdoutLine: {'line': b'Creating /workspace/install/aimee_llm_server/lib/python3.10/site-packages/aimee-llm-server.egg-link (link to .)\n'}
+[180.170741] (-) TimerEvent: {}
+[180.170986] (aimee_skill_manager) StdoutLine: {'line': b"writing manifest file 'aimee_skill_manager.egg-info/SOURCES.txt'\n"}
+[180.175946] (aimee_intent_router) StdoutLine: {'line': b"reading manifest file 'aimee_intent_router.egg-info/SOURCES.txt'\n"}
+[180.183549] (aimee_skill_manager) StdoutLine: {'line': b'running build_ext\n'}
+[180.184602] (aimee_llm_server) StdoutLine: {'line': b'Installing llm_server_node script to /workspace/install/aimee_llm_server/lib/aimee_llm_server\n'}
+[180.192709] (aimee_skill_manager) StdoutLine: {'line': b'Creating /workspace/install/aimee_skill_manager/lib/python3.10/site-packages/aimee-skill-manager.egg-link (link to .)\n'}
+[180.193713] (aimee_intent_router) StdoutLine: {'line': b"writing manifest file 'aimee_intent_router.egg-info/SOURCES.txt'\n"}
+[180.201803] (aimee_llm_server) StdoutLine: {'line': b'\n'}
+[180.202856] (aimee_llm_server) StdoutLine: {'line': b'Installed /workspace/build/aimee_llm_server\n'}
+[180.203759] (aimee_llm_server) StdoutLine: {'line': b'running symlink_data\n'}
+[180.208784] (aimee_llm_server) StdoutLine: {'line': b'creating /workspace/install/aimee_llm_server/share/ament_index\n'}
+[180.209900] (aimee_llm_server) StdoutLine: {'line': b'creating /workspace/install/aimee_llm_server/share/ament_index/resource_index\n'}
+[180.210797] (aimee_llm_server) StdoutLine: {'line': b'creating /workspace/install/aimee_llm_server/share/ament_index/resource_index/packages\n'}
+[180.211603] (aimee_llm_server) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_llm_server/resource/aimee_llm_server -> /workspace/install/aimee_llm_server/share/ament_index/resource_index/packages\n'}
+[180.222553] (aimee_intent_router) StdoutLine: {'line': b'running build_ext\n'}
+[180.223534] (aimee_intent_router) StdoutLine: {'line': b'Creating /workspace/install/aimee_intent_router/lib/python3.10/site-packages/aimee-intent-router.egg-link (link to .)\n'}
+[180.224403] (aimee_skill_manager) StdoutLine: {'line': b'Installing skill_manager_node script to /workspace/install/aimee_skill_manager/lib/aimee_skill_manager\n'}
+[180.225526] (aimee_skill_manager) StdoutLine: {'line': b'\n'}
+[180.226421] (aimee_skill_manager) StdoutLine: {'line': b'Installed /workspace/build/aimee_skill_manager\n'}
+[180.227297] (aimee_llm_server) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_llm_server/package.xml -> /workspace/install/aimee_llm_server/share/aimee_llm_server\n'}
+[180.228310] (aimee_llm_server) StdoutLine: {'line': b'creating /workspace/install/aimee_llm_server/share/aimee_llm_server/config\n'}
+[180.235223] (aimee_llm_server) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_llm_server/config/brick_config.yaml -> /workspace/install/aimee_llm_server/share/aimee_llm_server/config\n'}
+[180.236124] (aimee_skill_manager) StdoutLine: {'line': b'running symlink_data\n'}
+[180.241387] (aimee_intent_router) StdoutLine: {'line': b'Installing intent_router_node script to /workspace/install/aimee_intent_router/lib/aimee_intent_router\n'}
+[180.242345] (aimee_skill_manager) StdoutLine: {'line': b'creating /workspace/install/aimee_skill_manager/share/ament_index\n'}
+[180.243173] (aimee_skill_manager) StdoutLine: {'line': b'creating /workspace/install/aimee_skill_manager/share/ament_index/resource_index\n'}
+[180.243976] (aimee_skill_manager) StdoutLine: {'line': b'creating /workspace/install/aimee_skill_manager/share/ament_index/resource_index/packages\n'}
+[180.249173] (aimee_skill_manager) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_skill_manager/resource/aimee_skill_manager -> /workspace/install/aimee_skill_manager/share/ament_index/resource_index/packages\n'}
+[180.250153] (aimee_skill_manager) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_skill_manager/package.xml -> /workspace/install/aimee_skill_manager/share/aimee_skill_manager\n'}
+[180.250968] (aimee_intent_router) StdoutLine: {'line': b'\n'}
+[180.251859] (aimee_intent_router) StdoutLine: {'line': b'Installed /workspace/build/aimee_intent_router\n'}
+[180.256982] (aimee_intent_router) StdoutLine: {'line': b'running symlink_data\n'}
+[180.257995] (aimee_intent_router) StdoutLine: {'line': b'creating /workspace/install/aimee_intent_router/share/ament_index\n'}
+[180.258848] (aimee_intent_router) StdoutLine: {'line': b'creating /workspace/install/aimee_intent_router/share/ament_index/resource_index\n'}
+[180.259682] (aimee_intent_router) StdoutLine: {'line': b'creating /workspace/install/aimee_intent_router/share/ament_index/resource_index/packages\n'}
+[180.264676] (aimee_intent_router) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_intent_router/resource/aimee_intent_router -> /workspace/install/aimee_intent_router/share/ament_index/resource_index/packages\n'}
+[180.265755] (aimee_intent_router) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_intent_router/package.xml -> /workspace/install/aimee_intent_router/share/aimee_intent_router\n'}
+[180.266592] (aimee_intent_router) StdoutLine: {'line': b'creating /workspace/install/aimee_intent_router/share/aimee_intent_router/config\n'}
+[180.267424] (aimee_intent_router) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_intent_router/config/brick_config.yaml -> /workspace/install/aimee_intent_router/share/aimee_intent_router/config\n'}
+[180.268334] (aimee_skill_manager) StdoutLine: {'line': b'creating /workspace/install/aimee_skill_manager/share/aimee_skill_manager/config\n'}
+[180.273425] (-) TimerEvent: {}
+[180.273700] (aimee_skill_manager) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_skill_manager/config/brick_config.yaml -> /workspace/install/aimee_skill_manager/share/aimee_skill_manager/config\n'}
+[180.324292] (aimee_test_dashboard) StdoutLine: {'line': b'running egg_info\n'}
+[180.325448] (aimee_test_dashboard) StdoutLine: {'line': b'creating aimee_test_dashboard.egg-info\n'}
+[180.330782] (aimee_test_dashboard) StdoutLine: {'line': b'writing aimee_test_dashboard.egg-info/PKG-INFO\n'}
+[180.338019] (aimee_test_dashboard) StdoutLine: {'line': b'writing dependency_links to aimee_test_dashboard.egg-info/dependency_links.txt\n'}
+[180.339032] (aimee_test_dashboard) StdoutLine: {'line': b'writing entry points to aimee_test_dashboard.egg-info/entry_points.txt\n'}
+[180.340856] (aimee_test_dashboard) StdoutLine: {'line': b'writing requirements to aimee_test_dashboard.egg-info/requires.txt\n'}
+[180.341842] (aimee_test_dashboard) StdoutLine: {'line': b'writing top-level names to aimee_test_dashboard.egg-info/top_level.txt\n'}
+[180.346090] (aimee_test_dashboard) StdoutLine: {'line': b"writing manifest file 'aimee_test_dashboard.egg-info/SOURCES.txt'\n"}
+[180.376765] (-) TimerEvent: {}
+[180.378077] (aimee_test_dashboard) StdoutLine: {'line': b"reading manifest file 'aimee_test_dashboard.egg-info/SOURCES.txt'\n"}
+[180.388816] (aimee_test_dashboard) StdoutLine: {'line': b"writing manifest file 'aimee_test_dashboard.egg-info/SOURCES.txt'\n"}
+[180.413261] (aimee_test_dashboard) StdoutLine: {'line': b'running build_ext\n'}
+[180.419259] (aimee_test_dashboard) StdoutLine: {'line': b'Creating /workspace/install/aimee_test_dashboard/lib/python3.10/site-packages/aimee-test-dashboard.egg-link (link to .)\n'}
+[180.440795] (aimee_test_dashboard) StdoutLine: {'line': b'Installing dashboard_node script to /workspace/install/aimee_test_dashboard/lib/aimee_test_dashboard\n'}
+[180.453723] (aimee_test_dashboard) StdoutLine: {'line': b'\n'}
+[180.454822] (aimee_test_dashboard) StdoutLine: {'line': b'Installed /workspace/build/aimee_test_dashboard\n'}
+[180.455691] (aimee_test_dashboard) StdoutLine: {'line': b'running symlink_data\n'}
+[180.460674] (aimee_test_dashboard) StdoutLine: {'line': b'creating /workspace/install/aimee_test_dashboard/share/ament_index\n'}
+[180.461906] (aimee_test_dashboard) StdoutLine: {'line': b'creating /workspace/install/aimee_test_dashboard/share/ament_index/resource_index\n'}
+[180.462843] (aimee_test_dashboard) StdoutLine: {'line': b'creating /workspace/install/aimee_test_dashboard/share/ament_index/resource_index/packages\n'}
+[180.467438] (aimee_test_dashboard) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_test_dashboard/resource/aimee_test_dashboard -> /workspace/install/aimee_test_dashboard/share/ament_index/resource_index/packages\n'}
+[180.468675] (aimee_test_dashboard) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_test_dashboard/package.xml -> /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard\n'}
+[180.469557] (aimee_test_dashboard) StdoutLine: {'line': b'creating /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/config\n'}
+[180.470382] (aimee_test_dashboard) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_test_dashboard/config/brick_config.yaml -> /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/config\n'}
+[180.471189] (aimee_test_dashboard) StdoutLine: {'line': b'creating /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/web\n'}
+[180.471988] (aimee_test_dashboard) StdoutLine: {'line': b'creating /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/web/templates\n'}
+[180.481298] (-) TimerEvent: {}
+[180.481646] (aimee_test_dashboard) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_test_dashboard/aimee_test_dashboard/web/templates/index.html -> /workspace/install/aimee_test_dashboard/share/aimee_test_dashboard/web/templates\n'}
+[180.581661] (-) TimerEvent: {}
+[180.624727] (aimee_intent_router) CommandEnded: {'returncode': 0}
+[180.682628] (-) TimerEvent: {}
+[180.699028] (aimee_intent_router) JobEnded: {'identifier': 'aimee_intent_router', 'rc': 0}
+[180.705960] (aimee_voice_manager) JobStarted: {'identifier': 'aimee_voice_manager'}
+[180.757211] (aimee_skill_manager) CommandEnded: {'returncode': 0}
+[180.784608] (-) TimerEvent: {}
+[180.859890] (aimee_skill_manager) JobEnded: {'identifier': 'aimee_skill_manager', 'rc': 0}
+[180.866550] (aimee_wake_word_ei) JobStarted: {'identifier': 'aimee_wake_word_ei'}
+[180.885128] (-) TimerEvent: {}
+[180.907080] (aimee_llm_server) CommandEnded: {'returncode': 0}
+[180.982746] (aimee_llm_server) JobEnded: {'identifier': 'aimee_llm_server', 'rc': 0}
+[180.994245] (-) TimerEvent: {}
+[180.994597] (aimee_test_dashboard) CommandEnded: {'returncode': 0}
+[181.065608] (aimee_test_dashboard) JobEnded: {'identifier': 'aimee_test_dashboard', 'rc': 0}
+[181.094513] (-) TimerEvent: {}
+[181.195154] (-) TimerEvent: {}
+[181.296181] (-) TimerEvent: {}
+[181.397195] (-) TimerEvent: {}
+[181.497944] (-) TimerEvent: {}
+[181.598559] (-) TimerEvent: {}
+[181.699686] (-) TimerEvent: {}
+[181.800794] (-) TimerEvent: {}
+[181.901625] (-) TimerEvent: {}
+[182.002099] (-) TimerEvent: {}
+[182.102689] (-) TimerEvent: {}
+[182.203696] (-) TimerEvent: {}
+[182.304740] (-) TimerEvent: {}
+[182.405344] (-) TimerEvent: {}
+[182.506392] (-) TimerEvent: {}
+[182.606964] (-) TimerEvent: {}
+[182.707584] (-) TimerEvent: {}
+[182.808786] (-) TimerEvent: {}
+[182.909633] (-) TimerEvent: {}
+[183.010284] (-) TimerEvent: {}
+[183.111244] (-) TimerEvent: {}
+[183.212197] (-) TimerEvent: {}
+[183.313132] (-) TimerEvent: {}
+[183.413728] (-) TimerEvent: {}
+[183.514319] (-) TimerEvent: {}
+[183.615256] (-) TimerEvent: {}
+[183.716193] (-) TimerEvent: {}
+[183.817426] (-) TimerEvent: {}
+[183.918015] (-) TimerEvent: {}
+[184.019055] (-) TimerEvent: {}
+[184.120086] (-) TimerEvent: {}
+[184.223836] (-) TimerEvent: {}
+[184.325019] (-) TimerEvent: {}
+[184.425607] (-) TimerEvent: {}
+[184.526161] (-) TimerEvent: {}
+[184.626783] (-) TimerEvent: {}
+[184.727848] (-) TimerEvent: {}
+[184.828866] (-) TimerEvent: {}
+[184.929449] (-) TimerEvent: {}
+[185.030071] (-) TimerEvent: {}
+[185.131057] (-) TimerEvent: {}
+[185.231695] (-) TimerEvent: {}
+[185.337186] (-) TimerEvent: {}
+[185.440827] (-) TimerEvent: {}
+[185.541494] (-) TimerEvent: {}
+[185.644254] (-) TimerEvent: {}
+[185.744953] (-) TimerEvent: {}
+[185.847801] (-) TimerEvent: {}
+[185.948884] (-) TimerEvent: {}
+[186.051360] (-) TimerEvent: {}
+[186.153045] (-) TimerEvent: {}
+[186.253782] (-) TimerEvent: {}
+[186.356742] (-) TimerEvent: {}
+[186.457362] (-) TimerEvent: {}
+[186.558063] (-) TimerEvent: {}
+[186.658764] (-) TimerEvent: {}
+[186.760037] (-) TimerEvent: {}
+[186.768845] (aimee_wake_word_ei) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/build/aimee_wake_word_ei/build', '--no-deps', 'symlink_data'], 'cwd': '/workspace/build/aimee_wake_word_ei', 'env': {'HOSTNAME': 'Ron', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/workspace/install/aimee_msgs/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/workspace/install/aimee_msgs:/opt/ros/humble', 'PWD': '/workspace/build/aimee_wake_word_ei', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/build/aimee_wake_word_ei/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_wake_word_ei/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/workspace/install/aimee_msgs'}, 'shell': False}
+[186.827357] (aimee_voice_manager) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspace/build/aimee_voice_manager/build', '--no-deps', 'symlink_data'], 'cwd': '/workspace/build/aimee_voice_manager', 'env': {'HOSTNAME': 'Ron', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/workspace/install/aimee_msgs/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/root', 'ROS_PYTHON_VERSION': '3', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/workspace/install/aimee_msgs:/opt/ros/humble', 'PWD': '/workspace/build/aimee_voice_manager', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspace/build/aimee_voice_manager/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspace/install/aimee_voice_manager/lib/python3.10/site-packages:/workspace/install/aimee_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/workspace/install/aimee_msgs'}, 'shell': False}
+[186.861477] (-) TimerEvent: {}
+[186.962137] (-) TimerEvent: {}
+[187.062765] (-) TimerEvent: {}
+[187.164616] (-) TimerEvent: {}
+[187.265326] (-) TimerEvent: {}
+[187.365901] (-) TimerEvent: {}
+[187.466922] (-) TimerEvent: {}
+[187.567914] (-) TimerEvent: {}
+[187.668990] (-) TimerEvent: {}
+[187.769993] (-) TimerEvent: {}
+[187.870572] (-) TimerEvent: {}
+[187.972731] (-) TimerEvent: {}
+[188.073388] (-) TimerEvent: {}
+[188.173951] (-) TimerEvent: {}
+[188.274582] (-) TimerEvent: {}
+[188.375566] (-) TimerEvent: {}
+[188.476604] (-) TimerEvent: {}
+[188.577265] (-) TimerEvent: {}
+[188.655027] (aimee_wake_word_ei) StdoutLine: {'line': b'running develop\n'}
+[188.677904] (-) TimerEvent: {}
+[188.778520] (-) TimerEvent: {}
+[188.782785] (aimee_voice_manager) StdoutLine: {'line': b'running develop\n'}
+[188.891235] (-) TimerEvent: {}
+[188.992044] (-) TimerEvent: {}
+[189.092681] (-) TimerEvent: {}
+[189.193391] (-) TimerEvent: {}
+[189.294040] (-) TimerEvent: {}
+[189.394681] (-) TimerEvent: {}
+[189.495353] (-) TimerEvent: {}
+[189.596020] (-) TimerEvent: {}
+[189.696827] (-) TimerEvent: {}
+[189.797707] (-) TimerEvent: {}
+[189.846827] (aimee_wake_word_ei) StdoutLine: {'line': b'running egg_info\n'}
+[189.847865] (aimee_wake_word_ei) StdoutLine: {'line': b'creating aimee_wake_word_ei.egg-info\n'}
+[189.855152] (aimee_wake_word_ei) StdoutLine: {'line': b'writing aimee_wake_word_ei.egg-info/PKG-INFO\n'}
+[189.856189] (aimee_wake_word_ei) StdoutLine: {'line': b'writing dependency_links to aimee_wake_word_ei.egg-info/dependency_links.txt\n'}
+[189.857220] (aimee_wake_word_ei) StdoutLine: {'line': b'writing entry points to aimee_wake_word_ei.egg-info/entry_points.txt\n'}
+[189.858096] (aimee_wake_word_ei) StdoutLine: {'line': b'writing requirements to aimee_wake_word_ei.egg-info/requires.txt\n'}
+[189.858938] (aimee_wake_word_ei) StdoutLine: {'line': b'writing top-level names to aimee_wake_word_ei.egg-info/top_level.txt\n'}
+[189.859808] (aimee_wake_word_ei) StdoutLine: {'line': b"writing manifest file 'aimee_wake_word_ei.egg-info/SOURCES.txt'\n"}
+[189.867594] (aimee_wake_word_ei) StdoutLine: {'line': b"reading manifest file 'aimee_wake_word_ei.egg-info/SOURCES.txt'\n"}
+[189.875485] (aimee_wake_word_ei) StdoutLine: {'line': b"writing manifest file 'aimee_wake_word_ei.egg-info/SOURCES.txt'\n"}
+[189.888323] (aimee_wake_word_ei) StdoutLine: {'line': b'running build_ext\n'}
+[189.890665] (aimee_wake_word_ei) StdoutLine: {'line': b'Creating /workspace/install/aimee_wake_word_ei/lib/python3.10/site-packages/aimee-wake-word-ei.egg-link (link to .)\n'}
+[189.901372] (-) TimerEvent: {}
+[189.907717] (aimee_wake_word_ei) StdoutLine: {'line': b'Installing wake_word_ei_node script to /workspace/install/aimee_wake_word_ei/lib/aimee_wake_word_ei\n'}
+[189.909161] (aimee_wake_word_ei) StdoutLine: {'line': b'\n'}
+[189.910088] (aimee_wake_word_ei) StdoutLine: {'line': b'Installed /workspace/build/aimee_wake_word_ei\n'}
+[189.910943] (aimee_wake_word_ei) StdoutLine: {'line': b'running symlink_data\n'}
+[189.918998] (aimee_wake_word_ei) StdoutLine: {'line': b'creating /workspace/install/aimee_wake_word_ei/share/ament_index\n'}
+[189.920075] (aimee_wake_word_ei) StdoutLine: {'line': b'creating /workspace/install/aimee_wake_word_ei/share/ament_index/resource_index\n'}
+[189.921145] (aimee_wake_word_ei) StdoutLine: {'line': b'creating /workspace/install/aimee_wake_word_ei/share/ament_index/resource_index/packages\n'}
+[189.922029] (aimee_wake_word_ei) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_wake_word_ei/resource/aimee_wake_word_ei -> /workspace/install/aimee_wake_word_ei/share/ament_index/resource_index/packages\n'}
+[189.923476] (aimee_wake_word_ei) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_wake_word_ei/package.xml -> /workspace/install/aimee_wake_word_ei/share/aimee_wake_word_ei\n'}
+[189.924420] (aimee_wake_word_ei) StdoutLine: {'line': b'creating /workspace/install/aimee_wake_word_ei/share/aimee_wake_word_ei/config\n'}
+[189.927377] (aimee_wake_word_ei) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_wake_word_ei/config/brick_config.yaml -> /workspace/install/aimee_wake_word_ei/share/aimee_wake_word_ei/config\n'}
+[190.001821] (-) TimerEvent: {}
+[190.026130] (aimee_voice_manager) StdoutLine: {'line': b'running egg_info\n'}
+[190.034808] (aimee_voice_manager) StdoutLine: {'line': b'creating aimee_voice_manager.egg-info\n'}
+[190.043641] (aimee_voice_manager) StdoutLine: {'line': b'writing aimee_voice_manager.egg-info/PKG-INFO\n'}
+[190.050040] (aimee_voice_manager) StdoutLine: {'line': b'writing dependency_links to aimee_voice_manager.egg-info/dependency_links.txt\n'}
+[190.061701] (aimee_voice_manager) StdoutLine: {'line': b'writing entry points to aimee_voice_manager.egg-info/entry_points.txt\n'}
+[190.062512] (aimee_voice_manager) StdoutLine: {'line': b'writing requirements to aimee_voice_manager.egg-info/requires.txt\n'}
+[190.063295] (aimee_voice_manager) StdoutLine: {'line': b'writing top-level names to aimee_voice_manager.egg-info/top_level.txt\n'}
+[190.064073] (aimee_voice_manager) StdoutLine: {'line': b"writing manifest file 'aimee_voice_manager.egg-info/SOURCES.txt'\n"}
+[190.067102] (aimee_voice_manager) StdoutLine: {'line': b"reading manifest file 'aimee_voice_manager.egg-info/SOURCES.txt'\n"}
+[190.068069] (aimee_voice_manager) StdoutLine: {'line': b"writing manifest file 'aimee_voice_manager.egg-info/SOURCES.txt'\n"}
+[190.084580] (aimee_voice_manager) StdoutLine: {'line': b'running build_ext\n'}
+[190.086767] (aimee_voice_manager) StdoutLine: {'line': b'Creating /workspace/install/aimee_voice_manager/lib/python3.10/site-packages/aimee-voice-manager.egg-link (link to .)\n'}
+[190.096286] (aimee_voice_manager) StdoutLine: {'line': b'Installing voice_manager_node script to /workspace/install/aimee_voice_manager/lib/aimee_voice_manager\n'}
+[190.098375] (aimee_voice_manager) StdoutLine: {'line': b'\n'}
+[190.101298] (aimee_voice_manager) StdoutLine: {'line': b'Installed /workspace/build/aimee_voice_manager\n'}
+[190.105299] (-) TimerEvent: {}
+[190.105684] (aimee_voice_manager) StdoutLine: {'line': b'running symlink_data\n'}
+[190.106719] (aimee_voice_manager) StdoutLine: {'line': b'creating /workspace/install/aimee_voice_manager/share/ament_index\n'}
+[190.107651] (aimee_voice_manager) StdoutLine: {'line': b'creating /workspace/install/aimee_voice_manager/share/ament_index/resource_index\n'}
+[190.109543] (aimee_voice_manager) StdoutLine: {'line': b'creating /workspace/install/aimee_voice_manager/share/ament_index/resource_index/packages\n'}
+[190.110686] (aimee_voice_manager) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_voice_manager/resource/aimee_voice_manager -> /workspace/install/aimee_voice_manager/share/ament_index/resource_index/packages\n'}
+[190.111691] (aimee_voice_manager) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_voice_manager/package.xml -> /workspace/install/aimee_voice_manager/share/aimee_voice_manager\n'}
+[190.112798] (aimee_voice_manager) StdoutLine: {'line': b'creating /workspace/install/aimee_voice_manager/share/aimee_voice_manager/config\n'}
+[190.114176] (aimee_voice_manager) StdoutLine: {'line': b'symbolically linking /workspace/build/aimee_voice_manager/config/brick_config.yaml -> /workspace/install/aimee_voice_manager/share/aimee_voice_manager/config\n'}
+[190.205622] (-) TimerEvent: {}
+[190.216783] (aimee_wake_word_ei) CommandEnded: {'returncode': 0}
+[190.405123] (-) TimerEvent: {}
+[190.413067] (aimee_wake_word_ei) JobEnded: {'identifier': 'aimee_wake_word_ei', 'rc': 0}
+[190.418298] (aimee_voice_manager) CommandEnded: {'returncode': 0}
+[190.491095] (aimee_voice_manager) JobEnded: {'identifier': 'aimee_voice_manager', 'rc': 0}
+[190.496146] (-) EventReactorShutdown: {}

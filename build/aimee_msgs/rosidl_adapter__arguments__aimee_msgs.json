@@ -8,6 +8,8 @@
     "/workspace/src/aimee_msgs:msg/TrackingCommand.msg",
     "/workspace/src/aimee_msgs:msg/WakeWordDetection.msg",
     "/workspace/src/aimee_msgs:msg/MotorAction.msg",
+    "/workspace/src/aimee_msgs:msg/CameraAction.msg",
+    "/workspace/src/aimee_msgs:msg/LEDAction.msg",
     "/workspace/src/aimee_msgs:action/LLMGenerate.action",
     "/workspace/src/aimee_msgs:action/ExecuteSkill.action"
   ]

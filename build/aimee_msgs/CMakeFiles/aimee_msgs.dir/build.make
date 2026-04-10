@@ -73,6 +73,8 @@ CMakeFiles/aimee_msgs: /workspace/src/aimee_msgs/msg/FaceDetection.msg
 CMakeFiles/aimee_msgs: /workspace/src/aimee_msgs/msg/TrackingCommand.msg
 CMakeFiles/aimee_msgs: /workspace/src/aimee_msgs/msg/WakeWordDetection.msg
 CMakeFiles/aimee_msgs: /workspace/src/aimee_msgs/msg/MotorAction.msg
+CMakeFiles/aimee_msgs: /workspace/src/aimee_msgs/msg/CameraAction.msg
+CMakeFiles/aimee_msgs: /workspace/src/aimee_msgs/msg/LEDAction.msg
 CMakeFiles/aimee_msgs: /workspace/src/aimee_msgs/action/LLMGenerate.action
 CMakeFiles/aimee_msgs: /workspace/src/aimee_msgs/action/ExecuteSkill.action
 CMakeFiles/aimee_msgs: /opt/ros/humble/share/builtin_interfaces/msg/Duration.idl

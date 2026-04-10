@@ -93,6 +93,8 @@ rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/Fa
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/TrackingCommand.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/WakeWordDetection.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/MotorAction.idl
+rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/CameraAction.idl
+rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/LEDAction.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/action/LLMGenerate.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/action/ExecuteSkill.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/Intent.idl
@@ -102,6 +104,8 @@ rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/Fa
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/TrackingCommand.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/WakeWordDetection.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/MotorAction.idl
+rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/CameraAction.idl
+rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/msg/LEDAction.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/action/LLMGenerate.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: rosidl_adapter/aimee_msgs/action/ExecuteSkill.idl
 rosidl_generator_rs/aimee_msgs/rust/src/lib.rs: /opt/ros/humble/share/builtin_interfaces/msg/Duration.idl

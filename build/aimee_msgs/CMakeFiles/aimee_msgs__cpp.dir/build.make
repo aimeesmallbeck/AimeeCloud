@@ -101,6 +101,16 @@ CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/motor_act
 CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/motor_action__struct.hpp
 CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/motor_action__traits.hpp
 CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/motor_action__type_support.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/camera_action.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__builder.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__struct.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__traits.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__type_support.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/led_action.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__builder.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__struct.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__traits.hpp
+CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__type_support.hpp
 CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/action/llm_generate.hpp
 CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/action/detail/llm_generate__builder.hpp
 CMakeFiles/aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/action/detail/llm_generate__struct.hpp
@@ -135,6 +145,8 @@ rosidl_generator_cpp/aimee_msgs/msg/intent.hpp: rosidl_adapter/aimee_msgs/msg/Fa
 rosidl_generator_cpp/aimee_msgs/msg/intent.hpp: rosidl_adapter/aimee_msgs/msg/TrackingCommand.idl
 rosidl_generator_cpp/aimee_msgs/msg/intent.hpp: rosidl_adapter/aimee_msgs/msg/WakeWordDetection.idl
 rosidl_generator_cpp/aimee_msgs/msg/intent.hpp: rosidl_adapter/aimee_msgs/msg/MotorAction.idl
+rosidl_generator_cpp/aimee_msgs/msg/intent.hpp: rosidl_adapter/aimee_msgs/msg/CameraAction.idl
+rosidl_generator_cpp/aimee_msgs/msg/intent.hpp: rosidl_adapter/aimee_msgs/msg/LEDAction.idl
 rosidl_generator_cpp/aimee_msgs/msg/intent.hpp: rosidl_adapter/aimee_msgs/action/LLMGenerate.idl
 rosidl_generator_cpp/aimee_msgs/msg/intent.hpp: rosidl_adapter/aimee_msgs/action/ExecuteSkill.idl
 rosidl_generator_cpp/aimee_msgs/msg/intent.hpp: /opt/ros/humble/share/builtin_interfaces/msg/Duration.idl
@@ -349,6 +361,36 @@ rosidl_generator_cpp/aimee_msgs/msg/detail/motor_action__traits.hpp: rosidl_gene
 rosidl_generator_cpp/aimee_msgs/msg/detail/motor_action__type_support.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/detail/motor_action__type_support.hpp
 
+rosidl_generator_cpp/aimee_msgs/msg/camera_action.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/camera_action.hpp
+
+rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__builder.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__builder.hpp
+
+rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__struct.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__struct.hpp
+
+rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__traits.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__traits.hpp
+
+rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__type_support.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__type_support.hpp
+
+rosidl_generator_cpp/aimee_msgs/msg/led_action.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/led_action.hpp
+
+rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__builder.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__builder.hpp
+
+rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__struct.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__struct.hpp
+
+rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__traits.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__traits.hpp
+
+rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__type_support.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__type_support.hpp
+
 rosidl_generator_cpp/aimee_msgs/action/llm_generate.hpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/aimee_msgs/action/llm_generate.hpp
 
@@ -390,6 +432,11 @@ aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/action/detail/llm_generate__tra
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/action/detail/llm_generate__type_support.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/action/execute_skill.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/action/llm_generate.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/camera_action.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__builder.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__struct.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__traits.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/camera_action__type_support.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/face_detection__builder.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/face_detection__struct.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/face_detection__traits.hpp
@@ -398,6 +445,10 @@ aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/intent__builder.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/intent__struct.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/intent__traits.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/intent__type_support.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__builder.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__struct.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__traits.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/led_action__type_support.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/motor_action__builder.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/motor_action__struct.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/motor_action__traits.hpp
@@ -420,6 +471,7 @@ aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/wake_word_detection_
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/detail/wake_word_detection__type_support.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/face_detection.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/intent.hpp
+aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/led_action.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/motor_action.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/robot_state.hpp
 aimee_msgs__cpp: rosidl_generator_cpp/aimee_msgs/msg/tracking_command.hpp

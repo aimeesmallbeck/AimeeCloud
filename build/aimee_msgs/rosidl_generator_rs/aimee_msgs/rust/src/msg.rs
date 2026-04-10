@@ -750,3 +750,127 @@ impl rosidl_runtime_rs::Message for MotorAction {
 }
 
 
+// Corresponds to aimee_msgs__msg__CameraAction
+/// Camera action performed by a skill
+/// Published in ExecuteSkill result
+
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct CameraAction {
+    /// track_face, stop_tracking, look_at_me, etc.
+    pub action_type: std::string::String,
+
+    /// Target object/person
+    pub target: std::string::String,
+
+    /// Detection confidence
+    pub confidence: f32,
+
+
+    // This member is not documented.
+    #[allow(missing_docs)]
+    pub execution_time: builtin_interfaces::msg::Duration,
+
+}
+
+
+
+impl Default for CameraAction {
+  fn default() -> Self {
+    <Self as rosidl_runtime_rs::Message>::from_rmw_message(super::msg::rmw::CameraAction::default())
+  }
+}
+
+impl rosidl_runtime_rs::Message for CameraAction {
+  type RmwMsg = super::msg::rmw::CameraAction;
+
+  fn into_rmw_message(msg_cow: std::borrow::Cow<'_, Self>) -> std::borrow::Cow<'_, Self::RmwMsg> {
+    match msg_cow {
+      std::borrow::Cow::Owned(msg) => std::borrow::Cow::Owned(Self::RmwMsg {
+        action_type: msg.action_type.as_str().into(),
+        target: msg.target.as_str().into(),
+        confidence: msg.confidence,
+        execution_time: builtin_interfaces::msg::Duration::into_rmw_message(std::borrow::Cow::Owned(msg.execution_time)).into_owned(),
+      }),
+      std::borrow::Cow::Borrowed(msg) => std::borrow::Cow::Owned(Self::RmwMsg {
+        action_type: msg.action_type.as_str().into(),
+        target: msg.target.as_str().into(),
+      confidence: msg.confidence,
+        execution_time: builtin_interfaces::msg::Duration::into_rmw_message(std::borrow::Cow::Borrowed(&msg.execution_time)).into_owned(),
+      })
+    }
+  }
+
+  fn from_rmw_message(msg: Self::RmwMsg) -> Self {
+    Self {
+      action_type: msg.action_type.to_string(),
+      target: msg.target.to_string(),
+      confidence: msg.confidence,
+      execution_time: builtin_interfaces::msg::Duration::from_rmw_message(msg.execution_time),
+    }
+  }
+}
+
+
+// Corresponds to aimee_msgs__msg__LEDAction
+/// LED action performed by a skill
+/// Published in ExecuteSkill result
+
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct LEDAction {
+    /// Which LED (matrix, status, etc.)
+    pub led_id: std::string::String,
+
+    /// RGB color values
+    pub color: Vec<u8>,
+
+    /// solid, blink, pulse, rainbow
+    pub pattern: std::string::String,
+
+    /// How long to display
+    pub duration_sec: f32,
+
+}
+
+
+
+impl Default for LEDAction {
+  fn default() -> Self {
+    <Self as rosidl_runtime_rs::Message>::from_rmw_message(super::msg::rmw::LEDAction::default())
+  }
+}
+
+impl rosidl_runtime_rs::Message for LEDAction {
+  type RmwMsg = super::msg::rmw::LEDAction;
+
+  fn into_rmw_message(msg_cow: std::borrow::Cow<'_, Self>) -> std::borrow::Cow<'_, Self::RmwMsg> {
+    match msg_cow {
+      std::borrow::Cow::Owned(msg) => std::borrow::Cow::Owned(Self::RmwMsg {
+        led_id: msg.led_id.as_str().into(),
+        color: msg.color.into(),
+        pattern: msg.pattern.as_str().into(),
+        duration_sec: msg.duration_sec,
+      }),
+      std::borrow::Cow::Borrowed(msg) => std::borrow::Cow::Owned(Self::RmwMsg {
+        led_id: msg.led_id.as_str().into(),
+        color: msg.color.as_slice().into(),
+        pattern: msg.pattern.as_str().into(),
+      duration_sec: msg.duration_sec,
+      })
+    }
+  }
+
+  fn from_rmw_message(msg: Self::RmwMsg) -> Self {
+    Self {
+      led_id: msg.led_id.to_string(),
+      color: msg.color
+          .into_iter()
+          .collect(),
+      pattern: msg.pattern.to_string(),
+      duration_sec: msg.duration_sec,
+    }
+  }
+}
+
+

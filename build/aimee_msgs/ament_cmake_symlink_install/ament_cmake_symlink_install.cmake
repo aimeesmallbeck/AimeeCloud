@@ -390,6 +390,12 @@ ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/
 # install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/MotorAction.idl" "DESTINATION" "share/aimee_msgs/msg")
 ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/MotorAction.idl" "DESTINATION" "share/aimee_msgs/msg")
 
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/CameraAction.idl" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/CameraAction.idl" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/LEDAction.idl" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/msg/LEDAction.idl" "DESTINATION" "share/aimee_msgs/msg")
+
 # install(FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/action/LLMGenerate.idl" "DESTINATION" "share/aimee_msgs/action")
 ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/build/aimee_msgs/rosidl_adapter/aimee_msgs/action/LLMGenerate.idl" "DESTINATION" "share/aimee_msgs/action")
 
@@ -416,6 +422,12 @@ ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/
 
 # install(FILES "/workspace/src/aimee_msgs/msg/MotorAction.msg" "DESTINATION" "share/aimee_msgs/msg")
 ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/MotorAction.msg" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/src/aimee_msgs/msg/CameraAction.msg" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/CameraAction.msg" "DESTINATION" "share/aimee_msgs/msg")
+
+# install(FILES "/workspace/src/aimee_msgs/msg/LEDAction.msg" "DESTINATION" "share/aimee_msgs/msg")
+ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/msg/LEDAction.msg" "DESTINATION" "share/aimee_msgs/msg")
 
 # install(FILES "/workspace/src/aimee_msgs/action/LLMGenerate.action" "DESTINATION" "share/aimee_msgs/action")
 ament_cmake_symlink_install_files("/workspace/src/aimee_msgs" FILES "/workspace/src/aimee_msgs/action/LLMGenerate.action" "DESTINATION" "share/aimee_msgs/action")
