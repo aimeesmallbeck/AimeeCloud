@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+#
+# SPDX-License-Identifier: MPL-2.0
+
+id: arduino:intent_router
+name: Intent Router
+description: "Intent Router with LLM-based intent classification. Receives transcribed text, classifies intent, and routes to appropriate skill."
+category: general
+
+variables:
+  - name: CONFIDENCE_THRESHOLD
+    description: Minimum confidence for intent classification (0.0-1.0)
+    default: "0.6"
+    type: float
+    
+  - name: ENABLE_CONVERSATION_MODE
+    description: Enable multi-turn conversation support
+    default: "true"
+    type: boolean
+    
+  - name: CONVERSATION_TIMEOUT
+    description: Seconds before conversation context expires
+    default: "60.0"
+    type: float
+    
+  - name: MAX_CONTEXT_LENGTH
+    description: Maximum conversation history exchanges to remember
+    default: "10"
+    type: integer
+    
+  - name: FALLBACK_TO_CHAT
+    description: Fallback to chat response if no skill matches
+    default: "true"
+    type: boolean
+    
+  - name: DEBUG
+    description: Enable debug logging
+    default: "false"
+    type: boolean
+
+ros2:
+  publishers:
+    - topic: /tts/speak
+      type: std_msgs/msg/String
+      description: "Response text for TTS"
+      qos: reliable
+      
+    - topic: /intent/classified
+      type: aimee_msgs/msg/Intent
+      description: "Classified intent"
+      qos: reliable
+      
+    - topic: /intent/status
+      type: std_msgs/msg/String
+      description: "Intent router status"
+      qos: reliable
+      
+  subscribers:
+    - topic: /voice/transcription
+      type: aimee_msgs/msg/Transcription
+      description: "Transcribed user commands"
+      
+  action_clients:
+    - action: /llm/generate
+      type: aimee_msgs/action/LLMGenerate
+      description: "LLM for intent classification"
+      
+  parameters:
+    - name: confidence_threshold
+      type: double
+      default: 0.6
+      description: "Minimum classification confidence"
+      
+    - name: enable_conversation_mode
+      type: bool
+      default: true
+      description: "Enable conversation context"
+
+# Intent types supported
+intent_types:
+  - greeting: "Hello, hi, good morning"
+  - movement: "Move, go, turn, stop"
+  - arm_control: "Arm, gripper, hand, wave"
+  - camera: "Look, see, track, camera"
+  - system: "Status, name, who are you"
+  - question: "Questions requiring answers"
+  - conversation: "General chat"
+  - unknown: "Unclassified"
+
+# Skills registry (registered handlers)
+skills:
+  movement:
+    description: "Robot movement control"
+    actions: [move_forward, move_backward, turn_left, turn_right, stop]
+    
+  arm_control:
+    description: "Robotic arm control"
+    actions: [raise_arm, lower_arm, open_gripper, close_gripper, wave]
+    
+  camera:
+    description: "Camera and vision control"
+    actions: [track_face, stop_tracking, look_at_me]
+
+# System prompt for LLM classification
+system_prompt: |
+  You are an intent classifier for a robot assistant named AIMEE.
+  Analyze user commands and classify them into intents.
+  
+  Available intents:
+  - GREETING: "hello", "hi", "good morning"
+  - MOVEMENT: "move forward", "turn left", "go backward", "stop"
+  - ARM_CONTROL: "raise arm", "lower arm", "open gripper", "wave"
+  - CAMERA: "look at me", "track face", "stop tracking"
+  - SYSTEM: "what's your name", "who are you", "status"
+  - QUESTION: General questions
+  - CONVERSATION: Chat, not a command
+  
+  Respond in JSON format:
+  {
+      "intent": "MOVEMENT",
+      "action": "move_forward",
+      "parameters": {"speed": 0.5},
+      "confidence": 0.95,
+      "requires_skill": true,
+      "response": "Moving forward"
+  }
