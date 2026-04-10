@@ -1107,7 +1107,7 @@ def get_ros2_nodes():
         return jsonify({'nodes': [], 'error': str(e)})
 
 
-def run_flask_app(host='0.0.0.0', port=5050, debug=False):
+def run_flask_app(host='0.0.0.0', port=5000, debug=False):
     """Run the Flask application."""
     logger.info(f"Starting AIMEE Test Dashboard on http://{host}:{port}")
     app.run(host=host, port=port, debug=debug, threaded=True)
@@ -1216,3 +1216,28 @@ def get_ros2_status():
             'error': str(e),
             'nodes': []
         })
+
+
+@app.route('/api/ros2/status', methods=['GET'])
+def get_ros2_status():
+    import subprocess
+    try:
+        cmd = ['bash', '-c', 'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 node list']
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+        nodes = [n.strip() for n in result.stdout.strip().split('\n') if n.strip()] if result.returncode == 0 else []
+        return jsonify({'success': True, 'nodes': nodes, 'count': len(nodes)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/test/ros2_pipeline', methods=['POST'])
+def test_ros2_pipeline():
+    import subprocess
+    try:
+        data = request.get_json() or {}
+        wake_word = data.get('wake_word', 'aimee')
+        cmd = ['bash', '-c', f'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 topic pub --once /wake_word/detected aimee_msgs/msg/WakeWordDetection "{{{{wake_word: \"{wake_word}\", confidence: 0.95, active: true}}}}"']
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        return jsonify({'success': result.returncode == 0, 'message': f'Triggered wake word: {wake_word}'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
