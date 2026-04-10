@@ -23,6 +23,7 @@ set(msg_files
   "msg/FaceDetection.msg"
   "msg/TrackingCommand.msg"
   "msg/WakeWordDetection.msg"
+  "msg/MotorAction.msg"
 )
 
 # Service files (add as needed)
