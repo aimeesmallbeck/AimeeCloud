@@ -1107,7 +1107,7 @@ def get_ros2_nodes():
         return jsonify({'nodes': [], 'error': str(e)})
 
 
-def run_flask_app(host='0.0.0.0', port=5000, debug=False):
+def run_flask_app(host='0.0.0.0', port=5050, debug=False):
     """Run the Flask application."""
     logger.info(f"Starting AIMEE Test Dashboard on http://{host}:{port}")
     app.run(host=host, port=port, debug=debug, threaded=True)
@@ -1115,3 +1115,104 @@ def run_flask_app(host='0.0.0.0', port=5000, debug=False):
 
 if __name__ == '__main__':
     run_flask_app(debug=False)
+
+
+# ==================== ROS2 Pipeline Test ====================
+
+@app.route('/api/test/ros2_pipeline', methods=['POST'])
+def test_ros2_pipeline():
+    """Test full ROS2 message pipeline.
+    Trigger: Publish to /wake_word/detected
+    Flow: wake_word -> voice/transcription -> intent/classified -> skill -> tts/speak
+    """
+    import subprocess
+    
+    data = request.get_json() or {}
+    wake_word = data.get('wake_word', 'aimee')
+    
+    results = []
+    
+    try:
+        # Publish wake word via shell
+        cmd = f"source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 topic pub --once /wake_word/detected aimee_msgs/msg/WakeWordDetection '{{wake_word: \"{wake_word}\", confidence: 0.95, active: true}}'"
+        
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True,
+            executable='/bin/bash'
+        )
+        
+        if result.returncode == 0:
+            results.append({
+                'step': 1,
+                'name': 'wake_word',
+                'status': 'published',
+                'message': f'Published /wake_word/detected: {wake_word}'
+            })
+        else:
+            results.append({
+                'step': 1,
+                'name': 'wake_word',
+                'status': 'error',
+                'error': result.stderr[:100]
+            })
+        
+        # Wait for pipeline
+        time.sleep(8)
+        
+        results.append({
+            'step': 2,
+            'name': 'pipeline',
+            'status': 'triggered',
+            'message': 'Pipeline triggered - check ROS2 nodes logs'
+        })
+        
+        return jsonify({
+            'success': True,
+            'results': results,
+            'note': 'Check logs: voice_manager, intent_router, skill_manager, tts'
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()[-200:]
+        })
+
+
+@app.route('/api/ros2/status', methods=['GET'])
+def get_ros2_status():
+    """Get ROS2 nodes and topics status."""
+    try:
+        # Check nodes
+        cmd = 'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 node list'
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            shell=True,
+            executable='/bin/bash'
+        )
+        
+        nodes = []
+        if result.returncode == 0:
+            nodes = [n.strip() for n in result.stdout.strip().split('\n') if n.strip()]
+        
+        return jsonify({
+            'success': True,
+            'nodes': nodes,
+            'node_count': len(nodes),
+            'pipeline_active': len(nodes) >= 4
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'nodes': []
+        })
