@@ -944,10 +944,13 @@ Your existing Digital Ocean dashboard (`http://209.38.147.67:8089/`) can display
 - [x] ROS2 `skill_manager_node`
 
 ### Phase 4: Hardware Control Bricks (Week 5) - CURRENT FOCUS
-- [ ] `brick_ugv02_ctrl` - UGV02 base control
-- [ ] `brick_roarm_ctrl` - RoArm-M3 control
+- [x] `aimee_ugv02_controller` - UGV02 base control with JSON protocol
+- [x] `ugv02_controller_node` - Serial comm, odometry, TF broadcast
+- [x] `ugv02_teleop_node` - Keyboard teleoperation
+- [x] Nav2 configuration for UGV02
+- [ ] Real hardware testing
+- [ ] `brick_roarm_ctrl` - RoArm-M3 control (awaiting hardware)
 - [ ] ROS2 `motion_manager_node`
-- [ ] Serial communication testing
 
 ### Phase 5: Cloud Integration (Week 6)
 - [ ] `brick_cloud_bridge` - AimeeCloud communication
@@ -1219,6 +1222,7 @@ Create a checkpoint/summary system to track daily progress:
 │   ├── aimee_vision_pipeline/      # ✅ Color detection & tracking
 │   ├── aimee_perception/           # ✅ 3D estimation & grasp planning
 │   ├── aimee_manipulation/         # ✅ Arm control & PickPlace skill
+│   ├── aimee_ugv02_controller/     # ✅ UGV02 rover platform control
 │   ├── aimee_memory/               # TODO: Context persistence
 │   └── aimee_skills/               # TODO: Skill framework
 │       ├── aimee_skill_interface/  # Base skill class
@@ -1262,7 +1266,7 @@ Create a checkpoint/summary system to track daily progress:
 | Intent Router | ✅ Complete | LLM-based classification |
 | Skill Manager | ✅ Complete | Action server for skill execution |
 | Arduino Utils | ✅ Complete | `@brick` decorator framework |
-| UGV02 Control | ⬜ TODO | Next priority |
+| UGV02 Control | ✅ Complete | JSON serial protocol, teleop, Nav2 ready |
 | RoArm Control | ✅ Complete | Simulated (ready for real arm) |
 | Cloud Bridge | ⬜ TODO | WebSocket client |
 | Vision/OBSBOT | ✅ Complete | SDK-based camera control |

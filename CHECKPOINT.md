@@ -283,30 +283,92 @@ contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 ## 🔮 Next Steps (Future Sessions)
 
-1. **Build & Test**
+1. **Build & Test Vision**
    - Build packages in container
    - Test with real red ball
    - Verify 3D position accuracy
 
-2. **Camera Calibration**
+2. **UGV02 Testing**
+   - Connect to rover via serial
+   - Test basic movement commands
+   - Verify odometry feedback
+   - Test keyboard teleop
+
+3. **Camera Calibration**
    - Get accurate camera_info
    - Improve 3D estimation accuracy
 
-3. **Voice Integration**
-   - Add "pick up" intent to intent router
-   - Connect to PickPlace action
+4. **Voice Integration**
+   - Add "pick up" and "move" intents to intent router
+   - Connect to PickPlace and platform control
    - Test: "Aimee, pick up the red ball"
+   - Test: "Aimee, move forward"
 
-4. **When RoArm-M3 Arrives**
+5. **When RoArm-M3 Arrives**
    - Replace simulated arm_controller_node
    - Add real serial communication
    - Tune grasp parameters
    - Test real pick/place
 
-5. **Advanced Features**
+6. **Nav2 Integration (Future)**
+   - Add lidar driver
+   - Configure SLAM
+   - Test autonomous navigation
+   - Frontier exploration
+
+7. **Advanced Features**
    - AprilTag detection for calibration
    - Multi-object scene understanding
    - Dynamic obstacle avoidance
+
+---
+
+## 🚙 UGV02 Platform Controls (NEW)
+
+### Package: aimee_ugv02_controller
+
+**Status:** ✅ IMPLEMENTED
+
+### JSON Protocol Support
+- **T=1**: Direct wheel speed control `{"T":1,"L":0.5,"R":0.5}`
+- **T=13**: Velocity control `{"T":13,"X":0.25,"Z":0.3}`
+- **T=130**: Get odometry feedback
+- **T=131**: Enable continuous feedback for ROS
+- **T=126**: Get IMU data
+- **T=3**: LED control
+
+### Nodes Implemented
+| Node | Purpose |
+|------|---------|
+| `ugv02_controller_node` | Main controller - serial comm, odometry, TF |
+| `ugv02_teleop_node` | Keyboard teleop control |
+
+### Topics
+| Topic | Type | Description |
+|-------|------|-------------|
+| `/cmd_vel` | Twist | Velocity commands in |
+| `/odom` | Odometry | Wheel odometry out |
+| `/imu` | Imu | IMU data from ESP32 |
+| `/battery` | BatteryState | Battery voltage |
+| `/tf` | TF | odom → base_link transform |
+
+### Nav2 Ready
+- Config file: `config/nav2_params.yaml`
+- Tuned for UGV02 dimensions (0.23m wheel sep, 0.04m radius)
+- DWB local planner configured
+- Costmaps sized appropriately
+
+### Usage
+```bash
+# Launch controller
+ros2 launch aimee_ugv02_controller ugv02_bringup.launch.py
+
+# With teleop
+ros2 launch aimee_ugv02_controller ugv02_bringup.launch.py enable_teleop:=true
+
+# Manual control
+ros2 topic pub /cmd_vel geometry_msgs/Twist '{linear: {x: 0.3}}' --once
+```
 
 ---
 
