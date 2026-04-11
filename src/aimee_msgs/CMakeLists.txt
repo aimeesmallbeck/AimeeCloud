@@ -26,6 +26,10 @@ set(msg_files
   "msg/MotorAction.msg"
   "msg/CameraAction.msg"
   "msg/LEDAction.msg"
+  # Vision/Manipulation messages
+  "msg/ObjectDetection.msg"
+  "msg/GraspPose.msg"
+  "msg/ArmCommand.msg"
 )
 
 # Service files (add as needed)
@@ -36,6 +40,7 @@ set(srv_files
 set(action_files
   "action/LLMGenerate.action"
   "action/ExecuteSkill.action"
+  "action/PickPlace.action"
 )
 
 # Generate interfaces
