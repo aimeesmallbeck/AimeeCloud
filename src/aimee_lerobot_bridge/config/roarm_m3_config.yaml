@@ -1,0 +1,118 @@
+# RoArm-M3 Configuration for LeRobot
+
+robot:
+  name: "roarm_m3"
+  type: "manipulator"
+  dof: 6  # 5 arm + 1 gripper
+
+# Joint configuration
+joints:
+  - name: "joint1"
+    type: "revolute"
+    limits: { min: -180.0, max: 180.0 }  # degrees
+    initial: 0.0
+    
+  - name: "joint2"
+    type: "revolute"
+    limits: { min: -90.0, max: 90.0 }
+    initial: 0.0
+    
+  - name: "joint3"
+    type: "revolute"
+    limits: { min: -150.0, max: 0.0 }
+    initial: -90.0
+    
+  - name: "joint4"
+    type: "revolute"
+    limits: { min: -90.0, max: 90.0 }
+    initial: 0.0
+    
+  - name: "joint5"
+    type: "revolute"
+    limits: { min: -90.0, max: 90.0 }
+    initial: 0.0
+    
+  - name: "gripper"
+    type: "revolute"
+    limits: { min: 0.0, max: 90.0 }
+    initial: 0.0
+
+# Communication
+communication:
+  serial:
+    port: "/dev/ttyUSB0"
+    baud: 115200
+  wifi:
+    ssid: "RoArm-M3"
+    password: "12345678"
+    ip: "192.168.4.1"
+
+# JSON Protocol
+protocol:
+  command_types:
+    move_joint: 101
+    move_cartesian: 104
+    set_gripper: 110
+    get_position: 102
+    set_led: 114
+
+# Camera configuration
+cameras:
+  camera_0:
+    name: "obsbot_main"
+    topic: "/camera/image_raw"
+    resolution: [640, 480]
+    fps: 30
+    
+  camera_1:
+    name: "wrist_camera"
+    topic: "/camera_wrist/image_raw"
+    resolution: [320, 240]
+    fps: 15
+    optional: true
+
+# End effector
+gripper:
+  type: "parallel_jaw"
+  max_width: 0.08  # meters
+  min_width: 0.0
+  control_mode: "position"  # position or effort
+
+# Workspace (for planning)
+workspace:
+  reach: 0.5  # meters
+  height_min: 0.05
+  height_max: 0.4
+
+# LeRobot dataset configuration
+dataset:
+  fps: 30
+  image_keys: ["observation.images.camera_0"]
+  state_keys: ["observation.state.joint1", "observation.state.joint2", 
+               "observation.state.joint3", "observation.state.joint4",
+               "observation.state.joint5", "observation.state.gripper"]
+  action_keys: ["action.joint1", "action.joint2", "action.joint3",
+                "action.joint4", "action.joint5", "action.gripper"]
+
+# Policy configuration
+policy:
+  type: "act"  # act, diffusion, vqbet
+  
+  # ACT specific
+  act:
+    dim_model: 512
+    n_heads: 8
+    dim_feedforward: 3200
+    n_encoder_layers: 4
+    n_decoder_layers: 7
+    chunk_size: 100  # action horizon
+    n_action_steps: 8  # execution horizon
+  
+  # Training
+  training:
+    batch_size: 8
+    num_epochs: 2000
+    lr: 1e-5
+    lr_backbone: 1e-5
+    weight_decay: 1e-4
+    warmup_steps: 1000
