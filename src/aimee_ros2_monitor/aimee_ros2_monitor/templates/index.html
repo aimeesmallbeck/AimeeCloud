@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIMEE ROS2 Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-dark: #1a1a2e;
+            --bg-panel: #16213e;
+            --bg-card: #0f3460;
+            --accent: #e94560;
+            --accent-green: #00d9ff;
+            --text: #eaeaea;
+            --text-muted: #a0a0a0;
+            --debug: #6c757d;
+            --info: #0dcaf0;
+            --warn: #ffc107;
+            --error: #dc3545;
+            --fatal: #6f42c1;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        header {
+            background: var(--bg-panel);
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        header h1::before {
+            content: "🔍";
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--debug);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.connected {
+            background: #28a745;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Main Layout */
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 1rem;
+            padding: 1rem;
+            overflow: hidden;
+        }
+        
+        @media (max-width: 1400px) {
+            main {
+                grid-template-columns: 250px 1fr 300px;
+            }
+        }
+        
+        @media (max-width: 1100px) {
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+            }
+        }
+        
+        /* Panel Cards */
+        .panel {
+            background: var(--bg-panel);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: var(--bg-card);
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        
+        /* Log Stats */
+        .log-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--bg-card);
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 4px;
+            background: var(--bg-panel);
+        }
+        
+        .stat-box .count {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
+        .stat-box .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        
+        .stat-box.debug { border-left: 3px solid var(--debug); }
+        .stat-box.info { border-left: 3px solid var(--info); }
+        .stat-box.warn { border-left: 3px solid var(--warn); }
+        .stat-box.error { border-left: 3px solid var(--error); }
+        .stat-box.fatal { border-left: 3px solid var(--fatal); }
+        
+        /* Log Viewer */
+        .log-controls {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--bg-card);
+            flex-wrap: wrap;
+        }
+        
+        .log-controls select, .log-controls input {
+            background: var(--bg-panel);
+            color: var(--text);
+            border: 1px solid var(--bg-card);
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .log-controls input {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .log-controls button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .log-controls button:hover {
+            opacity: 0.9;
+        }
+        
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .log-table th {
+            background: var(--bg-card);
+            padding: 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .log-table td {
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid var(--bg-card);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+        }
+        
+        .log-table tr:hover {
+            background: var(--bg-card);
+        }
+        
+        .log-table .level-debug { color: var(--debug); }
+        .log-table .level-info { color: var(--info); }
+        .log-table .level-warn { color: var(--warn); }
+        .log-table .level-error { color: var(--error); }
+        .log-table .level-fatal { color: var(--fatal); font-weight: bold; }
+        
+        .log-table .timestamp {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        
+        .log-table .node-name {
+            color: var(--accent-green);
+            font-size: 0.8rem;
+        }
+        
+        /* Node Widgets */
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .node-widget {
+            background: var(--bg-card);
+            border-radius: 6px;
+            padding: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .node-widget:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        
+        .node-widget .icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .node-widget .name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            word-break: break-word;
+        }
+        
+        .node-widget .category {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+        
+        .node-widget.category-audio { border-left: 3px solid #fd7e14; }
+        .node-widget.category-ai { border-left: 3px solid #0dcaf0; }
+        .node-widget.category-skills { border-left: 3px solid #20c997; }
+        .node-widget.category-vision { border-left: 3px solid #e83e8c; }
+        .node-widget.category-tools { border-left: 3px solid #6c757d; }
+        .node-widget.category-other { border-left: 3px solid #adb5bd; }
+        
+        /* Topics List */
+        .topic-item {
+            background: var(--bg-card);
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.4rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .topic-item:hover {
+            background: var(--bg-panel);
+        }
+        
+        .topic-item .name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-green);
+            word-break: break-all;
+        }
+        
+        .topic-item .type {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        
+        .topic-item .meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+        }
+        
+        .topic-item .hz {
+            color: var(--warn);
+        }
+        
+        .topic-item .bandwidth {
+            color: var(--info);
+        }
+        
+        /* Modal for Node Details */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--bg-panel);
+            border-radius: 8px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            background: var(--bg-card);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+        }
+        
+        .modal-header button {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .modal-content {
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        
+        .modal-section {
+            margin-bottom: 1rem;
+        }
+        
+        .modal-section h4 {
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .modal-section ul {
+            list-style: none;
+            font-size: 0.85rem;
+        }
+        
+        .modal-section li {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid var(--bg-card);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-panel);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-card);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+        
+        /* Auto-scroll toggle */
+        .auto-scroll {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .auto-scroll input {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AIMEE ROS2 Monitor</h1>
+        <div class="status-indicator">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Connecting...</span>
+        </div>
+    </header>
+    
+    <main>
+        <!-- Left Panel: Nodes -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>🤖 Nodes (<span id="nodeCount">0</span>)</span>
+                <button onclick="refreshNodes()" style="background:none;border:none;color:var(--accent);cursor:pointer;">🔄</button>
+            </div>
+            <div class="panel-content">
+                <div class="nodes-grid" id="nodesGrid">
+                    <div style="color:var(--text-muted);text-align:center;padding:2rem;">
+                        Loading nodes...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Center Panel: Log Viewer -->
+        <div class="panel">
+            <div class="log-stats">
+                <div class="stat-box debug">
+                    <div class="count" id="statDebug">0</div>
+                    <div class="label">Debug</div>
+                </div>
+                <div class="stat-box info">
+                    <div class="count" id="statInfo">0</div>
+                    <div class="label">Info</div>
+                </div>
+                <div class="stat-box warn">
+                    <div class="count" id="statWarn">0</div>
+                    <div class="label">Warn</div>
+                </div>
+                <div class="stat-box error">
+                    <div class="count" id="statError">0</div>
+                    <div class="label">Error</div>
+                </div>
+                <div class="stat-box fatal">
+                    <div class="count" id="statFatal">0</div>
+                    <div class="label">Fatal</div>
+                </div>
+            </div>
+            
+            <div class="log-controls">
+                <select id="levelFilter" onchange="loadLogs()">
+                    <option value="all">All Levels</option>
+                    <option value="debug">Debug</option>
+                    <option value="info" selected>Info+</option>
+                    <option value="warn">Warn+</option>
+                    <option value="error">Error+</option>
+                </select>
+                <select id="nodeFilter" onchange="loadLogs()">
+                    <option value="all">All Nodes</option>
+                </select>
+                <input type="text" id="searchFilter" placeholder="Search logs..." oninput="debouncedLoadLogs()">
+                <label class="auto-scroll">
+                    <input type="checkbox" id="autoScroll" checked>
+                    Auto-scroll
+                </label>
+                <button onclick="loadLogs()">Refresh</button>
+                <button onclick="clearLogs()">Clear</button>
+            </div>
+            
+            <div class="panel-content" id="logContainer">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th style="width:140px">Time</th>
+                            <th style="width:60px">Level</th>
+                            <th style="width:150px">Node</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                        <tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Waiting for logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Right Panel: Topics -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>📡 Topics (<span id="topicCount">0</span>)</span>
+            </div>
+            <div class="panel-content" id="topicsList">
+                <div style="color:var(--text-muted);text-align:center;padding:2rem;">
+                    Loading topics...
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Node Details Modal -->
+    <div class="modal-overlay" id="nodeModal" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modalTitle">Node Details</h3>
+                <button onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-content" id="modalContent">
+                Loading...
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ==================== Configuration ====================
+        const REFRESH_INTERVAL = 2000; // 2 seconds
+        let autoRefresh = true;
+        
+        // ==================== State ====================
+        let knownNodes = new Set();
+        let debounceTimer;
+        
+        // ==================== Initialization ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLogs();
+            loadNodes();
+            loadTopics();
+            updateStatus();
+            
+            // Auto-refresh
+            setInterval(() => {
+                if (autoRefresh) {
+                    loadLogs();
+                    loadNodes();
+                    loadTopics();
+                    updateStatus();
+                }
+            }, REFRESH_INTERVAL);
+        });
+        
+        // ==================== Logs ====================
+        async function loadLogs() {
+            try {
+                const level = document.getElementById('levelFilter').value;
+                const node = document.getElementById('nodeFilter').value;
+                const search = document.getElementById('searchFilter').value;
+                
+                const response = await fetch(`/api/logs?level=${level}&node=${node}&search=${search}&limit=200`);
+                const data = await response.json();
+                
+                // Update stats
+                document.getElementById('statDebug').textContent = data.stats.debug;
+                document.getElementById('statInfo').textContent = data.stats.info;
+                document.getElementById('statWarn').textContent = data.stats.warn;
+                document.getElementById('statError').textContent = data.stats.error;
+                document.getElementById('statFatal').textContent = data.stats.fatal;
+                
+                // Update node filter options
+                updateNodeFilter(data.logs);
+                
+                // Render logs
+                renderLogs(data.logs);
+            } catch (err) {
+                console.error('Failed to load logs:', err);
+            }
+        }
+        
+        function debouncedLoadLogs() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(loadLogs, 300);
+        }
+        
+        function renderLogs(logs) {
+            const tbody = document.getElementById('logTableBody');
+            
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">No logs match filters</td></tr>';
+                return;
+            }
+            
+            const html = logs.map(log => {
+                const time = new Date(log.timestamp).toLocaleTimeString();
+                const levelClass = `level-${log.level}`;
+                return `
+                    <tr>
+                        <td class="timestamp">${time}</td>
+                        <td class="${levelClass}">${log.level.toUpperCase()}</td>
+                        <td class="node-name" title="${log.node}">${truncate(log.node, 20)}</td>
+                        <td title="${escapeHtml(log.msg)}">${escapeHtml(truncate(log.msg, 80))}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = html;
+            
+            // Auto-scroll to bottom
+            if (document.getElementById('autoScroll').checked) {
+                const container = document.getElementById('logContainer');
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+        
+        function updateNodeFilter(logs) {
+            const select = document.getElementById('nodeFilter');
+            const currentValue = select.value;
+            
+            // Collect unique nodes
+            const nodes = new Set(['all']);
+            logs.forEach(log => nodes.add(log.node));
+            
+            // Only update if we have new nodes
+            const nodeArray = Array.from(nodes).sort();
+            if (nodeArray.length <= select.options.length) return;
+            
+            select.innerHTML = nodeArray.map(node => 
+                `<option value="${node}" ${node === currentValue ? 'selected' : ''}>
+                    ${node === 'all' ? 'All Nodes' : truncate(node, 25)}
+                </option>`
+            ).join('');
+        }
+        
+        async function clearLogs() {
+            await fetch('/api/logs/clear', { method: 'POST' });
+            loadLogs();
+        }
+        
+        // ==================== Nodes ====================
+        async function loadNodes() {
+            try {
+                const response = await fetch('/api/nodes');
+                const data = await response.json();
+                
+                document.getElementById('nodeCount').textContent = data.count;
+                
+                // Check for new nodes (for notifications)
+                data.nodes.forEach(node => {
+                    if (!knownNodes.has(node.name)) {
+                        knownNodes.add(node.name);
+                    }
+                });
+                
+                renderNodes(data.nodes);
+            } catch (err) {
+                console.error('Failed to load nodes:', err);
+            }
+        }
+        
+        function renderNodes(nodes) {
+            const grid = document.getElementById('nodesGrid');
+            
+            if (nodes.length === 0) {
+                grid.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:2rem;">No nodes running</div>';
+                return;
+            }
+            
+            // Category icons
+            const icons = {
+                audio: '🔊',
+                ai: '🧠',
+                skills: '🦾',
+                vision: '📷',
+                tools: '🛠️',
+                other: '⚙️'
+            };
+            
+            const html = nodes.map(node => {
+                const shortName = node.name.split('/').pop() || node.name;
+                return `
+                    <div class="node-widget category-${node.category}" onclick="showNodeDetails('${node.name}')">
+                        <div class="icon">${icons[node.category] || icons.other}</div>
+                        <div class="name" title="${node.name}">${shortName}</div>
+                        <div class="category">${node.category}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            grid.innerHTML = html;
+        }
+        
+        async function refreshNodes() {
+            await fetch('/api/nodes/refresh', { method: 'POST' });
+            loadNodes();
+        }
+        
+        async function showNodeDetails(nodeName) {
+            const modal = document.getElementById('nodeModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            
+            title.textContent = nodeName;
+            content.innerHTML = 'Loading...';
+            modal.classList.add('active');
+            
+            try {
+                const response = await fetch(`/api/nodes/${encodeURIComponent(nodeName)}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    content.innerHTML = `<p style="color:var(--error);">Error: ${data.error}</p>`;
+                    return;
+                }
+                
+                let html = '';
+                
+                // Subscriptions
+                html += '<div class="modal-section">';
+                html += `<h4>📥 Subscriptions (${data.subscriptions.length})</h4>`;
+                if (data.subscriptions.length > 0) {
+                    html += '<ul>';
+                    data.subscriptions.forEach(sub => {
+                        html += `<li><strong>${sub.name}</strong><br><small>${sub.type}</small></li>`;
+                    });
+                    html += '</ul>';
+                } else {
+                    html += '<p style="color:var(--text-muted);">None</p>';
+                }
+                html += '</div>';
+                
+                // Publishers
+                html += '<div class="modal-section">';
+                html += `<h4>📤 Publishers (${data.publishers.length})</h4>`;
+                if (data.publishers.length > 0) {
+                    html += '<ul>';
+                    data.publishers.forEach(pub => {
+                        html += `<li><strong>${pub.name}</strong><br><small>${pub.type}</small></li>`;
+                    });
+                    html += '</ul>';
+                } else {
+                    html += '<p style="color:var(--text-muted);">None</p>';
+                }
+                html += '</div>';
+                
+                // Services
+                html += '<div class="modal-section">';
+                html += `<h4>🔧 Services (${data.services.length})</h4>`;
+                if (data.services.length > 0) {
+                    html += '<ul>';
+                    data.services.forEach(srv => {
+                        html += `<li><strong>${srv.name}</strong><br><small>${srv.type}</small></li>`;
+                    });
+                    html += '</ul>';
+                } else {
+                    html += '<p style="color:var(--text-muted);">None</p>';
+                }
+                html += '</div>';
+                
+                content.innerHTML = html;
+            } catch (err) {
+                content.innerHTML = `<p style="color:var(--error);">Error loading details</p>`;
+            }
+        }
+        
+        function closeModal(event) {
+            if (!event || event.target.id === 'nodeModal') {
+                document.getElementById('nodeModal').classList.remove('active');
+            }
+        }
+        
+        // ==================== Topics ====================
+        async function loadTopics() {
+            try {
+                const response = await fetch('/api/topics');
+                const data = await response.json();
+                
+                document.getElementById('topicCount').textContent = data.count;
+                renderTopics(data.topics);
+            } catch (err) {
+                console.error('Failed to load topics:', err);
+            }
+        }
+        
+        function renderTopics(topics) {
+            const list = document.getElementById('topicsList');
+            
+            if (topics.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:2rem;">No topics found</div>';
+                return;
+            }
+            
+            const html = topics.map(topic => {
+                const hz = topic.hz ? `${topic.hz} Hz` : '-';
+                const bw = topic.bandwidth || '-';
+                return `
+                    <div class="topic-item" onclick="echoTopic('${topic.name}')" title="Click to echo">
+                        <div class="name">${topic.name}</div>
+                        <div class="type">${topic.type}</div>
+                        <div class="meta">
+                            <span class="hz">⏱️ ${hz}</span>
+                            <span class="bandwidth">📊 ${bw}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            list.innerHTML = html;
+        }
+        
+        async function echoTopic(topicName) {
+            // Show simple alert with topic data
+            try {
+                const response = await fetch(`/api/topics/${encodeURIComponent(topicName)}/echo`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`Topic: ${topicName}\n\nData:\n${JSON.stringify(data.data, null, 2)}`);
+                } else {
+                    alert(`Topic: ${topicName}\n\nError: ${data.error}`);
+                }
+            } catch (err) {
+                alert(`Failed to echo topic: ${topicName}`);
+            }
+        }
+        
+        // ==================== System Status ====================
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/system');
+                const data = await response.json();
+                
+                const dot = document.getElementById('statusDot');
+                const text = document.getElementById('statusText');
+                
+                if (data.ros2_running) {
+                    dot.classList.add('connected');
+                    text.textContent = 'ROS2 Connected';
+                } else {
+                    dot.classList.remove('connected');
+                    text.textContent = 'ROS2 Disconnected';
+                }
+            } catch (err) {
+                document.getElementById('statusDot').classList.remove('connected');
+                document.getElementById('statusText').textContent = 'Connection Error';
+            }
+        }
+        
+        // ==================== Utilities ====================
+        function truncate(str, maxLen) {
+            if (str.length <= maxLen) return str;
+            return str.substring(0, maxLen - 3) + '...';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+            if (e.key === ' ' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                autoRefresh = !autoRefresh;
+            }
+        });
+    </script>
+</body>
+</html>
