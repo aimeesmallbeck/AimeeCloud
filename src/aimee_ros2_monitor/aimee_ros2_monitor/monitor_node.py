@@ -426,7 +426,7 @@ class MonitorNode(Node):
 
 # ==================== Flask Thread ====================
 
-def run_flask(host='0.0.0.0', port=8080):
+def run_flask(host='0.0.0.0', port=8081):
     """Run Flask server in background thread."""
     # Disable Flask logging
     import logging as flask_logging
@@ -454,7 +454,7 @@ def main(args=None):
     print("\n" + "="*60)
     print("🔍 AIMEE ROS2 Monitor Dashboard")
     print("="*60)
-    print(f"\n📊 Dashboard URL: http://localhost:8080")
+    print(f"\n📊 Dashboard URL: http://localhost:8081")
     print("\n💡 Features:")
     print("   • Real-time log viewer (like rqt_console)")
     print("   • Visual node status widgets")
