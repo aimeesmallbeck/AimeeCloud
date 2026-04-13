@@ -181,6 +181,20 @@ def generate_launch_description():
         condition=IfCondition(enable_camera)
     )
     
+    # Image transport compressor (lightweight compressed topic for monitor)
+    image_compressor_node = Node(
+        package='image_transport',
+        executable='republish',
+        name='image_compressor',
+        output='screen',
+        arguments=['raw', 'compressed'],
+        remappings=[
+            ('in', '/camera/image_raw'),
+            ('out/compressed', '/camera/image_raw/compressed'),
+        ],
+        condition=IfCondition(enable_camera)
+    )
+    
     return LaunchDescription([
         # Arguments
         robot_name_arg,
@@ -204,4 +218,5 @@ def generate_launch_description():
         # Vision
         obsbot_node,
         usb_cam_node,
+        image_compressor_node,
     ])
