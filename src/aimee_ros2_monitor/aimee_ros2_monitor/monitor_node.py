@@ -29,7 +29,14 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from rcl_interfaces.msg import Log
 from std_msgs.msg import String
+from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Image, CompressedImage
+
+try:
+    from aimee_msgs.msg import TrackingCommand
+    AIMEE_MSGS_AVAILABLE = True
+except ImportError:
+    AIMEE_MSGS_AVAILABLE = False
 
 from flask import Flask, render_template, jsonify, request, Response
 from flask import send_from_directory
@@ -49,6 +56,9 @@ logger = logging.getLogger(__name__)
 # Get template directory (works in both build and install)
 template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=template_dir)
+
+# Global reference to ROS2 node (for native pub from Flask threads)
+_ros_node = None
 
 # ==================== Global State ====================
 
@@ -95,6 +105,7 @@ _core_process = None
 NODE_DEFINITIONS = {
     'obsbot_camera': {
         'name': 'OBSBOT Camera',
+        'ros_name': '/obsbot_camera',
         'package': 'aimee_vision_obsbot',
         'executable': 'obsbot_node',
         'args': [],
@@ -103,6 +114,7 @@ NODE_DEFINITIONS = {
     },
     'usb_camera': {
         'name': 'USB Camera',
+        'ros_name': '/usb_camera',
         'package': 'usb_cam',
         'executable': 'usb_cam_node_exe',
         'args': [],
@@ -111,6 +123,7 @@ NODE_DEFINITIONS = {
     },
     'wake_word': {
         'name': 'Wake Word',
+        'ros_name': '/wake_word_ei',
         'package': 'aimee_wake_word_ei',
         'executable': 'wake_word_node',
         'args': [],
@@ -119,6 +132,7 @@ NODE_DEFINITIONS = {
     },
     'voice_manager': {
         'name': 'Voice Manager',
+        'ros_name': '/voice_manager',
         'package': 'aimee_voice_manager',
         'executable': 'voice_manager_node',
         'args': [],
@@ -127,6 +141,7 @@ NODE_DEFINITIONS = {
     },
     'intent_router': {
         'name': 'Intent Router',
+        'ros_name': '/intent_router',
         'package': 'aimee_intent_router',
         'executable': 'intent_router_node',
         'args': [],
@@ -135,6 +150,7 @@ NODE_DEFINITIONS = {
     },
     'skill_manager': {
         'name': 'Skill Manager',
+        'ros_name': '/skill_manager',
         'package': 'aimee_skill_manager',
         'executable': 'skill_manager_node',
         'args': [],
@@ -143,6 +159,7 @@ NODE_DEFINITIONS = {
     },
     'tts': {
         'name': 'Text-to-Speech',
+        'ros_name': '/tts',
         'package': 'aimee_tts',
         'executable': 'tts_node',
         'args': [],
@@ -151,6 +168,7 @@ NODE_DEFINITIONS = {
     },
     'llm_server': {
         'name': 'LLM Server',
+        'ros_name': '/llm_server',
         'package': 'aimee_llm_server',
         'executable': 'llm_server_node',
         'args': [],
@@ -159,6 +177,7 @@ NODE_DEFINITIONS = {
     },
     'lerobot_bridge': {
         'name': 'LeRobot Bridge',
+        'ros_name': '/lerobot_bridge',
         'package': 'aimee_lerobot_bridge',
         'executable': 'lerobot_bridge_node',
         'args': [],
@@ -167,6 +186,7 @@ NODE_DEFINITIONS = {
     },
     'ugv02_controller': {
         'name': 'UGV02 Controller',
+        'ros_name': '/ugv02_controller',
         'package': 'aimee_ugv02_controller',
         'executable': 'ugv02_controller_node',
         'args': [],
@@ -409,36 +429,56 @@ def camera_control():
             direction = data.get('direction')
             speed = data.get('speed', 50)
             
-            # Map direction to ROS2 Twist command
-            twist_cmd = {'linear': {'x': 0, 'y': 0, 'z': 0}, 'angular': {'x': 0, 'y': 0, 'z': 0}}
+            # Build Twist message
+            twist = Twist()
             if direction == 'up':
-                twist_cmd['angular']['y'] = speed / 100.0
+                twist.angular.y = speed / 100.0
             elif direction == 'down':
-                twist_cmd['angular']['y'] = -speed / 100.0
+                twist.angular.y = -speed / 100.0
             elif direction == 'left':
-                twist_cmd['angular']['z'] = speed / 100.0
+                twist.angular.z = speed / 100.0
             elif direction == 'right':
-                twist_cmd['angular']['z'] = -speed / 100.0
+                twist.angular.z = -speed / 100.0
             elif direction == 'zoom_in':
-                twist_cmd['linear']['z'] = speed / 100.0
+                twist.linear.z = speed / 100.0
             elif direction == 'zoom_out':
-                twist_cmd['linear']['z'] = -speed / 100.0
+                twist.linear.z = -speed / 100.0
+            elif direction == 'stop':
+                # All zeros - stops continuous movement
+                pass
             
-            # Publish via subprocess
-            cmd = f"""source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 topic pub --once /camera/cmd_ptz geometry_msgs/msg/Twist '{{linear: {{x: {twist_cmd['linear']['x']}, y: {twist_cmd['linear']['y']}, z: {twist_cmd['linear']['z']}}}, angular: {{x: {twist_cmd['angular']['x']}, y: {twist_cmd['angular']['y']}, z: {twist_cmd['angular']['z']}}}}}'"""
-            subprocess.run(cmd, shell=True, capture_output=True, timeout=5)
+            if _ros_node is not None:
+                _ros_node._ptz_pub.publish(twist)
+            else:
+                return jsonify({'success': False, 'error': 'ROS2 node not ready'}), 503
             
             return jsonify({'success': True, 'command': command, 'direction': direction})
         
+        elif command == 'stop':
+            # Stop PTZ movement (publish zero Twist)
+            if _ros_node is None:
+                return jsonify({'success': False, 'error': 'ROS2 node not ready'}), 503
+            _ros_node._ptz_pub.publish(Twist())
+            return jsonify({'success': True, 'command': command})
+        
         elif command == 'tracking':
+            if not AIMEE_MSGS_AVAILABLE or _ros_node is None:
+                return jsonify({'success': False, 'error': 'Tracking command not available'}), 503
+            
             mode = data.get('mode', 'normal')
-            cmd = f"""source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 topic pub --once /camera/tracking aimee_msgs/msg/TrackingCommand '{{command: "start", mode: "{mode}"}}'"""
-            subprocess.run(cmd, shell=True, capture_output=True, timeout=5)
+            cmd_msg = TrackingCommand()
+            cmd_msg.command = 'start'
+            cmd_msg.mode = mode
+            _ros_node._tracking_pub.publish(cmd_msg)
             return jsonify({'success': True, 'command': command, 'mode': mode})
         
         elif command == 'stop_tracking':
-            cmd = """source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 topic pub --once /camera/tracking aimee_msgs/msg/TrackingCommand '{command: "stop"}'"""
-            subprocess.run(cmd, shell=True, capture_output=True, timeout=5)
+            if not AIMEE_MSGS_AVAILABLE or _ros_node is None:
+                return jsonify({'success': False, 'error': 'Tracking command not available'}), 503
+            
+            cmd_msg = TrackingCommand()
+            cmd_msg.command = 'stop'
+            _ros_node._tracking_pub.publish(cmd_msg)
             return jsonify({'success': True, 'command': command})
         
         else:
@@ -494,9 +534,17 @@ def get_managed_nodes():
     
     core_running = _core_process is not None and _core_process.poll() is None
     
+    # Also report which nodes are actually present in the ROS2 graph
+    ros_running = {}
+    for node_id, node_def in NODE_DEFINITIONS.items():
+        ros_name = node_def.get('ros_name', '')
+        if ros_name and ros_name in _nodes_cache:
+            ros_running[node_id] = True
+    
     return jsonify({
         'nodes': nodes_response,
-        'core_running': core_running
+        'core_running': core_running,
+        'ros_running': ros_running
     })
 
 
@@ -761,6 +809,11 @@ class MonitorNode(Node):
             )
         )
         
+        # Publishers for camera control (avoid subprocess overhead)
+        self._ptz_pub = self.create_publisher(Twist, '/camera/cmd_ptz', 10)
+        if AIMEE_MSGS_AVAILABLE:
+            self._tracking_pub = self.create_publisher(TrackingCommand, '/camera/tracking', 10)
+        
         # Subscribe to compressed camera images (much lower CPU than raw)
         self._image_sub = self.create_subscription(
             CompressedImage,
@@ -922,8 +975,10 @@ def main(args=None):
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    # Create ROS2 node
+    # Create ROS2 node and store global reference
+    global _ros_node
     node = MonitorNode()
+    _ros_node = node
     
     print("\n" + "="*60)
     print("🔍 AIMEE ROS2 Monitor Dashboard")

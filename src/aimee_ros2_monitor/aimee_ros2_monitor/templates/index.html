@@ -84,7 +84,7 @@
         main {
             flex: 1;
             display: grid;
-            grid-template-columns: 300px 1fr 350px;
+            grid-template-columns: 320px 1fr 380px;
             gap: 1rem;
             padding: 1rem;
             overflow: hidden;
@@ -92,14 +92,14 @@
         
         @media (max-width: 1400px) {
             main {
-                grid-template-columns: 250px 1fr 300px;
+                grid-template-columns: 280px 1fr 300px;
             }
         }
         
         @media (max-width: 1100px) {
             main {
                 grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr auto;
+                grid-template-rows: auto auto auto;
             }
         }
         
@@ -449,20 +449,178 @@
     </header>
     
     <main>
-        <!-- Left Panel: Nodes -->
-        <div class="panel">
-            <div class="panel-header">
-                <span>🤖 Nodes (<span id="nodeCount">0</span>)</span>
-                <button onclick="refreshNodes()" style="background:none;border:none;color:var(--accent);cursor:pointer;">🔄</button>
+        <!-- Left Panel: Node Controls -->
+        <div class="panel" style="display: flex; flex-direction: column; gap: 1rem; background: transparent;">
+            <!-- Core Control -->
+            <div class="panel" style="flex: 0 0 auto;">
+                <div class="panel-header">
+                    <span>⚙️ Core System</span>
+                    <span id="coreStatusBadge" style="font-size: 0.75rem; padding: 2px 8px; background: var(--error); border-radius: 4px;">STOPPED</span>
+                </div>
+                <div class="panel-content">
+                    <div class="core-controls">
+                        <button class="core-btn core-start" onclick="startCore()">
+                            <span class="btn-icon">▶</span> Start Core
+                        </button>
+                        <button class="core-btn core-stop" onclick="stopCore()">
+                            <span class="btn-icon">■</span> Stop Core
+                        </button>
+                    </div>
+                    <div id="coreMessage" class="core-message"></div>
+                </div>
             </div>
-            <div class="panel-content">
-                <div class="nodes-grid" id="nodesGrid">
+            
+            <!-- Node Launcher -->
+            <div class="panel" style="flex: 1;">
+                <div class="panel-header">
+                    <span>🚀 Node Launcher</span>
+                </div>
+                <div class="panel-content" id="nodeLauncher">
                     <div style="color:var(--text-muted);text-align:center;padding:2rem;">
-                        Loading nodes...
+                        Loading node definitions...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Running Nodes -->
+            <div class="panel" style="flex: 1;">
+                <div class="panel-header">
+                    <span>📊 Active Nodes (<span id="nodeCount">0</span>)</span>
+                    <button onclick="refreshNodes()" style="background:none;border:none;color:var(--accent);cursor:pointer;">🔄</button>
+                </div>
+                <div class="panel-content">
+                    <div class="nodes-grid" id="nodesGrid">
+                        <div style="color:var(--text-muted);text-align:center;padding:2rem;">
+                            Loading nodes...
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <style>
+            /* Core Controls */
+            .core-controls {
+                display: flex;
+                gap: 0.5rem;
+                padding: 0.5rem;
+            }
+            .core-btn {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.4rem;
+                padding: 0.75rem;
+                border: none;
+                border-radius: 6px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .core-btn:hover {
+                opacity: 0.9;
+                transform: translateY(-1px);
+            }
+            .core-btn:active {
+                transform: translateY(0);
+            }
+            .core-start {
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+            }
+            .core-stop {
+                background: linear-gradient(135deg, #dc3545, #fd7e14);
+                color: white;
+            }
+            .core-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+            }
+            .btn-icon {
+                font-size: 0.8rem;
+            }
+            .core-message {
+                text-align: center;
+                font-size: 0.8rem;
+                padding: 0.5rem;
+                min-height: 1.5rem;
+            }
+            
+            /* Node Launcher */
+            .launcher-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 0.4rem;
+            }
+            .launcher-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0.5rem;
+                background: var(--bg-panel);
+                border-radius: 6px;
+                border-left: 3px solid var(--text-muted);
+                transition: all 0.2s;
+            }
+            .launcher-item:hover {
+                background: var(--bg-card);
+            }
+            .launcher-item.running {
+                border-left-color: #28a745;
+                background: rgba(40, 167, 69, 0.1);
+            }
+            .launcher-item.category-audio { border-left-color: #fd7e14; }
+            .launcher-item.category-ai { border-left-color: #0dcaf0; }
+            .launcher-item.category-skills { border-left-color: #20c997; }
+            .launcher-item.category-vision { border-left-color: #e83e8c; }
+            .launcher-item.category-tools { border-left-color: #6c757d; }
+            
+            .launcher-info {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .launcher-icon {
+                font-size: 1.2rem;
+            }
+            .launcher-name {
+                font-size: 0.85rem;
+                font-weight: 500;
+            }
+            .launcher-category {
+                font-size: 0.65rem;
+                color: var(--text-muted);
+                text-transform: uppercase;
+            }
+            
+            .launcher-btn {
+                padding: 0.3rem 0.6rem;
+                border: none;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .launcher-btn:hover {
+                opacity: 0.9;
+            }
+            .launcher-btn.start {
+                background: #28a745;
+                color: white;
+            }
+            .launcher-btn.stop {
+                background: #dc3545;
+                color: white;
+            }
+            .launcher-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+        </style>
         
         <!-- Center Panel: Log Viewer -->
         <div class="panel">
@@ -526,17 +684,182 @@
             </div>
         </div>
         
-        <!-- Right Panel: Topics -->
-        <div class="panel">
-            <div class="panel-header">
-                <span>📡 Topics (<span id="topicCount">0</span>)</span>
+        <!-- Right Panel: Camera & Topics -->
+        <div class="panel" style="display: flex; flex-direction: column; gap: 1rem; background: transparent;">
+            <!-- Camera Feed -->
+            <div class="panel" style="flex: 0 0 auto; max-height: 350px;">
+                <div class="panel-header">
+                    <span>📷 Camera Feed</span>
+                    <span id="cameraStatusBadge" style="font-size: 0.75rem; padding: 2px 8px; background: var(--error); border-radius: 4px;">OFFLINE</span>
+                </div>
+                <div class="panel-content" style="padding: 0; position: relative;">
+                    <img id="cameraFeed" src="/camera/stream" alt="Camera Feed" style="width: 100%; height: 180px; object-fit: cover; display: block;">
+                    
+                    <!-- PTZ Controls Overlay -->
+                    <div class="ptz-controls">
+                        <div class="ptz-row">
+                            <button class="ptz-btn" onclick="cameraPTZ('up')">▲</button>
+                        </div>
+                        <div class="ptz-row">
+                            <button class="ptz-btn" onclick="cameraPTZ('left')">◀</button>
+                            <button class="ptz-btn ptz-stop" onclick="cameraPTZ('stop')">■</button>
+                            <button class="ptz-btn" onclick="cameraPTZ('right')">▶</button>
+                        </div>
+                        <div class="ptz-row">
+                            <button class="ptz-btn" onclick="cameraPTZ('down')">▼</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Zoom Controls -->
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="cameraPTZ('zoom_out')">−</button>
+                        <span class="zoom-label">ZOOM</span>
+                        <button class="zoom-btn" onclick="cameraPTZ('zoom_in')">+</button>
+                    </div>
+                    
+                    <!-- Tracking Controls -->
+                    <div class="tracking-controls">
+                        <span class="tracking-label">AI:</span>
+                        <select id="trackingMode" class="tracking-select" onchange="setTrackingMode(this.value)">
+                            <option value="off">OFF</option>
+                            <option value="normal">Human</option>
+                            <option value="upper_body">Upper</option>
+                            <option value="closeup">Close</option>
+                            <option value="desk">Desk</option>
+                            <option value="group">Group</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="panel-content" id="topicsList">
-                <div style="color:var(--text-muted);text-align:center;padding:2rem;">
-                    Loading topics...
+            
+            <!-- Topics List -->
+            <div class="panel" style="flex: 1;">
+                <div class="panel-header">
+                    <span>📡 Topics (<span id="topicCount">0</span>)</span>
+                </div>
+                <div class="panel-content" id="topicsList">
+                    <div style="color:var(--text-muted);text-align:center;padding:2rem;">
+                        Loading topics...
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <style>
+            /* Camera PTZ Controls */
+            .ptz-controls {
+                position: absolute;
+                top: 8px;
+                left: 8px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+            }
+            .ptz-controls:hover {
+                opacity: 1;
+            }
+            .ptz-row {
+                display: flex;
+                gap: 2px;
+            }
+            .ptz-btn {
+                width: 28px;
+                height: 28px;
+                border: none;
+                border-radius: 4px;
+                background: rgba(102, 126, 234, 0.9);
+                color: white;
+                font-size: 0.75rem;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .ptz-btn:hover {
+                background: rgba(102, 126, 234, 1);
+            }
+            .ptz-btn:active {
+                transform: scale(0.95);
+            }
+            .ptz-stop {
+                background: rgba(220, 53, 69, 0.9);
+            }
+            .ptz-stop:hover {
+                background: rgba(220, 53, 69, 1);
+            }
+            
+            /* Zoom Controls */
+            .zoom-controls {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+            }
+            .zoom-controls:hover {
+                opacity: 1;
+            }
+            .zoom-btn {
+                width: 28px;
+                height: 28px;
+                border: none;
+                border-radius: 4px;
+                background: rgba(68, 68, 68, 0.9);
+                color: white;
+                font-size: 1rem;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .zoom-btn:hover {
+                background: rgba(85, 85, 85, 0.9);
+            }
+            .zoom-label {
+                font-size: 0.65rem;
+                background: rgba(0,0,0,0.5);
+                padding: 2px 6px;
+                border-radius: 3px;
+            }
+            
+            /* Tracking Controls */
+            .tracking-controls {
+                position: absolute;
+                bottom: 8px;
+                left: 8px;
+                right: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(0,0,0,0.6);
+                padding: 4px 8px;
+                border-radius: 4px;
+                opacity: 0.8;
+                transition: opacity 0.2s;
+            }
+            .tracking-controls:hover {
+                opacity: 1;
+            }
+            .tracking-label {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+            .tracking-select {
+                background: rgba(0,0,0,0.5);
+                color: white;
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 4px;
+                padding: 2px 6px;
+                font-size: 0.75rem;
+                cursor: pointer;
+            }
+            .tracking-select:focus {
+                outline: none;
+                border-color: var(--accent);
+            }
+        </style>
     </main>
     
     <!-- Node Details Modal -->
@@ -896,6 +1219,292 @@
                 autoRefresh = !autoRefresh;
             }
         });
+        
+        // ==================== Core System Controls ====================
+        async function startCore() {
+            const btn = document.querySelector('.core-start');
+            const msg = document.getElementById('coreMessage');
+            btn.disabled = true;
+            msg.textContent = 'Starting core...';
+            msg.style.color = 'var(--info)';
+            
+            try {
+                const response = await fetch('/api/core/start', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    msg.textContent = 'Core started!';
+                    msg.style.color = '#28a745';
+                    updateCoreStatus();
+                } else {
+                    msg.textContent = data.error || 'Failed to start';
+                    msg.style.color = 'var(--error)';
+                }
+            } catch (err) {
+                msg.textContent = 'Error: ' + err.message;
+                msg.style.color = 'var(--error)';
+            }
+            btn.disabled = false;
+        }
+        
+        async function stopCore() {
+            const btn = document.querySelector('.core-stop');
+            const msg = document.getElementById('coreMessage');
+            btn.disabled = true;
+            msg.textContent = 'Stopping core...';
+            msg.style.color = 'var(--warn)';
+            
+            try {
+                const response = await fetch('/api/core/stop', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    msg.textContent = 'Core stopped!';
+                    msg.style.color = 'var(--text-muted)';
+                    updateCoreStatus();
+                } else {
+                    msg.textContent = data.error || 'Failed to stop';
+                    msg.style.color = 'var(--error)';
+                }
+            } catch (err) {
+                msg.textContent = 'Error: ' + err.message;
+                msg.style.color = 'var(--error)';
+            }
+            btn.disabled = false;
+        }
+        
+        async function updateCoreStatus() {
+            try {
+                const response = await fetch('/api/core/status');
+                const data = await response.json();
+                
+                const badge = document.getElementById('coreStatusBadge');
+                if (data.running) {
+                    badge.textContent = 'RUNNING';
+                    badge.style.background = '#28a745';
+                } else {
+                    badge.textContent = 'STOPPED';
+                    badge.style.background = 'var(--error)';
+                }
+            } catch (err) {
+                console.log('Core status check failed:', err);
+            }
+        }
+        
+        setInterval(updateCoreStatus, 3000);
+        
+        // ==================== Node Launcher ====================
+        let nodeDefinitions = {};
+        let managedNodes = {};
+        
+        async function loadNodeDefinitions() {
+            try {
+                const response = await fetch('/api/nodes/definitions');
+                const data = await response.json();
+                nodeDefinitions = data.nodes || {};
+                renderNodeLauncher();
+            } catch (err) {
+                console.error('Failed to load node definitions:', err);
+                document.getElementById('nodeLauncher').innerHTML = 
+                    '<div style="color:var(--error);text-align:center;padding:2rem;">Failed to load nodes</div>';
+            }
+        }
+        
+        let rosRunningNodes = {};
+        
+        async function loadManagedNodes() {
+            try {
+                const response = await fetch('/api/nodes/managed');
+                const data = await response.json();
+                managedNodes = data.nodes || {};
+                rosRunningNodes = data.ros_running || {};
+                renderNodeLauncher();
+                updateCoreStatus();
+            } catch (err) {
+                console.error('Failed to load managed nodes:', err);
+            }
+        }
+        
+        function renderNodeLauncher() {
+            const container = document.getElementById('nodeLauncher');
+            
+            if (Object.keys(nodeDefinitions).length === 0) {
+                container.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:2rem;">No nodes available</div>';
+                return;
+            }
+            
+            let html = '<div class="launcher-grid">';
+            
+            for (const [nodeId, nodeDef] of Object.entries(nodeDefinitions)) {
+                const isManagedRunning = managedNodes[nodeId] && managedNodes[nodeId].status === 'running';
+                const isRosRunning = rosRunningNodes[nodeId] === true;
+                const isRunning = isManagedRunning || isRosRunning;
+                
+                let statusClass = isRunning ? 'running' : '';
+                let btnClass, btnText, btnAction, btnDisabled;
+                
+                if (isRosRunning && !isManagedRunning) {
+                    // Running via core - show disabled Running button
+                    btnClass = 'running';
+                    btnText = 'Running';
+                    btnAction = '';
+                    btnDisabled = 'disabled';
+                } else if (isManagedRunning) {
+                    btnClass = 'stop';
+                    btnText = 'Stop';
+                    btnAction = `stopNode('${nodeId}')`;
+                    btnDisabled = '';
+                } else {
+                    btnClass = 'start';
+                    btnText = 'Start';
+                    btnAction = `startNode('${nodeId}')`;
+                    btnDisabled = '';
+                }
+                
+                html += `
+                    <div class="launcher-item ${statusClass} category-${nodeDef.category}" id="launcher-${nodeId}">
+                        <div class="launcher-info">
+                            <span class="launcher-icon">${nodeDef.icon}</span>
+                            <div>
+                                <div class="launcher-name">${nodeDef.name}</div>
+                                <div class="launcher-category">${nodeDef.category}</div>
+                            </div>
+                        </div>
+                        <button class="launcher-btn ${btnClass}" onclick="${btnAction}" id="btn-${nodeId}" ${btnDisabled}>
+                            ${btnText}
+                        </button>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        async function startNode(nodeId) {
+            const btn = document.getElementById(`btn-${nodeId}`);
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+            
+            try {
+                const response = await fetch('/api/nodes/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ node_id: nodeId })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`Started ${nodeId}`, 'success');
+                } else {
+                    showNotification(data.error || 'Failed to start', 'error');
+                }
+            } catch (err) {
+                showNotification('Error: ' + err.message, 'error');
+            }
+            
+            // Refresh status
+            setTimeout(loadManagedNodes, 500);
+            setTimeout(loadManagedNodes, 2000);
+        }
+        
+        async function stopNode(nodeId) {
+            const btn = document.getElementById(`btn-${nodeId}`);
+            btn.disabled = true;
+            btn.textContent = 'Stopping...';
+            
+            try {
+                const response = await fetch('/api/nodes/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ node_id: nodeId })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`Stopped ${nodeId}`, 'success');
+                } else {
+                    showNotification(data.error || 'Failed to stop', 'error');
+                }
+            } catch (err) {
+                showNotification('Error: ' + err.message, 'error');
+            }
+            
+            // Refresh status
+            setTimeout(loadManagedNodes, 500);
+            setTimeout(loadManagedNodes, 2000);
+        }
+        
+        function showNotification(message, type) {
+            // Simple notification - could be enhanced with a toast system
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // Initialize node launcher
+        loadNodeDefinitions();
+        loadManagedNodes();
+        setInterval(loadManagedNodes, 3000);
+        
+        // ==================== Camera Controls ====================
+        async function cameraPTZ(direction) {
+            try {
+                const response = await fetch('/api/camera/control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: 'ptz', direction: direction, speed: 50 })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    console.log(`PTZ: ${direction}`);
+                }
+            } catch (err) {
+                console.error('PTZ error:', err);
+            }
+        }
+        
+        async function setTrackingMode(mode) {
+            try {
+                const command = mode === 'off' ? 'stop_tracking' : 'tracking';
+                const body = { command: command };
+                if (mode !== 'off') body.mode = mode;
+                
+                const response = await fetch('/api/camera/control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    console.log(`Tracking: ${mode}`);
+                }
+            } catch (err) {
+                console.error('Tracking error:', err);
+            }
+        }
+        
+        async function updateCameraStatus() {
+            try {
+                const response = await fetch('/api/camera/status');
+                const data = await response.json();
+                
+                const badge = document.getElementById('cameraStatusBadge');
+                const feed = document.getElementById('cameraFeed');
+                
+                if (data.connected && data.frame_available) {
+                    badge.textContent = 'LIVE';
+                    badge.style.background = '#28a745';
+                } else {
+                    badge.textContent = 'OFFLINE';
+                    badge.style.background = 'var(--error)';
+                }
+            } catch (err) {
+                console.log('Camera status check failed:', err);
+            }
+        }
+        
+        // Check camera status periodically
+        setInterval(updateCameraStatus, 3000);
+        updateCameraStatus();
     </script>
 </body>
 </html>
