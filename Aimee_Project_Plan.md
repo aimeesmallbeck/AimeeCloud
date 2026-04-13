@@ -103,8 +103,8 @@ This project plan outlines a complete rebuild of the Aimee robot system using **
                         ┌────────────┴────────────┐
                         ▼                         ▼
               ┌──────────────────┐      ┌──────────────────┐
-              │   AimeeCloud     │      │   Dashboard      │
-              │   (Skills API)   │      │   (Digital Ocean)│
+              │   AimeeCloud     │      │   ROS2 Monitor   │
+              │   (Skills API)   │      │  (Local :8081)   │
               └──────────────────┘      └──────────────────┘
 ```
 
@@ -586,13 +586,15 @@ Each ROS2 node wraps a brick and handles:
 | `llm_server` | `aimee_llm_server` | LLM Action Server | **Action** `/llm/generate` | ✅ **COMPLETE** |
 | `intent_router` | `aimee_intent_router` | Intent classification & routing | Publishes `/intent/classified` | ✅ **COMPLETE** |
 | `skill_manager` | `aimee_skill_manager` | Skill execution management | **Action** `/skill/execute` | ✅ **COMPLETE** |
-| `obsbot_node` | `aimee_vision_obsbot` | OBSBOT camera control | Subscribes `/camera/*` topics | ✅ **COMPLETE** |
+| `obsbot_node` | `aimee_vision_obsbot` | OBSBOT PTZ/tracking control (SDK) | Subscribes `/camera/*` topics | ✅ **COMPLETE** |
+| `usb_camera` | `usb_cam` | OBSBOT video streaming (UVC) | Publishes `/camera/image_raw` | ✅ **COMPLETE** |
 | `color_detector` | `aimee_vision_pipeline` | Color-based object detection | Publishes `/vision/detections` | ✅ **COMPLETE** |
 | `object_tracker` | `aimee_vision_pipeline` | Multi-object tracking | Publishes `/vision/tracked_objects` | ✅ **COMPLETE** |
 | `pose_estimator` | `aimee_perception` | 3D pose estimation | Publishes `/vision/detections_3d` | ✅ **COMPLETE** |
 | `grasp_planner` | `aimee_perception` | Grasp strategy planning | Publishes `/manipulation/grasp_pose` | ✅ **COMPLETE** |
 | `arm_controller` | `aimee_manipulation` | Arm control (simulated) | Subscribes `/arm/command` | ✅ **COMPLETE** |
 | `pick_place_server` | `aimee_manipulation` | PickPlace action server | **Action** `/manipulation/pick_place` | ✅ **COMPLETE** |
+| `ros2_monitor` | `aimee_ros2_monitor` | ROS2 management console | Web UI + `/rosout` | ✅ **COMPLETE** |
 
 ### Node Structure Pattern
 
@@ -906,17 +908,24 @@ POST /api/v1/skills/execute
 
 ### Dashboard Integration
 
-Your existing Digital Ocean dashboard (`http://209.38.147.67:8089/`) can display:
+The **local ROS2 Management Console** runs on the UNO Q at `http://192.168.1.100:8081`:
 
 | Widget | Data Source | ROS2 Topic |
 |--------|-------------|------------|
+| **Core Control** | `aimee_bringup/core.launch.py` | Start/stop entire ROS2 stack |
+| **Node Launcher** | `ros2 run` | Start/stop individual nodes |
+| **Node Status** | `/api/nodes` | Visual cards per running node |
+| **Log Viewer** | `/rosout` | Real-time logs with filtering |
+| **Camera Feed** | `/camera/image_raw` | MJPEG stream with PTZ controls |
+| **Topic Monitor** | `ros2 topic list` | Live Hz / bandwidth estimates |
 | **Robot Status** | `/system/status` | Battery, temp, uptime |
 | **Voice Activity** | `/voice/transcription` | Live transcription |
 | **Intent Log** | `/intent/routing` | Classified intents |
-| **Camera Feed** | `/camera/image_raw` | MJPEG stream |
 | **Skill Status** | `/skills/active` | Running skills |
 | **Memory Browser** | Service `/memory/query` | User data (privacy-safe) |
 | **Location Map** | `/nav/position` | Robot location |
+
+The old `aimee_test_dashboard` (direct hardware tester) has been retired. All control now flows through ROS2 topics and actions.
 
 ---
 
@@ -954,12 +963,12 @@ Your existing Digital Ocean dashboard (`http://209.38.147.67:8089/`) can display
 
 ### Phase 5: Cloud Integration (Week 6)
 - [ ] `brick_cloud_bridge` - AimeeCloud communication
-- [ ] Dashboard API endpoints
 - [ ] Cloud skill dispatcher
 - [ ] Offline message queue
 
 ### Phase 6: Vision Bricks (Week 7) ✅ COMPLETE
-- [x] `aimee_vision_obsbot` - OBSBOT Tiny 2 control (SDK-based)
+- [x] `aimee_vision_obsbot` - OBSBOT Tiny 2 PTZ/tracking control (SDK-based)
+- [x] `usb_cam` driver - Dedicated MJPEG video streaming node (C++)
 - [x] `aimee_vision_pipeline` - Color-based object detection
 - [x] `aimee_perception` - 3D pose estimation & grasp planning
 - [x] `aimee_manipulation` - Arm control & PickPlace action
@@ -978,6 +987,7 @@ Your existing Digital Ocean dashboard (`http://209.38.147.67:8089/`) can display
 - [ ] `SkillCloudProxy` - Cloud dispatcher
 
 ### Phase 8: Integration & Polish (Week 9-10)
+- [x] ROS2 Management Console (`aimee_ros2_monitor`)
 - [ ] System integration testing
 - [ ] Performance optimization
 - [ ] Error handling & recovery
@@ -1275,14 +1285,13 @@ Create a checkpoint/summary system to track daily progress:
 | Manipulation | ✅ Complete | PickPlace action server |
 | Memory | ⬜ TODO | Context persistence |
 | PickPlace Skill | 🔄 Ready | Waiting for voice integration |
-| Perception | ✅ COMPLETE | 3D pose estimation |
-| Manipulation | ✅ COMPLETE | Simulated arm & PickPlace |
-| Memory | ⬜ TODO | SQLite persistence |
+| ROS2 Monitor | ✅ COMPLETE | Management console at :8081 |
 
 ---
 
-*Document Version: 2.4*  
-*Last Updated: April 11, 2026*  
+*Document Version: 2.5*  
+*Last Updated: April 13, 2026*  
 *Vision System: COMPLETE*  
+*ROS2 Monitor: COMPLETE*  
 *Author: AI Assistant*  
 *Status: Phase 4 In Progress - Hardware Control*

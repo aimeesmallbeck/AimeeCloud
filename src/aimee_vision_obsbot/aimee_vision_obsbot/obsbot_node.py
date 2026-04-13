@@ -10,7 +10,6 @@ This node wraps the ObsbotBrick and provides ROS2 interfaces:
 - Subscribes to /camera/tracking_command for AI tracking
 - Subscribes to /camera/ptz_command for manual PTZ
 - Publishes camera status on /camera/status
-- Publishes video frames on /camera/image_raw (optional)
 
 Usage:
     ros2 run aimee_vision_obsbot obsbot_node
@@ -26,15 +25,8 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from rcl_interfaces.msg import SetParametersResult
-from std_msgs.msg import String, Bool, Int32
+from std_msgs.msg import String, Bool
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import Image
-try:
-    from cv_bridge import CvBridge
-    CV_BRIDGE_AVAILABLE = True
-except ImportError:
-    CV_BRIDGE_AVAILABLE = False
-    CvBridge = None
 
 from aimee_msgs.msg import TrackingCommand, CameraAction, RobotState
 
@@ -69,12 +61,9 @@ class ObsbotNode(Node):
             ('host', '192.168.5.1'),
             ('osc_send_port', 16284),
             ('osc_recv_port', 9000),
-            ('control_mode', 'auto'),  # auto, osc, uvc
-            ('camera_index', 0),
+            ('control_mode', 'auto'),
             ('auto_reconnect', True),
             ('tracking_sensitivity', 0.5),
-            ('publish_video', False),
-            ('video_fps', 30),
             ('default_tracking_mode', 'normal'),
             ('enabled', True),
             ('debug', False),
@@ -85,11 +74,8 @@ class ObsbotNode(Node):
         osc_send_port = self.get_parameter('osc_send_port').value
         osc_recv_port = self.get_parameter('osc_recv_port').value
         control_mode = self.get_parameter('control_mode').value
-        camera_index = self.get_parameter('camera_index').value
         auto_reconnect = self.get_parameter('auto_reconnect').value
         tracking_sensitivity = self.get_parameter('tracking_sensitivity').value
-        self._publish_video = self.get_parameter('publish_video').value
-        video_fps = self.get_parameter('video_fps').value
         default_tracking_mode = self.get_parameter('default_tracking_mode').value
         self._enabled = self.get_parameter('enabled').value
         debug = self.get_parameter('debug').value
@@ -101,12 +87,6 @@ class ObsbotNode(Node):
             depth=10
         )
         
-        sensor_qos = QoSProfile(
-            reliability=ReliabilityPolicy.BEST_EFFORT,
-            history=HistoryPolicy.KEEP_LAST,
-            depth=1
-        )
-        
         # Publishers
         self._status_pub = self.create_publisher(
             String, '/camera/status', reliable_qos
@@ -116,9 +96,6 @@ class ObsbotNode(Node):
         )
         self._tracking_mode_pub = self.create_publisher(
             String, '/camera/tracking_mode', reliable_qos
-        )
-        self._image_pub = self.create_publisher(
-            Image, '/camera/image_raw', sensor_qos
         )
         self._robot_state_pub = self.create_publisher(
             RobotState, '/robot/state', reliable_qos
@@ -156,13 +133,9 @@ class ObsbotNode(Node):
         # Parameter callback
         self.add_on_set_parameters_callback(self._on_parameters_changed)
         
-        # CV Bridge for video (optional)
-        self._cv_bridge = CvBridge() if CV_BRIDGE_AVAILABLE else None
-        
         # Create the brick with SDK path
         self._brick = ObsbotBrick(
             sdk_path="/workspace/libdev_v2.1.0_8/linux/arm64-release/libdev.so",
-            camera_index=camera_index,
             auto_reconnect=auto_reconnect,
             tracking_sensitivity=tracking_sensitivity,
             debug=debug
@@ -181,13 +154,6 @@ class ObsbotNode(Node):
         self._initialized = False
         self._current_status: Optional[ObsbotStatus] = None
         
-        # Video publishing timer
-        if self._publish_video and CV_BRIDGE_AVAILABLE:
-            self._video_timer = self.create_timer(
-                1.0 / video_fps,
-                self._publish_video_frame
-            )
-        
         # Status publishing timer
         self._status_timer = self.create_timer(1.0, self._publish_status)
         
@@ -195,8 +161,7 @@ class ObsbotNode(Node):
             f"ObsbotNode initialized:\n"
             f"  Host: {host}:{osc_send_port}\n"
             f"  Control mode: {control_mode}\n"
-            f"  Auto reconnect: {auto_reconnect}\n"
-            f"  Publish video: {self._publish_video}"
+            f"  Auto reconnect: {auto_reconnect}"
         )
         
         # Start async thread
@@ -363,7 +328,6 @@ class ObsbotNode(Node):
         status = self._current_status
         status_str = (
             f"connected={status.connected}, "
-            f"mode={self._brick.get_control_mode()}, "
             f"tracking={status.tracking_mode.name}, "
             f"zoom={status.zoom_level}, "
             f"sleeping={status.is_sleeping}"
@@ -372,27 +336,6 @@ class ObsbotNode(Node):
         msg = String()
         msg.data = status_str
         self._status_pub.publish(msg)
-    
-    def _publish_video_frame(self):
-        """Publish video frame (if enabled)."""
-        if not self._initialized or not self._loop or not self._cv_bridge:
-            return
-        
-        # Schedule frame capture in async loop
-        future = asyncio.run_coroutine_threadsafe(
-            self._brick.get_frame(),
-            self._loop
-        )
-        
-        try:
-            frame = future.result(timeout=0.1)
-            if frame is not None:
-                msg = self._cv_bridge.cv2_to_imgmsg(frame, encoding='bgr8')
-                msg.header.stamp = self.get_clock().now().to_msg()
-                msg.header.frame_id = 'obsbot_camera'
-                self._image_pub.publish(msg)
-        except Exception:
-            pass  # Frame capture failed, skip this frame
     
     # === Utilities ===
     
@@ -440,8 +383,6 @@ class ObsbotNode(Node):
         self.get_logger().info("Shutting down ObsbotNode...")
         
         self._status_timer.cancel()
-        if self._publish_video:
-            self._video_timer.cancel()
         
         self._shutdown_event.set()
         

@@ -139,9 +139,9 @@ def generate_launch_description():
         }]
     )
     
-    # === Vision Node ===
+    # === Vision Nodes ===
     
-    # OBSBOT Camera Node
+    # OBSBOT SDK Control Node (PTZ/Tracking only)
     obsbot_node = Node(
         package='aimee_vision_obsbot',
         executable='obsbot_node',
@@ -153,9 +153,31 @@ def generate_launch_description():
             'control_mode': 'auto',
             'auto_reconnect': True,
             'tracking_sensitivity': 0.5,
-            'publish_video': False,
             'enabled': True,
         }],
+        condition=IfCondition(enable_camera)
+    )
+    
+    # USB Camera Node (dedicated video streaming)
+    usb_cam_node = Node(
+        package='usb_cam',
+        executable='usb_cam_node_exe',
+        name='usb_camera',
+        output='screen',
+        parameters=[{
+            'video_device': '/dev/video2',
+            'frame_id': 'obsbot_camera',
+            'camera_name': 'obsbot_camera',
+            'image_width': 1280,
+            'image_height': 720,
+            'pixel_format': 'mjpeg2rgb',
+            'io_method': 'mmap',
+            'framerate': 30.0,
+        }],
+        remappings=[
+            ('/image_raw', '/camera/image_raw'),
+            ('/camera_info', '/camera/camera_info'),
+        ],
         condition=IfCondition(enable_camera)
     )
     
@@ -181,4 +203,5 @@ def generate_launch_description():
         
         # Vision
         obsbot_node,
+        usb_cam_node,
     ])

@@ -12,6 +12,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 HELPER_PATH = "/workspace/obsbot_helper/obsbot_ctrl"
+SDK_LIB_DIR = "/workspace/libdev_v2.1.0_8/linux/arm64-release"
 
 
 class AiWorkMode(IntEnum):
@@ -51,9 +52,11 @@ class ObsbotDeviceHelper:
     def _call(self, *args) -> tuple:
         """Call helper program."""
         cmd = [self._helper] + list(args)
+        env = os.environ.copy()
+        env["LD_LIBRARY_PATH"] = SDK_LIB_DIR + ":" + env.get("LD_LIBRARY_PATH", "")
         try:
             result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=10
+                cmd, capture_output=True, text=True, timeout=10, env=env
             )
             logger.debug(f"Helper: {' '.join(args)} -> {result.returncode}")
             if result.returncode != 0:
@@ -128,12 +131,14 @@ class ObsbotSDKHelper:
         """Scan for devices."""
         devices = []
         retries = 3 if wait else 1
+        env = os.environ.copy()
+        env["LD_LIBRARY_PATH"] = SDK_LIB_DIR + ":" + env.get("LD_LIBRARY_PATH", "")
         
         for i in range(retries):
             try:
                 result = subprocess.run(
                     [self._helper, "list"],
-                    capture_output=True, text=True, timeout=10
+                    capture_output=True, text=True, timeout=10, env=env
                 )
                 if "Device SN:" in result.stdout:
                     for line in result.stdout.split('\n'):
