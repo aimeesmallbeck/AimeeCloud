@@ -27,7 +27,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from rcl_interfaces.msg import Log
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
 from geometry_msgs.msg import Twist
 
 try:
@@ -79,6 +79,14 @@ _nodes_last_update = 0
 
 # Topic tracking
 _topics_cache = {}
+
+# Pipeline state (voice / intent / tts / cloud)
+_pipeline_state = {
+    'voice': {'text': '', 'timestamp': 0, 'is_partial': False},
+    'intent': {'type': '', 'action': '', 'confidence': 0.0, 'timestamp': 0},
+    'tts': {'text': '', 'timestamp': 0},
+    'cloud': {'connected': False, 'session_id': '', 'timestamp': 0},
+}
 
 # System status
 _system_status = {
@@ -338,6 +346,17 @@ def get_system_status():
         'log_stats': _log_stats,
         'uptime': time.time() - _system_status.get('start_time', time.time()),
         'timestamp': datetime.now().isoformat()
+    })
+
+
+@app.route('/api/pipeline')
+def get_pipeline_state():
+    """Get live voice/intent/tts/cloud pipeline state."""
+    return jsonify({
+        'voice': _pipeline_state['voice'],
+        'intent': _pipeline_state['intent'],
+        'tts': _pipeline_state['tts'],
+        'cloud': _pipeline_state['cloud'],
     })
 
 
@@ -765,6 +784,28 @@ class MonitorNode(Node):
         if AIMEE_MSGS_AVAILABLE:
             self._tracking_pub = self.create_publisher(TrackingCommand, '/camera/tracking', 10)
         
+        # Pipeline subscriptions
+        self._voice_sub = self.create_subscription(
+            String, '/voice/transcription',
+            self._on_voice_transcription,
+            QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
+        )
+        self._intent_sub = self.create_subscription(
+            String, '/intent/classified',
+            self._on_intent_classified,
+            QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
+        )
+        self._tts_sub = self.create_subscription(
+            String, '/tts/speak',
+            self._on_tts_speak,
+            QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
+        )
+        self._cloud_sub = self.create_subscription(
+            Bool, '/cloud/connected',
+            self._on_cloud_connected,
+            QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
+        )
+        
         # Timers for periodic updates
         self._nodes_timer = self.create_timer(10.0, self._update_nodes)
         self._topics_timer = self.create_timer(30.0, self._refresh_topics)
@@ -779,6 +820,27 @@ class MonitorNode(Node):
         self._update_nodes()
         self._refresh_topics()
         self.destroy_timer(self._initial_refresh_timer)
+    
+    def _on_voice_transcription(self, msg: String):
+        global _pipeline_state
+        _pipeline_state['voice'] = {'text': msg.data, 'timestamp': time.time(), 'is_partial': False}
+    
+    def _on_intent_classified(self, msg):
+        global _pipeline_state
+        _pipeline_state['intent'] = {
+            'type': getattr(msg, 'intent_type', ''),
+            'action': getattr(msg, 'action', ''),
+            'confidence': getattr(msg, 'confidence', 0.0),
+            'timestamp': time.time()
+        }
+    
+    def _on_tts_speak(self, msg: String):
+        global _pipeline_state
+        _pipeline_state['tts'] = {'text': msg.data, 'timestamp': time.time()}
+    
+    def _on_cloud_connected(self, msg: Bool):
+        global _pipeline_state
+        _pipeline_state['cloud'] = {'connected': msg.data, 'timestamp': time.time()}
     
     def _on_log_message(self, msg: Log):
         """Handle incoming log message."""
