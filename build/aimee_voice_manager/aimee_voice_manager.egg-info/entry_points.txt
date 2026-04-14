@@ -1,3 +1,0 @@
-[console_scripts]
-voice_manager_node = aimee_voice_manager.voice_manager_node:main
-

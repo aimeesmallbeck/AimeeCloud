@@ -1,1 +1,0 @@
-/workspace/build/aimee_msgs/rosidl_typesupport_introspection_cpp/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_introspection_cpp.hpp

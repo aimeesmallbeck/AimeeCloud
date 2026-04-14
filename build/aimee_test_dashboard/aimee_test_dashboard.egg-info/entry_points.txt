@@ -1,3 +1,0 @@
-[console_scripts]
-dashboard_node = aimee_test_dashboard.dashboard_node:main
-

@@ -1,0 +1,44 @@
+# Colcon / ROS2 build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+
+# Core dumps
+core.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+
+# Binary libraries and build artifacts
+*.so
+*.so.*
+*.dylib
+*.dll
+*.lib
+*.pdb
+*.exe
+libdev_*/linux/
+libdev_*/macos/
+libdev_*/windows/
+obsbot_helper/obsbot_ctrl

@@ -7,14 +7,18 @@
   <maintainer email="aimee@example.com">Aimee Robot Team</maintainer>
   <license>MIT</license>
 
-  <buildtool_depend>ament_cmake_python</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>aimee_msgs</exec_depend>
+  <exec_depend>aimee_vision_pipeline</exec_depend>
+  <exec_depend>aimee_perception</exec_depend>
+  <exec_depend>aimee_manipulation</exec_depend>
+  <exec_depend>aimee_vision_obsbot</exec_depend>
 
   <export>
-    <build_type>ament_cmake_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

@@ -1,1 +1,0 @@
-/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_c/aimee_msgs/msg/detail/robot_state__rosidl_typesupport_fastrtps_c.h

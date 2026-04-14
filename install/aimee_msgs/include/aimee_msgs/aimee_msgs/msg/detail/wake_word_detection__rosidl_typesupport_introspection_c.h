@@ -1,1 +1,0 @@
-/workspace/build/aimee_msgs/rosidl_typesupport_introspection_c/aimee_msgs/msg/detail/wake_word_detection__rosidl_typesupport_introspection_c.h

@@ -189,7 +189,7 @@ class WakeWordEINode(Node):
         
         FUTURE ENHANCEMENT: When conversation mode is active, this may
         be suppressed to allow follow-up commands without repeated wake word.
-        """}}}
+        """
   </parameter<SECRET_KEY>EY>dy detected: '{result.keyword}' "
                     f"(confidence: {result.confidence:.2f})"
                 )

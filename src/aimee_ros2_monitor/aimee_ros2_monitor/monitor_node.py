@@ -6,12 +6,11 @@ A simple web-based dashboard for monitoring ROS2:
 - rqt_console-like log viewer (captures /rosout)
 - Node status widgets (visual cards for each node)
 - Topic monitoring with live data flow
-- No complex ROS2 internals - just clean monitoring
 
 Usage:
     ros2 run aimee_ros2_monitor monitor_node
     
-Then open browser to: http://localhost:8080
+Then open browser to: http://localhost:8081
 """
 
 import json
@@ -30,7 +29,6 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from rcl_interfaces.msg import Log
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import Image, CompressedImage
 
 try:
     from aimee_msgs.msg import TrackingCommand
@@ -38,23 +36,25 @@ try:
 except ImportError:
     AIMEE_MSGS_AVAILABLE = False
 
-from flask import Flask, render_template, jsonify, request, Response
-from flask import send_from_directory
-import queue
-import numpy as np
-
 try:
-    import cv2
-    CV2_AVAILABLE = True
+    from rosidl_runtime_py.utilities import get_message
+    from rosidl_runtime_py import message_to_ordereddict
+    ROSIDL_PY_AVAILABLE = True
 except ImportError:
-    CV2_AVAILABLE = False
+    ROSIDL_PY_AVAILABLE = False
+
+from flask import Flask, render_template, jsonify, request, Response
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Get template directory (works in both build and install)
-template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+# Get template directory from package share (works in both build and install)
+try:
+    from ament_index_python.packages import get_package_share_directory
+    template_dir = os.path.join(get_package_share_directory('aimee_ros2_monitor'), 'templates')
+except Exception:
+    template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=template_dir)
 
 # Global reference to ROS2 node (for native pub from Flask threads)
@@ -79,14 +79,6 @@ _nodes_last_update = 0
 
 # Topic tracking
 _topics_cache = {}
-_topics_hz_cache = {}
-_frame_times = deque(maxlen=30)  # Camera frame timestamps for Hz calc
-
-# Camera streaming
-_camera_frame_buffer = queue.Queue(maxsize=2)
-_camera_jpeg_buffer = queue.Queue(maxsize=2)  # Direct JPEG bytes from compressed topic
-_camera_connected = False
-_last_camera_frame_time = 0.0
 
 # System status
 _system_status = {
@@ -213,13 +205,10 @@ def get_logs():
     
     filtered_logs = []
     for log in reversed(_logs_buffer):  # Newest first
-        # Level filter
         if level_filter != 'all' and log['level'] != level_filter:
             continue
-        # Node filter
         if node_filter != 'all' and node_filter not in log['node']:
             continue
-        # Search filter
         if search and search not in log['msg'].lower():
             continue
         
@@ -249,7 +238,6 @@ def get_nodes():
     """Get running ROS2 nodes with status."""
     global _nodes_cache, _nodes_last_update
     
-    # Refresh if older than 5 seconds
     if time.time() - _nodes_last_update > 5:
         _refresh_nodes()
     
@@ -262,44 +250,71 @@ def get_nodes():
 
 @app.route('/api/nodes/<path:node_name>')
 def get_node_details(node_name):
-    """Get detailed info about a specific node."""
-    # Remove leading slash if present
-    node_name = node_name.lstrip('/')
+    """Get detailed info about a specific node using native ROS2 graph API."""
+    node_name = '/' + node_name.lstrip('/')
+    
+    if _ros_node is None:
+        return jsonify({'success': False, 'error': 'ROS2 node not available'}), 503
     
     try:
-        # Get node info
-        cmd = f'source /opt/ros/humble/setup.bash && ROS2_DISABLE_DAEMON=1 ros2 node info /{node_name}'
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=10,
-            shell=True, executable='/bin/bash'
-        )
+        parts = node_name.split('/')
+        base_name = parts[-1]
+        namespace = '/'.join(parts[:-1]) or '/'
         
-        # Parse subscriptions and publications
-        info = {'subscriptions': [], 'publishers': [], 'services': []}
-        current_section = None
+        publishers = _ros_node.get_publisher_names_and_types_by_node(base_name, namespace)
+        subscribers = _ros_node.get_subscriber_names_and_types_by_node(base_name, namespace)
+        services = _ros_node.get_service_names_and_types_by_node(base_name, namespace)
         
-        for line in result.stdout.split('\n'):
-            line = line.strip()
-            if line.startswith('Subscribers:'):
-                current_section = 'subscriptions'
-            elif line.startswith('Publishers:'):
-                current_section = 'publishers'
-            elif line.startswith('Services:'):
-                current_section = 'services'
-            elif line.startswith('/') and current_section:
-                # Parse topic name and type
-                parts = line.split(':')
-                if len(parts) >= 2:
-                    name = parts[0].strip()
-                    type_str = parts[1].strip()
-                    info[current_section].append({
-                        'name': name,
-                        'type': type_str
-                    })
-        
-        return jsonify({'success': True, 'node': node_name, **info})
+        return jsonify({
+            'success': True,
+            'node': node_name,
+            'publishers': [{'name': name, 'type': types[0] if types else 'unknown'} for name, types in publishers],
+            'subscriptions': [{'name': name, 'type': types[0] if types else 'unknown'} for name, types in subscribers],
+            'services': [{'name': name, 'type': types[0] if types else 'unknown'} for name, types in services],
+        })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/topics/<path:topic_name>/subscribe', methods=['POST'])
+def topic_subscribe(topic_name):
+    """Start a native echo subscription for a topic."""
+    topic_name = '/' + topic_name.lstrip('/')
+    if _ros_node is None:
+        return jsonify({'success': False, 'error': 'ROS2 node not available'}), 503
+    topic_info = _topics_cache.get(topic_name)
+    if not topic_info:
+        return jsonify({'success': False, 'error': f'Topic {topic_name} not found'}), 404
+    msg_type = topic_info.get('type', 'unknown')
+    if msg_type == 'unknown' or not ROSIDL_PY_AVAILABLE:
+        return jsonify({'success': False, 'error': 'Unknown message type or rosidl_runtime_py unavailable'}), 400
+    if msg_type in MonitorNode._ECHO_SKIP_TYPES:
+        return jsonify({'success': False, 'error': f'Topic type {msg_type} is too large for live inspection'}), 400
+    ok = _ros_node.ensure_echo_subscription(topic_name, msg_type)
+    if ok:
+        return jsonify({'success': True, 'topic': topic_name, 'type': msg_type})
+    return jsonify({'success': False, 'error': 'Failed to create subscription'}), 500
+
+
+@app.route('/api/topics/<path:topic_name>/latest')
+def topic_latest(topic_name):
+    """Get the latest cached message for a topic."""
+    topic_name = '/' + topic_name.lstrip('/')
+    if _ros_node is None:
+        return jsonify({'success': False, 'error': 'ROS2 node not available'}), 503
+    latest = _ros_node.get_echo_latest(topic_name)
+    if latest is None:
+        return jsonify({'success': True, 'topic': topic_name, 'waiting': True, 'data': None})
+    return jsonify({'success': True, 'topic': topic_name, 'waiting': False, 'data': latest['data'], 'received_at': latest['timestamp']})
+
+
+@app.route('/api/topics/<path:topic_name>/unsubscribe', methods=['POST'])
+def topic_unsubscribe(topic_name):
+    """Stop the echo subscription for a topic."""
+    topic_name = '/' + topic_name.lstrip('/')
+    if _ros_node is not None:
+        _ros_node.destroy_echo_subscription(topic_name)
+    return jsonify({'success': True, 'topic': topic_name})
 
 
 @app.route('/api/topics')
@@ -309,46 +324,6 @@ def get_topics():
         'topics': list(_topics_cache.values()),
         'count': len(_topics_cache)
     })
-
-
-@app.route('/api/topics/<path:topic_name>/echo')
-def echo_topic(topic_name):
-    """Echo a single message from a topic."""
-    topic_name = '/' + topic_name.lstrip('/')
-    
-    try:
-        cmd = f'source /opt/ros/humble/setup.bash && timeout 2 ros2 topic echo --once {topic_name} 2>/dev/null || true'
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=3,
-            shell=True, executable='/bin/bash'
-        )
-        
-        # Parse the YAML-like output to JSON
-        output = result.stdout.strip()
-        if not output:
-            return jsonify({'success': False, 'error': 'No data received'})
-        
-        # Simple YAML to dict conversion for basic types
-        data = {}
-        current_key = None
-        for line in output.split('\n'):
-            if ':' in line:
-                key, val = line.split(':', 1)
-                key = key.strip()
-                val = val.strip()
-                # Try to convert numbers
-                try:
-                    if '.' in val:
-                        val = float(val)
-                    else:
-                        val = int(val)
-                except:
-                    pass
-                data[key] = val
-        
-        return jsonify({'success': True, 'topic': topic_name, 'data': data, 'raw': output[:500]})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
 
 
 @app.route('/api/system')
@@ -362,61 +337,7 @@ def get_system_status():
     })
 
 
-# ==================== Camera Streaming ====================
-
-def generate_camera_stream():
-    """Generate MJPEG stream for camera feed from compressed JPEG bytes."""
-    last_frame = None
-    last_frame_time = 0.0
-    
-    while True:
-        try:
-            # Get JPEG bytes directly from buffer
-            jpeg_bytes = _camera_jpeg_buffer.get(timeout=2.0)
-            last_frame = jpeg_bytes
-            last_frame_time = time.time()
-            
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg_bytes + b'\r\n')
-        except queue.Empty:
-            # Reuse last frame if it's recent (< 3s)
-            if last_frame is not None and (time.time() - last_frame_time) < 3.0:
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + last_frame + b'\r\n')
-            elif CV2_AVAILABLE:
-                # No frame for a while, yield placeholder
-                placeholder = np.zeros((480, 640, 3), dtype=np.uint8)
-                cv2.putText(placeholder, 'Camera Not Available', (120, 240), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                _, buffer = cv2.imencode('.jpg', placeholder)
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-        except Exception as e:
-            logger.debug(f"Stream error: {e}")
-            time.sleep(0.1)
-
-
-@app.route('/camera/stream')
-def camera_stream():
-    """Camera video stream endpoint."""
-    return Response(
-        generate_camera_stream(),
-        mimetype='multipart/x-mixed-replace; boundary=frame'
-    )
-
-
-@app.route('/api/camera/status')
-def camera_status():
-    """Get camera connection status."""
-    global _last_camera_frame_time
-    frame_recent = (time.time() - _last_camera_frame_time) < 5.0
-    return jsonify({
-        'connected': _camera_connected,
-        'frame_available': frame_recent,
-        'cv2_available': CV2_AVAILABLE,
-        'last_frame_age': round(time.time() - _last_camera_frame_time, 1)
-    })
-
+# ==================== Camera Control ====================
 
 @app.route('/api/camera/control', methods=['POST'])
 def camera_control():
@@ -429,7 +350,6 @@ def camera_control():
             direction = data.get('direction')
             speed = data.get('speed', 50)
             
-            # Build Twist message
             twist = Twist()
             if direction == 'up':
                 twist.angular.y = speed / 100.0
@@ -444,7 +364,6 @@ def camera_control():
             elif direction == 'zoom_out':
                 twist.linear.z = -speed / 100.0
             elif direction == 'stop':
-                # All zeros - stops continuous movement
                 pass
             
             if _ros_node is not None:
@@ -455,7 +374,6 @@ def camera_control():
             return jsonify({'success': True, 'command': command, 'direction': direction})
         
         elif command == 'stop':
-            # Stop PTZ movement (publish zero Twist)
             if _ros_node is None:
                 return jsonify({'success': False, 'error': 'ROS2 node not ready'}), 503
             _ros_node._ptz_pub.publish(Twist())
@@ -488,11 +406,22 @@ def camera_control():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-@app.route('/api/nodes/refresh', methods=['POST'])
-def refresh_nodes():
-    """Force refresh node list."""
-    _refresh_nodes()
-    return jsonify({'success': True, 'count': len(_nodes_cache)})
+@app.route('/api/tts/speak', methods=['POST'])
+def tts_speak():
+    """Publish a TTS message for testing."""
+    data = request.get_json() or {}
+    text = data.get('text', '')
+    if not text:
+        return jsonify({'success': False, 'error': 'No text provided'}), 400
+    if _ros_node is None:
+        return jsonify({'success': False, 'error': 'ROS2 node not ready'}), 503
+    try:
+        msg = String()
+        msg.data = text
+        _ros_node._tts_pub.publish(msg)
+        return jsonify({'success': True, 'text': text})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # ==================== Node Control Endpoints ====================
@@ -508,10 +437,10 @@ def get_node_definitions():
 
 @app.route('/api/nodes/managed')
 def get_managed_nodes():
-    """Get status of managed nodes."""
+    """Get status of managed nodes + actual ROS2 graph state."""
     global _managed_nodes
     
-    # Clean up finished processes and build serializable response
+    # Clean up finished processes
     nodes_response = {}
     for node_id, info in list(_managed_nodes.items()):
         proc = info.get('process')
@@ -519,7 +448,6 @@ def get_managed_nodes():
             info['status'] = 'stopped'
             info['exit_code'] = proc.returncode
         
-        # Build response without Popen object (not JSON serializable)
         nodes_response[node_id] = {
             'node_id': info.get('node_id'),
             'name': info.get('name'),
@@ -532,14 +460,14 @@ def get_managed_nodes():
             'executable': info.get('executable')
         }
     
-    core_running = _core_process is not None and _core_process.poll() is None
-    
-    # Also report which nodes are actually present in the ROS2 graph
+    # Determine which nodes are actually running in ROS2 graph
     ros_running = {}
     for node_id, node_def in NODE_DEFINITIONS.items():
         ros_name = node_def.get('ros_name', '')
         if ros_name and ros_name in _nodes_cache:
             ros_running[node_id] = True
+    
+    core_running = _core_process is not None and _core_process.poll() is None
     
     return jsonify({
         'nodes': nodes_response,
@@ -559,7 +487,7 @@ def start_node():
     if not node_id or node_id not in NODE_DEFINITIONS:
         return jsonify({'success': False, 'error': 'Invalid node_id'}), 400
     
-    # Check if already running
+    # Check if already running in our managed set
     if node_id in _managed_nodes:
         proc = _managed_nodes[node_id].get('process')
         if proc and proc.poll() is None:
@@ -568,7 +496,6 @@ def start_node():
     node_def = NODE_DEFINITIONS[node_id]
     
     try:
-        # Build command
         cmd_parts = [
             'source /opt/ros/humble/setup.bash',
             'source /workspace/install/setup.bash',
@@ -579,14 +506,13 @@ def start_node():
         
         cmd = ' && '.join(cmd_parts)
         
-        # Start process
         proc = subprocess.Popen(
             cmd,
             shell=True,
             executable='/bin/bash',
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            start_new_session=True  # Allows clean process group termination
+            start_new_session=True
         )
         
         _managed_nodes[node_id] = {
@@ -616,38 +542,60 @@ def start_node():
 
 @app.route('/api/nodes/stop', methods=['POST'])
 def stop_node():
-    """Stop a managed node."""
+    """Stop a node (managed or core-launched)."""
     global _managed_nodes
     
     data = request.get_json() or {}
     node_id = data.get('node_id')
     
-    if not node_id or node_id not in _managed_nodes:
-        return jsonify({'success': False, 'error': 'Node not found or not managed'}), 404
+    if not node_id or node_id not in NODE_DEFINITIONS:
+        return jsonify({'success': False, 'error': 'Invalid node_id'}), 400
     
-    node_info = _managed_nodes[node_id]
-    proc = node_info.get('process')
+    node_def = NODE_DEFINITIONS[node_id]
+    proc = None
     
-    if not proc:
-        return jsonify({'success': False, 'error': 'No process found'}), 500
+    # If we have it in managed nodes, use that process
+    if node_id in _managed_nodes:
+        proc = _managed_nodes[node_id].get('process')
     
     try:
-        # Try graceful termination first
         import signal
-        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
         
-        # Wait for process to terminate
-        try:
-            proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            # Force kill if not terminated
-            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-            proc.wait(timeout=2)
+        if proc:
+            # Managed process - kill by process group
+            try:
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+                proc.wait(timeout=5)
+            except (subprocess.TimeoutExpired, ProcessLookupError):
+                try:
+                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                    proc.wait(timeout=2)
+                except Exception:
+                    pass
+            
+            _managed_nodes[node_id]['status'] = 'stopped'
+            _managed_nodes[node_id]['stopped_at'] = datetime.now().isoformat()
+        else:
+            # Core-launched or orphaned process - find by executable name
+            executable = node_def['executable']
+            # Try graceful pkill first
+            subprocess.run(
+                ['pkill', '-f', executable],
+                capture_output=True, timeout=5
+            )
+            time.sleep(1)
+            # Check if still running, force kill if so
+            check = subprocess.run(
+                ['pgrep', '-f', executable],
+                capture_output=True, timeout=2
+            )
+            if check.returncode == 0:
+                subprocess.run(
+                    ['pkill', '-9', '-f', executable],
+                    capture_output=True, timeout=5
+                )
         
-        node_info['status'] = 'stopped'
-        node_info['stopped_at'] = datetime.now().isoformat()
-        
-        logger.info(f"Stopped node {node_id} (PID was: {proc.pid})")
+        logger.info(f"Stopped node {node_id}")
         
         return jsonify({
             'success': True,
@@ -669,7 +617,6 @@ def start_core():
         return jsonify({'success': False, 'error': 'Core already running'}), 409
     
     try:
-        # Start core bringup
         cmd = 'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 launch aimee_bringup core.launch.py'
         
         _core_process = subprocess.Popen(
@@ -751,7 +698,6 @@ def _refresh_nodes(native_api=None):
                 if not full_name.startswith('/'):
                     full_name = '/' + full_name
                 
-                # Determine node type/category
                 category = 'other'
                 if 'wake_word' in full_name.lower():
                     category = 'audio'
@@ -809,87 +755,43 @@ class MonitorNode(Node):
             )
         )
         
-        # Publishers for camera control (avoid subprocess overhead)
+        # Publishers for camera control and TTS testing
         self._ptz_pub = self.create_publisher(Twist, '/camera/cmd_ptz', 10)
+        self._tts_pub = self.create_publisher(String, '/tts/speak', 10)
         if AIMEE_MSGS_AVAILABLE:
             self._tracking_pub = self.create_publisher(TrackingCommand, '/camera/tracking', 10)
         
-        # Subscribe to compressed camera images (much lower CPU than raw)
-        self._image_sub = self.create_subscription(
-            CompressedImage,
-            '/camera/image_raw/compressed',
-            self._on_camera_image,
-            QoSProfile(
-                reliability=ReliabilityPolicy.BEST_EFFORT,
-                history=HistoryPolicy.KEEP_LAST,
-                depth=1
-            )
-        )
-        self._last_frame_time = 0
-        
-        # Timers for periodic updates (reduced frequency to avoid CPU starvation)
+        # Timers for periodic updates
         self._nodes_timer = self.create_timer(10.0, self._update_nodes)
-        self._topics_timer = self.create_timer(30.0, self._update_topic_hz)
-        self._camera_timer = self.create_timer(2.0, self._check_camera_status)
+        self._topics_timer = self.create_timer(30.0, self._refresh_topics)
+        
+        # Immediate initial refresh
+        self._initial_refresh_timer = self.create_timer(1.0, self._initial_refresh)
         
         self.get_logger().info("ROS2 Monitor Node started")
     
-    def _on_camera_image(self, msg: CompressedImage):
-        """Handle incoming compressed camera image (JPEG bytes)."""
-        global _camera_connected, _last_camera_frame_time
-        now = time.time()
-        _camera_connected = True
-        self._last_frame_time = now
-        _last_camera_frame_time = now
-        
-        # Record timestamp for Hz calculation
-        _frame_times.append(now)
-        
-        # Throttle frame processing to ~10 fps for dashboard (saves CPU)
-        if hasattr(self, '_last_queue_time') and (now - self._last_queue_time) < 0.1:
-            return
-        
-        try:
-            # Direct JPEG bytes - zero conversion overhead
-            jpeg_bytes = bytes(msg.data)
-            try:
-                _camera_jpeg_buffer.put_nowait(jpeg_bytes)
-                self._last_queue_time = now
-            except queue.Full:
-                try:
-                    _camera_jpeg_buffer.get_nowait()
-                    _camera_jpeg_buffer.put_nowait(jpeg_bytes)
-                    self._last_queue_time = now
-                except queue.Empty:
-                    pass
-        except Exception as e:
-            logger.debug(f"Frame buffer error: {e}")
-    
-    def _check_camera_status(self):
-        """Check if camera is still connected."""
-        global _camera_connected, _last_camera_frame_time
-        if time.time() - self._last_frame_time > 5.0:
-            _camera_connected = False
+    def _initial_refresh(self):
+        """One-shot initial refresh after node is fully initialized."""
+        self._update_nodes()
+        self._refresh_topics()
+        self.destroy_timer(self._initial_refresh_timer)
     
     def _on_log_message(self, msg: Log):
         """Handle incoming log message."""
         global _log_stats
         
-        # Map level to string
         level_map = {
-            Log.DEBUG: 'debug',
-            Log.INFO: 'info',
-            Log.WARN: 'warn',
-            Log.ERROR: 'error',
-            Log.FATAL: 'fatal'
+            10: 'debug',
+            20: 'info',
+            30: 'warn',
+            40: 'error',
+            50: 'fatal'
         }
         level_str = level_map.get(msg.level, 'unknown')
         
-        # Update stats
         if level_str in _log_stats:
             _log_stats[level_str] += 1
         
-        # Create log entry
         log_entry = {
             'timestamp': datetime.fromtimestamp(msg.stamp.sec + msg.stamp.nanosec * 1e-9).isoformat(),
             'level': level_str,
@@ -909,53 +811,142 @@ class MonitorNode(Node):
         except Exception as e:
             logger.warning(f"Node update error: {e}")
     
-    def _update_topic_hz(self):
-        """Update topic frequency info from frame timestamps (no subprocess)."""
-        global _topics_hz_cache
-        
-        try:
-            # Compute camera topic Hz from frame arrival times
-            now = time.time()
-            recent_frames = [t for t in _frame_times if now - t < 2.0]
-            if len(recent_frames) >= 2:
-                duration = recent_frames[-1] - recent_frames[0]
-                hz = (len(recent_frames) - 1) / duration if duration > 0 else 0
-                _topics_hz_cache['/camera/image_raw'] = {
-                    'hz': round(hz, 2),
-                    'bandwidth': '0 B',
-                    'last_update': now
-                }
-            
-            # Refresh topic list while we're here
-            self._refresh_topics()
-        except Exception as e:
-            logger.debug(f"Hz update error: {e}")
-
+    # Message types to skip for auto echo (large/binary data)
+    _ECHO_SKIP_TYPES = {
+        'sensor_msgs/msg/Image',
+        'sensor_msgs/msg/CompressedImage',
+        'sensor_msgs/msg/PointCloud2',
+        'sensor_msgs/msg/LaserScan',
+        'sensor_msgs/msg/PointCloud',
+        'nav_msgs/msg/OccupancyGrid',
+        'visualization_msgs/msg/MarkerArray',
+        'theora_image_transport/msg/Packet',
+    }
+    
     def _refresh_topics(self):
-        """Refresh topic list using native ROS2 API (no subprocess)."""
+        """Refresh topic list using native ROS2 API and auto-subscribe to small topics."""
         global _topics_cache
         try:
             topics = []
             for topic_name, topic_types in self.get_topic_names_and_types():
                 msg_type = topic_types[0] if topic_types else 'unknown'
-                hz_info = _topics_hz_cache.get(topic_name, {})
                 topics.append({
                     'name': topic_name,
                     'type': msg_type,
-                    'hz': hz_info.get('hz', 0),
-                    'bandwidth': hz_info.get('bandwidth', '0 B'),
-                    'last_update': hz_info.get('last_update', 0)
+                    'hz': 0,
+                    'bandwidth': '0 B',
+                    'last_update': 0
                 })
+                # Auto-subscribe to lightweight topics for live inspection
+                if (ROSIDL_PY_AVAILABLE and
+                        msg_type not in self._ECHO_SKIP_TYPES and
+                        msg_type != 'unknown'):
+                    self.ensure_echo_subscription(topic_name, msg_type)
             _topics_cache = {t['name']: t for t in topics}
         except Exception as e:
             logger.warning(f"Failed to refresh topics: {e}")
-
+    
+    # ==================== Topic Echo Subscriptions ====================
+    ECHO_TIMEOUT = 60.0
+    
+    def ensure_echo_subscription(self, topic_name: str, msg_type_str: str) -> bool:
+        """Create a persistent subscription to cache the latest message."""
+        if not ROSIDL_PY_AVAILABLE:
+            return False
+        with getattr(self, '_echo_lock', threading.Lock()):
+            if not hasattr(self, '_echo_subs'):
+                self._echo_subs = {}
+                self._echo_cache = {}
+                self._echo_last_access = {}
+                self._echo_lock = threading.Lock()
+            if topic_name in self._echo_subs:
+                self._echo_last_access[topic_name] = time.time()
+                return True
+        try:
+            msg_cls = get_message(msg_type_str)
+            sub = self.create_subscription(
+                msg_cls, topic_name,
+                lambda msg, tn=topic_name: self._on_echo_message(tn, msg),
+                QoSProfile(
+                    reliability=ReliabilityPolicy.BEST_EFFORT,
+                    history=HistoryPolicy.KEEP_LAST,
+                    depth=1
+                )
+            )
+            with self._echo_lock:
+                self._echo_subs[topic_name] = sub
+                self._echo_cache[topic_name] = None
+                self._echo_last_access[topic_name] = time.time()
+            # Start cleanup timer if not running
+            if not hasattr(self, '_echo_cleanup_timer') or self._echo_cleanup_timer is None:
+                self._echo_cleanup_timer = self.create_timer(10.0, self._cleanup_echo_subs)
+            self.get_logger().info(f"Echo subscription created for {topic_name}")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to create echo sub for {topic_name}: {e}")
+            return False
+    
+    def destroy_echo_subscription(self, topic_name: str):
+        """Destroy a persistent echo subscription."""
+        with getattr(self, '_echo_lock', threading.Lock()):
+            if not hasattr(self, '_echo_subs'):
+                return
+            sub = self._echo_subs.pop(topic_name, None)
+            self._echo_cache.pop(topic_name, None)
+            self._echo_last_access.pop(topic_name, None)
+        if sub:
+            try:
+                self.destroy_subscription(sub)
+            except Exception as e:
+                logger.warning(f"Failed to destroy echo sub for {topic_name}: {e}")
+    
+    def _cleanup_echo_subs(self):
+        """Remove echo subscriptions idle for too long."""
+        now = time.time()
+        stale = []
+        with getattr(self, '_echo_lock', threading.Lock()):
+            if not hasattr(self, '_echo_last_access'):
+                return
+            for topic_name, last_access in list(self._echo_last_access.items()):
+                if now - last_access > self.ECHO_TIMEOUT:
+                    stale.append(topic_name)
+        for topic_name in stale:
+            self.destroy_echo_subscription(topic_name)
+    
+    def _on_echo_message(self, topic_name: str, msg):
+        """Cache an incoming echoed message."""
+        self.get_logger().debug(f"Echo received on {topic_name}")
+        try:
+            data = message_to_ordereddict(msg)
+        except Exception as e:
+            data = {'_raw': str(msg), '_error': str(e)}
+        with getattr(self, '_echo_lock', threading.Lock()):
+            if not hasattr(self, '_echo_cache'):
+                self._echo_cache = {}
+                self._echo_last_access = {}
+            self._echo_cache[topic_name] = {
+                'data': data,
+                'timestamp': time.time(),
+                'type': type(msg).__module__ + '/' + type(msg).__name__
+            }
+            self._echo_last_access[topic_name] = time.time()
+    
+    def get_echo_latest(self, topic_name: str):
+        """Return the latest cached message dict or None."""
+        with getattr(self, '_echo_lock', threading.Lock()):
+            if not hasattr(self, '_echo_cache'):
+                return None
+            if topic_name in self._echo_last_access:
+                self._echo_last_access[topic_name] = time.time()
+            cache = self._echo_cache.get(topic_name)
+            if cache is None:
+                return None
+            return dict(cache)
 
 # ==================== Flask Thread ====================
 
 def run_flask(host='0.0.0.0', port=8081):
     """Run Flask server in background thread."""
-    # Disable Flask logging
     import logging as flask_logging
     flask_logging.getLogger('werkzeug').setLevel(flask_logging.ERROR)
     
@@ -968,14 +959,11 @@ def main(args=None):
     """Main entry point."""
     rclpy.init(args=args)
     
-    # Set start time
     _system_status['start_time'] = time.time()
     
-    # Start Flask in background thread
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    # Create ROS2 node and store global reference
     global _ros_node
     node = MonitorNode()
     _ros_node = node
@@ -984,11 +972,6 @@ def main(args=None):
     print("🔍 AIMEE ROS2 Monitor Dashboard")
     print("="*60)
     print(f"\n📊 Dashboard URL: http://localhost:8081")
-    print("\n💡 Features:")
-    print("   • Real-time log viewer (like rqt_console)")
-    print("   • Visual node status widgets")
-    print("   • Live topic monitoring")
-    print("   • Auto-refresh every 5 seconds")
     print("\n" + "="*60 + "\n")
     
     try:

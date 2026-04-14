@@ -55,21 +55,7 @@ def generate_launch_description():
     
     # === Voice Pipeline Nodes ===
     
-    # Wake Word Node (Edge Impulse)
-    wake_word_node = Node(
-        package='aimee_wake_word_ei',
-        executable='wake_word_ei_node',
-        name='wake_word_ei',
-        output='screen',
-        parameters=[{
-            'model_path': '/home/arduino/.arduino-bricks/models/custom-ei/ei-model-953002-1/model.eim',
-            'target_keyword': 'aimee',
-            'confidence_threshold': 0.70,
-            'enabled': True,
-        }]
-    )
-    
-    # Voice Manager Node (STT)
+    # Voice Manager Node (Continuous STT - no wake word)
     voice_manager_node = Node(
         package='aimee_voice_manager',
         executable='voice_manager_node',
@@ -77,8 +63,9 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'engine': 'vosk',
-            'model_path': '/home/arduino/models/vosk-model-small-en-us-0.15',
-            'record_duration': 5.0,
+            'model_path': '/home/arduino/vosk-models/vosk-model-small-en-us-0.15',
+            'sample_rate': 16000,
+            'audio_device': 'plughw:2,0',
             'publish_partials': True,
             'enabled': True,
         }]
@@ -181,20 +168,6 @@ def generate_launch_description():
         condition=IfCondition(enable_camera)
     )
     
-    # Image transport compressor (lightweight compressed topic for monitor)
-    image_compressor_node = Node(
-        package='image_transport',
-        executable='republish',
-        name='image_compressor',
-        output='screen',
-        arguments=['raw', 'compressed'],
-        remappings=[
-            ('in', '/camera/image_raw'),
-            ('out/compressed', '/camera/image_raw/compressed'),
-        ],
-        condition=IfCondition(enable_camera)
-    )
-    
     return LaunchDescription([
         # Arguments
         robot_name_arg,
@@ -206,7 +179,6 @@ def generate_launch_description():
         set_ros_domain_id,
         
         # Voice Pipeline
-        wake_word_node,
         voice_manager_node,
         tts_node,
         
@@ -218,5 +190,4 @@ def generate_launch_description():
         # Vision
         obsbot_node,
         usb_cam_node,
-        image_compressor_node,
     ])

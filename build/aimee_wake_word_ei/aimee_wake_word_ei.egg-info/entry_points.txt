@@ -1,3 +1,0 @@
-[console_scripts]
-wake_word_ei_node = aimee_wake_word_ei.wake_word_ei_node:main
-

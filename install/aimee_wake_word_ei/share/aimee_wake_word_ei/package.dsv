@@ -1,9 +1,0 @@
-source;share/aimee_wake_word_ei/hook/pythonpath.ps1
-source;share/aimee_wake_word_ei/hook/pythonpath.dsv
-source;share/aimee_wake_word_ei/hook/pythonpath.sh
-source;share/aimee_wake_word_ei/hook/ament_prefix_path.ps1
-source;share/aimee_wake_word_ei/hook/ament_prefix_path.dsv
-source;share/aimee_wake_word_ei/hook/ament_prefix_path.sh
-source;../../build/aimee_wake_word_ei/share/aimee_wake_word_ei/hook/pythonpath_develop.ps1
-source;../../build/aimee_wake_word_ei/share/aimee_wake_word_ei/hook/pythonpath_develop.dsv
-source;../../build/aimee_wake_word_ei/share/aimee_wake_word_ei/hook/pythonpath_develop.sh

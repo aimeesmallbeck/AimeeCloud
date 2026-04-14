@@ -538,23 +538,219 @@
             </div>
             
             <!-- Camera -->
-            <div class="component-card disabled" id="card-camera">
+            <div class="component-card" id="card-camera">
                 <div class="component-header">
                     <span class="component-title">📷 Camera (OBSBOT)</span>
-                    <span class="badge badge-disabled" id="badge-camera">Not Connected</span>
+                    <span class="badge badge-simulated" id="badge-camera">Live</span>
                 </div>
-                <div class="component-description">Video capture and tracking</div>
+                <div class="component-description">Video capture and PTZ control</div>
+                
+                <!-- Video Feed -->
+                <div class="camera-feed-container">
+                    <img id="camera-feed" src="/camera/stream" alt="Camera Feed" class="camera-feed">
+                    <div id="camera-status-overlay" class="camera-status-overlay">
+                        <span class="camera-status-dot"></span> LIVE
+                    </div>
+                </div>
+                
+                <!-- PTZ Controls -->
+                <div class="ptz-controls">
+                    <div class="ptz-row">
+                        <button class="ptz-btn" onclick="cameraPTZ('up')">▲</button>
+                    </div>
+                    <div class="ptz-row">
+                        <button class="ptz-btn" onclick="cameraPTZ('left')">◀</button>
+                        <button class="ptz-btn ptz-stop" onclick="cameraPTZ('stop')">■</button>
+                        <button class="ptz-btn" onclick="cameraPTZ('right')">▶</button>
+                    </div>
+                    <div class="ptz-row">
+                        <button class="ptz-btn" onclick="cameraPTZ('down')">▼</button>
+                    </div>
+                </div>
+                
+                <!-- Zoom Controls -->
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="cameraPTZ('zoom_out')">-</button>
+                    <span class="zoom-label">ZOOM</span>
+                    <button class="zoom-btn" onclick="cameraPTZ('zoom_in')">+</button>
+                </div>
+                
+                <!-- Tracking Controls -->
+                <div class="tracking-controls">
+                    <span class="tracking-label">AI Tracking:</span>
+                    <select id="tracking-mode" class="tracking-select" onchange="setTrackingMode(this.value)">
+                        <option value="off">OFF</option>
+                        <option value="normal">Human</option>
+                        <option value="upper_body">Upper Body</option>
+                        <option value="closeup">Close-Up</option>
+                        <option value="desk">Desk Mode</option>
+                        <option value="group">Group</option>
+                    </select>
+                </div>
+                
                 <div class="toggle-row">
                     <span class="toggle-label">🔌 Enabled</span>
-                    <div class="toggle-switch" onclick="toggleComponent('camera')"></div>
+                    <div class="toggle-switch active" onclick="toggleComponent('camera')"></div>
                 </div>
-                <div class="toggle-row">
-                    <span class="toggle-label">🎮 Simulation</span>
-                    <div class="toggle-switch simulation active" id="sim-camera" onclick="toggleSimulation('camera')"></div>
-                </div>
-                <button class="test-button" disabled>Test Camera</button>
-                <div class="result-box" id="result-camera">Connect OBSBOT camera to enable</div>
+                <div class="result-box" id="result-camera">Camera ready - waiting for feed...</div>
             </div>
+            
+            <style>
+                /* Camera Feed Styles */
+                .camera-feed-container {
+                    position: relative;
+                    width: 100%;
+                    height: 200px;
+                    background: #000;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    margin-bottom: 1rem;
+                }
+                
+                .camera-feed {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                
+                .camera-status-overlay {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    background: rgba(220, 53, 69, 0.8);
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 0.75rem;
+                    font-weight: bold;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                
+                .camera-status-overlay.connected {
+                    background: rgba(40, 167, 69, 0.8);
+                }
+                
+                .camera-status-dot {
+                    width: 8px;
+                    height: 8px;
+                    background: white;
+                    border-radius: 50%;
+                    animation: blink 1s infinite;
+                }
+                
+                @keyframes blink {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.3; }
+                }
+                
+                /* PTZ Controls */
+                .ptz-controls {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
+                    margin-bottom: 0.75rem;
+                    padding: 0.5rem;
+                    background: rgba(0,0,0,0.2);
+                    border-radius: 8px;
+                }
+                
+                .ptz-row {
+                    display: flex;
+                    gap: 4px;
+                    align-items: center;
+                }
+                
+                .ptz-btn {
+                    width: 36px;
+                    height: 36px;
+                    border: none;
+                    border-radius: 6px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    transition: opacity 0.2s, transform 0.1s;
+                }
+                
+                .ptz-btn:hover {
+                    opacity: 0.9;
+                }
+                
+                .ptz-btn:active {
+                    transform: scale(0.95);
+                }
+                
+                .ptz-stop {
+                    background: #dc3545;
+                    font-size: 0.8rem;
+                }
+                
+                /* Zoom Controls */
+                .zoom-controls {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 0.5rem;
+                    margin-bottom: 0.75rem;
+                }
+                
+                .zoom-btn {
+                    width: 40px;
+                    height: 32px;
+                    border: none;
+                    border-radius: 6px;
+                    background: #444;
+                    color: white;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                }
+                
+                .zoom-btn:hover {
+                    background: #555;
+                }
+                
+                .zoom-label {
+                    font-size: 0.8rem;
+                    opacity: 0.8;
+                    min-width: 60px;
+                    text-align: center;
+                }
+                
+                /* Tracking Controls */
+                .tracking-controls {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 0.5rem;
+                    background: rgba(0,0,0,0.2);
+                    border-radius: 6px;
+                    margin-bottom: 0.75rem;
+                }
+                
+                .tracking-label {
+                    font-size: 0.85rem;
+                }
+                
+                .tracking-select {
+                    background: rgba(0,0,0,0.3);
+                    color: white;
+                    border: 1px solid rgba(255,255,255,0.2);
+                    border-radius: 4px;
+                    padding: 4px 8px;
+                    font-size: 0.85rem;
+                    cursor: pointer;
+                }
+                
+                .tracking-select:focus {
+                    outline: none;
+                    border-color: #667eea;
+                }
+            </style>
             
             <!-- AimeeCloud -->
             <div class="component-card" id="card-aimee_cloud" style="border: 2px solid #667eea;">
@@ -838,6 +1034,81 @@
                 console.log('System info fetch failed:', error);
             }
         }
+        
+        // Camera PTZ Control
+        async function cameraPTZ(direction) {
+            try {
+                const response = await fetch('/api/camera/control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: 'ptz', direction: direction, speed: 50 })
+                });
+                const data = await response.json();
+                
+                const resultBox = document.getElementById('result-camera');
+                if (data.success) {
+                    resultBox.textContent = `PTZ: ${direction}`;
+                    resultBox.className = 'result-box success';
+                } else {
+                    resultBox.textContent = `Error: ${data.error}`;
+                    resultBox.className = 'result-box error';
+                }
+            } catch (error) {
+                console.error('PTZ error:', error);
+            }
+        }
+        
+        // Camera Tracking Control
+        async function setTrackingMode(mode) {
+            try {
+                const command = mode === 'off' ? 'stop_tracking' : 'tracking';
+                const body = { command: command };
+                if (mode !== 'off') body.mode = mode;
+                
+                const response = await fetch('/api/camera/control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                
+                const resultBox = document.getElementById('result-camera');
+                if (data.success) {
+                    resultBox.textContent = `Tracking: ${mode}`;
+                    resultBox.className = 'result-box success';
+                }
+            } catch (error) {
+                console.error('Tracking error:', error);
+            }
+        }
+        
+        // Check camera status periodically
+        async function checkCameraStatus() {
+            try {
+                const response = await fetch('/api/camera/status');
+                const data = await response.json();
+                
+                const overlay = document.getElementById('camera-status-overlay');
+                const badge = document.getElementById('badge-camera');
+                
+                if (data.connected && data.frame_available) {
+                    overlay.classList.add('connected');
+                    overlay.innerHTML = '<span class="camera-status-dot"></span> LIVE';
+                    badge.textContent = 'Live';
+                    badge.className = 'badge badge-real';
+                } else {
+                    overlay.classList.remove('connected');
+                    overlay.innerHTML = '<span class="camera-status-dot"></span> NO SIGNAL';
+                    badge.textContent = 'Connecting...';
+                    badge.className = 'badge badge-simulated';
+                }
+            } catch (error) {
+                console.log('Camera status check failed:', error);
+            }
+        }
+        
+        setInterval(checkCameraStatus, 2000);
+        checkCameraStatus();
         
         // Fetch every 5 seconds
         setInterval(fetchSystemInfo, 5000);

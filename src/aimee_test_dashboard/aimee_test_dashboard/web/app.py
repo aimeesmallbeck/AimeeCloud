@@ -31,7 +31,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, render_template, jsonify, request, send_from_directory, Response
 
 # Import intent classifier
 try:
@@ -41,8 +41,126 @@ except ImportError:
     def classify_intent(text):
         return {'intent_type': 'UNKNOWN', 'action': 'unknown', 'confidence': 0.0, 'skill_name': '', 'source': 'fallback'}
 
+# ==================== ROS2 Image Subscriber for Camera Streaming ====================
+import threading
+import queue
+import numpy as np
+try:
+    import rclpy
+    from rclpy.node import Node
+    from sensor_msgs.msg import Image
+    from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
+    ROS2_AVAILABLE = True
+except ImportError:
+    ROS2_AVAILABLE = False
+    Node = None
+    Image = None
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+
+# Global frame buffer for camera streaming
+_camera_frame_buffer = queue.Queue(maxsize=2)
+_camera_connected = False
+_ros2_node = None
+
+class CameraImageSubscriber(Node):
+    """ROS2 node to subscribe to camera images."""
+    
+    def __init__(self):
+        super().__init__('dashboard_camera_subscriber')
+        
+        sensor_qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+        
+        self._image_sub = self.create_subscription(
+            Image, '/camera/image_raw', self._on_image, sensor_qos
+        )
+        
+        self._bridge_timer = self.create_timer(5.0, self._check_connection)
+        self._last_frame_time = 0
+        
+        global _ros2_node
+        _ros2_node = self
+        
+    def _on_image(self, msg):
+        """Handle incoming image message."""
+        global _camera_connected
+        _camera_connected = True
+        self._last_frame_time = time.time()
+        
+        # Convert ROS Image to OpenCV format
+        try:
+            # Determine encoding and convert
+            if msg.encoding == 'bgr8':
+                np_arr = np.frombuffer(msg.data, np.uint8)
+                frame = np_arr.reshape((msg.height, msg.width, 3))
+            elif msg.encoding == 'rgb8':
+                np_arr = np.frombuffer(msg.data, np.uint8)
+                frame = np_arr.reshape((msg.height, msg.width, 3))
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            elif msg.encoding in ('mono8', '8UC1'):
+                np_arr = np.frombuffer(msg.data, np.uint8)
+                frame = np_arr.reshape((msg.height, msg.width))
+                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+            else:
+                # Try generic conversion
+                np_arr = np.frombuffer(msg.data, np.uint8)
+                if len(msg.data) == msg.height * msg.width * 3:
+                    frame = np_arr.reshape((msg.height, msg.width, 3))
+                else:
+                    return
+            
+            # Put in buffer (drop old frames if full)
+            try:
+                _camera_frame_buffer.put_nowait(frame)
+            except queue.Full:
+                try:
+                    _camera_frame_buffer.get_nowait()
+                    _camera_frame_buffer.put_nowait(frame)
+                except queue.Empty:
+                    pass
+        except Exception as e:
+            logger.debug(f"Frame conversion error: {e}")
+    
+    def _check_connection(self):
+        """Check if camera is still connected."""
+        global _camera_connected
+        if time.time() - self._last_frame_time > 5.0:
+            _camera_connected = False
+
+def start_camera_subscriber():
+    """Start ROS2 camera subscriber in background thread."""
+    if not ROS2_AVAILABLE:
+        logger.warning("ROS2 not available for camera streaming")
+        return
+    
+    def run_subscriber():
+        try:
+            if not rclpy.ok():
+                rclpy.init(args=[])
+            node = CameraImageSubscriber()
+            while rclpy.ok():
+                rclpy.spin_once(node, timeout_sec=0.1)
+            node.destroy_node()
+        except Exception as e:
+            logger.warning(f"Camera subscriber error: {e}")
+    
+    thread = threading.Thread(target=run_subscriber, daemon=True)
+    thread.start()
+    logger.info("Camera subscriber started")
+
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Start camera subscriber on import
+start_camera_subscriber()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'aimee-robot-dashboard'
@@ -1107,6 +1225,119 @@ def get_ros2_nodes():
         return jsonify({'nodes': [], 'error': str(e)})
 
 
+def generate_camera_stream():
+    """Generate MJPEG stream for camera feed."""
+    while True:
+        try:
+            # Get frame from buffer
+            frame = _camera_frame_buffer.get(timeout=1.0)
+            
+            # Encode as JPEG
+            _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            frame_bytes = buffer.tobytes()
+            
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        except queue.Empty:
+            # No frame available, yield placeholder
+            if CV2_AVAILABLE:
+                # Create placeholder image
+                placeholder = np.zeros((480, 640, 3), dtype=np.uint8)
+                cv2.putText(placeholder, 'Camera Not Available', (120, 240), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                _, buffer = cv2.imencode('.jpg', placeholder)
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+        except Exception as e:
+            logger.debug(f"Stream error: {e}")
+            time.sleep(0.1)
+
+
+@app.route('/camera/stream')
+def camera_stream():
+    """Camera video stream endpoint."""
+    if not CV2_AVAILABLE:
+        return jsonify({'error': 'OpenCV not available'}), 500
+    
+    return Response(
+        generate_camera_stream(),
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
+
+
+@app.route('/api/camera/status')
+def camera_status():
+    """Get camera connection status."""
+    return jsonify({
+        'connected': _camera_connected,
+        'frame_available': not _camera_frame_buffer.empty(),
+        'ros2_available': ROS2_AVAILABLE,
+        'cv2_available': CV2_AVAILABLE
+    })
+
+
+@app.route('/api/camera/control', methods=['POST'])
+def camera_control():
+    """Control camera PTZ and tracking."""
+    data = request.get_json() or {}
+    command = data.get('command')
+    
+    try:
+        if command == 'connect':
+            # Enable camera in component config
+            _component_config['camera']['available'] = True
+            _component_config['camera']['enabled'] = True
+            return jsonify({'success': True, 'message': 'Camera enabled'})
+        
+        elif command == 'ptz':
+            # Publish PTZ command to ROS2
+            direction = data.get('direction')
+            speed = data.get('speed', 50)
+            
+            # Map direction to ROS2 command
+            twist_cmd = {'linear': {'x': 0, 'y': 0, 'z': 0}, 'angular': {'x': 0, 'y': 0, 'z': 0}}
+            if direction == 'up':
+                twist_cmd['angular']['y'] = speed / 100.0
+            elif direction == 'down':
+                twist_cmd['angular']['y'] = -speed / 100.0
+            elif direction == 'left':
+                twist_cmd['angular']['z'] = speed / 100.0
+            elif direction == 'right':
+                twist_cmd['angular']['z'] = -speed / 100.0
+            elif direction == 'zoom_in':
+                twist_cmd['linear']['z'] = speed / 100.0
+            elif direction == 'zoom_out':
+                twist_cmd['linear']['z'] = -speed / 100.0
+            elif direction == 'stop':
+                pass
+            
+            # Publish via subprocess since we don't have direct ROS2 node access
+            import subprocess
+            cmd = f"""source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 topic pub --once /camera/cmd_ptz geometry_msgs/msg/Twist '{{linear: {{x: {twist_cmd['linear']['x']}, y: {twist_cmd['linear']['y']}, z: {twist_cmd['linear']['z']}}}, angular: {{x: {twist_cmd['angular']['x']}, y: {twist_cmd['angular']['y']}, z: {twist_cmd['angular']['z']}}}}}'"""
+            subprocess.run(cmd, shell=True, capture_output=True, timeout=5)
+            
+            return jsonify({'success': True, 'command': command, 'direction': direction})
+        
+        elif command == 'tracking':
+            mode = data.get('mode', 'normal')
+            import subprocess
+            cmd = f"""source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 topic pub --once /camera/tracking aimee_msgs/msg/TrackingCommand '{{command: "start", mode: "{mode}"}}'"""
+            subprocess.run(cmd, shell=True, capture_output=True, timeout=5)
+            return jsonify({'success': True, 'command': command, 'mode': mode})
+        
+        elif command == 'stop_tracking':
+            import subprocess
+            cmd = """source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 topic pub --once /camera/tracking aimee_msgs/msg/TrackingCommand '{command: "stop"}'"""
+            subprocess.run(cmd, shell=True, capture_output=True, timeout=5)
+            return jsonify({'success': True, 'command': command})
+        
+        else:
+            return jsonify({'success': False, 'error': f'Unknown command: {command}'}), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 def run_flask_app(host='0.0.0.0', port=5000, debug=False):
     """Run the Flask application."""
     logger.info(f"Starting AIMEE Test Dashboard on http://{host}:{port}")
@@ -1218,26 +1449,4 @@ def get_ros2_status():
         })
 
 
-@app.route('/api/ros2/status', methods=['GET'])
-def get_ros2_status():
-    import subprocess
-    try:
-        cmd = ['bash', '-c', 'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 node list']
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
-        nodes = [n.strip() for n in result.stdout.strip().split('\n') if n.strip()] if result.returncode == 0 else []
-        return jsonify({'success': True, 'nodes': nodes, 'count': len(nodes)})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
 
-
-@app.route('/api/test/ros2_pipeline', methods=['POST'])
-def test_ros2_pipeline():
-    import subprocess
-    try:
-        data = request.get_json() or {}
-        wake_word = data.get('wake_word', 'aimee')
-        cmd = ['bash', '-c', f'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 topic pub --once /wake_word/detected aimee_msgs/msg/WakeWordDetection "{{{{wake_word: \"{wake_word}\", confidence: 0.95, active: true}}}}"']
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
-        return jsonify({'success': result.returncode == 0, 'message': f'Triggered wake word: {wake_word}'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})

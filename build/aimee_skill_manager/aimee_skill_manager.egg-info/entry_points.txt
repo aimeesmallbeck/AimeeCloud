@@ -1,3 +1,0 @@
-[console_scripts]
-skill_manager_node = aimee_skill_manager.skill_manager_node:main
-

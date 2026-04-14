@@ -1,1 +1,0 @@
-/workspace/build/aimee_msgs/rosidl_generator_cpp/aimee_msgs/msg/detail/face_detection__struct.hpp

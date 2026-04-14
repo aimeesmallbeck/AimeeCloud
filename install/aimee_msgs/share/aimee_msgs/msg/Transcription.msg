@@ -1,1 +1,0 @@
-/workspace/src/aimee_msgs/msg/Transcription.msg

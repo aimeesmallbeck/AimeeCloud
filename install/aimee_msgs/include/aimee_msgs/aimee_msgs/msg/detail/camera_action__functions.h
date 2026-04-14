@@ -1,1 +1,0 @@
-/workspace/build/aimee_msgs/rosidl_generator_c/aimee_msgs/msg/detail/camera_action__functions.h

@@ -1,3 +1,0 @@
-[console_scripts]
-intent_router_node = aimee_intent_router.intent_router_node:main
-

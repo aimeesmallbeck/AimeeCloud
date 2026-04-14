@@ -5,7 +5,7 @@
 """
 voice_manager Brick for Aimee Robot
 
-Voice Manager for STT (Vosk/Whisper), triggered by wake word detection
+Voice Manager for continuous STT (Vosk)
 
 Usage:
     from aimee_voice_manager.brick.voice_manager import VoiceManagerBrick
@@ -23,7 +23,7 @@ Usage:
     await brick.shutdown()
 """
 
-from .voice_manager import VoiceManagerBrick, TranscriptionResult, STTEngine
+from .voice_manager import VoiceManagerBrick, TranscriptionResult
 
-__all__ = ["VoiceManagerBrick", "TranscriptionResult", "STTEngine"]
+__all__ = ["VoiceManagerBrick", "TranscriptionResult"]
 __version__ = "0.1.0"

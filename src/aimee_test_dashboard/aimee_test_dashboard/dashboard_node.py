@@ -61,7 +61,7 @@ class DashboardNode(Node):
         # Declare parameters
         self.declare_parameters(namespace='', parameters=[
             ('host', '0.0.0.0'),
-            ('port', 5000),
+            ('port', 8081),
             ('debug', False),
         ])
         
@@ -285,7 +285,8 @@ class DashboardNode(Node):
 
 def main(args=None):
     """Main entry point."""
-    rclpy.init(args=args)
+    if not rclpy.ok():
+        rclpy.init(args=args)
     
     node = None
     try:

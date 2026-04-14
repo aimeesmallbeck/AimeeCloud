@@ -1,1 +1,0 @@
-/workspace/build/aimee_msgs/rosidl_typesupport_fastrtps_cpp/aimee_msgs/msg/detail/camera_action__rosidl_typesupport_fastrtps_cpp.hpp

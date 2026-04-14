@@ -1,1 +1,0 @@
-/workspace/src/aimee_skill_manager/setup.py
