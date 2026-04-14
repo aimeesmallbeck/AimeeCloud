@@ -41,6 +41,7 @@ class IntentType(Enum):
     SYSTEM = "system"
     CONVERSATION = "conversation"
     QUESTION = "question"
+    CLOUD_SKILL = "cloud_skill"
     UNKNOWN = "unknown"
 
 
@@ -123,6 +124,7 @@ Available intents:
 - CAMERA: "look at me", "track face", "stop tracking"
 - SYSTEM: "what's your name", "who are you", "status"
 - QUESTION: General questions
+- CLOUD_SKILL: "weather", "news", "story", "game", "help", general chat
 - CONVERSATION: Chat, not a command
 
 Respond in JSON format:
@@ -178,6 +180,12 @@ Respond in JSON format:
         # Intent handlers
         self._skill_handlers: Dict[str, Callable[[Intent, ConversationContext], Any]] = {}
         self._response_handlers: List[Callable[[str, Intent], None]] = []
+        
+        # Noise words — second line of defense for ASR hallucinations
+        self.noise_words: set[str] = {
+            "huh", "who", "um", "mm", "mhm", "uh", "eh", "hm", "hmm",
+            "ah", "oh", "er", "ha", "uhh", "ahh", "mmm", "uhuh", "huhuh"
+        }
         
         # Statistics
         self._processed_count = 0
@@ -258,6 +266,23 @@ Respond in JSON format:
             session_id = str(uuid.uuid4())[:8]
         
         context = self._get_or_create_context(session_id)
+        
+        # Noise gate: drop obvious ASR garbage before spending LLM tokens
+        cleaned = text.strip().lower().rstrip('.').rstrip('?').rstrip('!')
+        if len(cleaned) < 2 or cleaned in self.noise_words:
+            logger.debug(f"Ignored noise/too short: '{text}'")
+            return RouterResult(
+                success=True,
+                intent=Intent(
+                    intent_type=IntentType.UNKNOWN,
+                    action="noise",
+                    confidence=0.0,
+                    raw_text=text,
+                    requires_skill=False
+                ),
+                response="",
+                processing_time=time.time() - start_time
+            )
         
         try:
             # Step 1: Classify intent using LLM
@@ -430,6 +455,28 @@ Respond in JSON format:
                 skill_name="camera"
             )
         
+        elif any(word in text_lower for word in ['weather', 'news', 'story', 'game', 'help']):
+            action = "cloud_skill"
+            if "weather" in text_lower:
+                action = "weather"
+            elif "news" in text_lower:
+                action = "news"
+            elif "story" in text_lower:
+                action = "storytelling"
+            elif "game" in text_lower:
+                action = "game"
+            elif "help" in text_lower:
+                action = "help"
+            
+            return Intent(
+                intent_type=IntentType.CLOUD_SKILL,
+                action=action,
+                confidence=0.7,
+                raw_text=text,
+                requires_skill=True,
+                skill_name="cloud_proxy"
+            )
+        
         elif "?" in text:
             return Intent(
                 intent_type=IntentType.QUESTION,
@@ -521,21 +568,25 @@ Respond in JSON format:
                     temperature=0.7
                 )
                 return llm_response.get('response', 'I understand.')
-            except:
-                pass
+            except Exception as e:
+                logger.warning(f"LLM response generation failed: {e}")
         
-        # Predefined responses for specific intents
+        # Predefined responses for specific intents (used when LLM unavailable)
         response_map = {
             IntentType.GREETING: "Hello! I'm AIMEE. How can I help you?",
             IntentType.MOVEMENT: f"{intent.action.replace('_', ' ').title()}." if intent.action else "Moving.",
             IntentType.ARM_CONTROL: f"Controlling arm: {intent.action}." if intent.action else "Arm control.",
             IntentType.CAMERA: "Camera adjusted.",
             IntentType.SYSTEM: "I'm AIMEE, your robot assistant.",
+            IntentType.QUESTION: "That's an interesting question.",
+            IntentType.CONVERSATION: "I'm listening.",
+            IntentType.CLOUD_SKILL: "Let me check that for you.",
+            IntentType.UNKNOWN: "",
         }
         
         return response_map.get(
             intent.intent_type,
-            "I understand." if not self.fallback_to_chat else "Tell me more."
+            "I understand." if not self.fallback_to_chat else "I'm listening."
         )
     
     def _build_classification_prompt(

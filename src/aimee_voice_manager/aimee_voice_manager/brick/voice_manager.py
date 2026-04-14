@@ -39,6 +39,7 @@ class VoiceManagerBrick:
         audio_device: str = "dsnoop:1,0",
         command_timeout: float = 10.0,
         min_command_length: float = 0.5,
+        energy_threshold: float = 80.0,
         debug: bool = False
     ):
         self.model_path = model_path or "/home/arduino/vosk-models/vosk-model-small-en-us-0.15"
@@ -48,10 +49,8 @@ class VoiceManagerBrick:
         self.audio_device = audio_device
         self.command_timeout = command_timeout
         self.min_command_length = min_command_length
+        self.energy_threshold = energy_threshold
         self.debug = debug
-
-        # Audio energy gate: minimum RMS for audio to be considered speech
-        self.energy_threshold = 120
 
         # Garbage words to suppress from ambient noise
         self.garbage_words: Set[str] = {"huh", "who", "um", "mm", "mhm", "uh", "eh", "hm", "hmm"}
@@ -153,8 +152,10 @@ class VoiceManagerBrick:
         ]
 
         try:
+            # Use DEVNULL for stderr to prevent pipe-buffer deadlock
+            # if arecord writes lots of warnings.
             self._arecord_proc = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
             )
             logger.info(f"arecord started: {' '.join(cmd)}")
         except Exception as e:
@@ -185,12 +186,11 @@ class VoiceManagerBrick:
                     result_dict = _json.loads(result)
                     text = result_dict.get("text", "").strip()
 
-                    # Require either sufficient energy OR non-garbage content
-                    # (protects short valid words like "yes/no" from being dropped,
-                    #  but drops quiet noise hallucinations)
+                    # Drop unconditional garbage; let non-garbage through
+                    # (background noise that Vosk hallucinates as "huh" etc. gets dropped)
                     if text and len(text) >= self.min_command_length:
-                        if self._is_garbage(text) and not utterance_has_energy:
-                            logger.debug(f"Dropped garbage (quiet): {text}")
+                        if self._is_garbage(text):
+                            logger.debug(f"Dropped garbage: {text}")
                         else:
                             logger.info(f"Transcription: {text}")
                             result_obj = TranscriptionResult(
@@ -214,6 +214,8 @@ class VoiceManagerBrick:
                     partial = recognizer.PartialResult()
                     partial_dict = _json.loads(partial)
                     partial_text = partial_dict.get("partial", "").strip()
+                    if partial_text and self._is_garbage(partial_text):
+                        partial_text = ""
                     if partial_text:
                         partial_result = TranscriptionResult(
                             text=partial_text,

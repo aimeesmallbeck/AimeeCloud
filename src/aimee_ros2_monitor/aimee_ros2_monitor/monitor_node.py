@@ -43,7 +43,7 @@ try:
 except ImportError:
     ROSIDL_PY_AVAILABLE = False
 
-from flask import Flask, render_template, jsonify, request, Response
+from flask import Flask, render_template, jsonify, request, Response, make_response
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -192,7 +192,11 @@ NODE_DEFINITIONS = {
 @app.route('/')
 def index():
     """Main dashboard page."""
-    return render_template('index.html')
+    resp = make_response(render_template('index.html'))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
 
 
 @app.route('/api/logs')

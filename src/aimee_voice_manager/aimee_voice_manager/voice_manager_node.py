@@ -59,6 +59,7 @@ class VoiceManagerNode(Node):
             ('audio_device', 'plughw:2,0'),
             ('command_timeout', 10.0),
             ('min_command_length', 0.5),
+            ('energy_threshold', 80.0),
             ('enabled', True),
             ('publish_partials', True),
             ('debug', False),
@@ -71,6 +72,7 @@ class VoiceManagerNode(Node):
         audio_device = self.get_parameter('audio_device').value
         command_timeout = self.get_parameter('command_timeout').value
         min_command_length = self.get_parameter('min_command_length').value
+        energy_threshold = self.get_parameter('energy_threshold').value
         self._enabled = self.get_parameter('enabled').value
         self._publish_partials = self.get_parameter('publish_partials').value
         debug = self.get_parameter('debug').value
@@ -126,6 +128,7 @@ class VoiceManagerNode(Node):
             audio_device=audio_device,
             command_timeout=command_timeout,
             min_command_length=min_command_length,
+            energy_threshold=energy_threshold,
             debug=debug
         )
 
@@ -148,6 +151,7 @@ class VoiceManagerNode(Node):
             f"  Model: {model_path or 'default'}\n"
             f"  Sample rate: {sample_rate}Hz\n"
             f"  Audio device: {audio_device}\n"
+            f"  Energy threshold: {energy_threshold}\n"
             f"  Continuous mode: True"
         )
 

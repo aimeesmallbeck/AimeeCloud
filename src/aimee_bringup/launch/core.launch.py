@@ -67,6 +67,7 @@ def generate_launch_description():
             'sample_rate': 16000,
             'audio_device': 'plughw:2,0',
             'publish_partials': True,
+            'energy_threshold': 80.0,
             'enabled': True,
         }]
     )
@@ -124,6 +125,18 @@ def generate_launch_description():
             'default_timeout': 30.0,
             'enable_safety_checks': True,
         }]
+    )
+    
+    # Cloud Bridge Node
+    cloud_bridge_node = Node(
+        package='aimee_cloud_bridge',
+        executable='cloud_bridge_node',
+        name='cloud_bridge',
+        output='screen',
+        parameters=[os.path.join(
+            os.getenv('AIMEE_ROBOT_WS', '/home/arduino/aimee-robot-ws'),
+            'src/aimee_cloud_bridge/config/cloud_bridge.yaml'
+        )]
     )
     
     # === Vision Nodes ===
@@ -186,6 +199,7 @@ def generate_launch_description():
         llm_server_node,
         intent_router_node,
         skill_manager_node,
+        cloud_bridge_node,
         
         # Vision
         obsbot_node,

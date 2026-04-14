@@ -26,6 +26,7 @@ set(msg_files
   "msg/MotorAction.msg"
   "msg/CameraAction.msg"
   "msg/LEDAction.msg"
+  "msg/CloudIntent.msg"
   # Vision/Manipulation messages
   "msg/ObjectDetection.msg"
   "msg/GraspPose.msg"

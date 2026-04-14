@@ -229,6 +229,9 @@ class IntentRouterNode(Node):
     
     def _on_response(self, response: str, intent):
         """Send response to TTS."""
+        if not response:
+            self.get_logger().debug("Empty response, skipping TTS")
+            return
         msg = String()
         msg.data = response
         self._tts_pub.publish(msg)
@@ -318,6 +321,8 @@ class IntentRouterNode(Node):
         Call LLM via action client.
         
         This is the bridge between the brick and ROS2 LLM action server.
+        Must NOT use spin_until_future_complete because this runs in a
+        background asyncio thread while the node is spun in the main thread.
         """
         if not self._llm_available:
             raise Exception("LLM not available")
@@ -331,22 +336,49 @@ class IntentRouterNode(Node):
         goal.stream = False  # Non-streaming for classification
         goal.session_id = "intent_router"
         
+        self.get_logger().debug("Sending LLM goal...")
+        
         # Send goal
-        future = self._llm_client.send_goal_async(goal)
+        send_future = self._llm_client.send_goal_async(goal)
         
-        # Wait for result
-        rclpy.spin_until_future_complete(self, future)
-        goal_handle = future.result()
+        # Wait for goal handle (poll without spinning) with timeout
+        timeout = 0.0
+        while not send_future.done() and timeout < 8.0:
+            await asyncio.sleep(0.05)
+            timeout += 0.05
         
-        if not goal_handle.accepted:
+        if not send_future.done():
+            self.get_logger().error("Timeout waiting for LLM goal acceptance")
+            raise Exception("Timeout waiting for LLM goal acceptance")
+        
+        goal_handle = send_future.result()
+        
+        if not goal_handle or not goal_handle.accepted:
+            self.get_logger().error("LLM goal rejected")
             raise Exception("LLM goal rejected")
         
+        self.get_logger().debug("LLM goal accepted, waiting for result...")
+        
+        # Wait for result with timeout
         result_future = goal_handle.get_result_async()
-        rclpy.spin_until_future_complete(self, result_future)
+        timeout = 0.0
+        while not result_future.done() and timeout < 15.0:
+            await asyncio.sleep(0.05)
+            timeout += 0.05
+        
+        if not result_future.done():
+            self.get_logger().error("Timeout waiting for LLM result")
+            # Try to cancel the goal so the server doesn't waste time
+            goal_handle.cancel_goal_async()
+            raise Exception("Timeout waiting for LLM result")
+        
         result = result_future.result().result
         
         if not result.success:
+            self.get_logger().error(f"LLM generation failed: {result.error_message}")
             raise Exception(f"LLM generation failed: {result.error_message}")
+        
+        self.get_logger().debug(f"LLM result received ({result.tokens_generated} tokens)")
         
         return {
             'response': result.response,
