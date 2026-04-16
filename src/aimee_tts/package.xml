@@ -3,7 +3,7 @@
 <package format="3">
   <name>aimee_tts</name>
   <version>0.1.0</version>
-  <description>Text-to-Speech with gTTS and Piper local TTS support for AIMEE Robot</description>
+  <description>Text-to-Speech with Kokoro (primary) and gTTS (fallback) for Aimee Robot</description>
   <maintainer email="software@arduino.cc">Arduino SRL</maintainer>
   <license>MPL-2.0</license>
 

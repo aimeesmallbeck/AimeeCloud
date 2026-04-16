@@ -111,11 +111,11 @@ def generate_launch_description():
         condition=IfCondition(use_vision)
     )
     
-    # Cloud Bridge
-    cloud_bridge_node = Node(
+    # AimeeCloud Client (ACC)
+    aimee_cloud_client_node = Node(
         package='aimee_cloud_bridge',
-        executable='cloud_bridge',
-        name='cloud_bridge',
+        executable='cloud_bridge_node',
+        name='aimee_cloud_client',
         output='screen',
         parameters=[{
             'endpoint': 'http://209.38.147.67:8089',
@@ -154,7 +154,7 @@ def generate_launch_description():
         vision_manager_node,
         
         # Cloud
-        cloud_bridge_node,
+        aimee_cloud_client_node,
         
         # State
         state_manager_node,

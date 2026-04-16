@@ -146,6 +146,7 @@ Respond in JSON format:
         enable_conversation_mode: bool = True,
         conversation_timeout: float = 60.0,
         fallback_to_chat: bool = True,
+        chat_routing: str = "cloud",
         debug: bool = False,
         **kwargs
     ):
@@ -159,6 +160,7 @@ Respond in JSON format:
             enable_conversation_mode: Enable multi-turn conversations
             conversation_timeout: Seconds before conversation expires
             fallback_to_chat: Fallback to chat response if no skill match
+            chat_routing: "cloud" or "local_llm" — where chat/question intents go
             debug: Enable debug logging
             **kwargs: Additional arguments
         """
@@ -168,6 +170,7 @@ Respond in JSON format:
         self.enable_conversation_mode = enable_conversation_mode
         self.conversation_timeout = conversation_timeout
         self.fallback_to_chat = fallback_to_chat
+        self.chat_routing = chat_routing
         self.debug = debug
         
         # State
@@ -362,7 +365,7 @@ Respond in JSON format:
             llm_response = await llm_generate_func(
                 prompt=prompt,
                 system_context=self.system_prompt,
-                max_tokens=150,
+                max_tokens=60,
                 temperature=0.3  # Low temperature for consistent classification
             )
             
@@ -455,29 +458,11 @@ Respond in JSON format:
                 skill_name="camera"
             )
         
-        elif any(word in text_lower for word in ['weather', 'news', 'story', 'game', 'help']):
-            action = "cloud_skill"
-            if "weather" in text_lower:
-                action = "weather"
-            elif "news" in text_lower:
-                action = "news"
-            elif "story" in text_lower:
-                action = "storytelling"
-            elif "game" in text_lower:
-                action = "game"
-            elif "help" in text_lower:
-                action = "help"
-            
-            return Intent(
-                intent_type=IntentType.CLOUD_SKILL,
-                action=action,
-                confidence=0.7,
-                raw_text=text,
-                requires_skill=True,
-                skill_name="cloud_proxy"
-            )
-        
-        elif "?" in text:
+        elif "?" in text or any(word in text_lower for word in [
+            'what', 'when', 'where', 'why', 'who', 'how',
+            'is ', 'are ', 'can ', 'could ', 'do ', 'does ', 'did ',
+            'will ', 'would ', 'should ', 'have ', 'has ', 'was ', 'were '
+        ]):
             return Intent(
                 intent_type=IntentType.QUESTION,
                 action="answer_question",
@@ -564,12 +549,18 @@ Respond in JSON format:
                 llm_response = await llm_generate_func(
                     prompt=prompt,
                     system_context="You are AIMEE, a helpful robot. Be concise.",
-                    max_tokens=100,
+                    max_tokens=80,
                     temperature=0.7
                 )
                 return llm_response.get('response', 'I understand.')
             except Exception as e:
                 logger.warning(f"LLM response generation failed: {e}")
+        
+        # Cloud-routed intents do not generate local TTS responses
+        if self.chat_routing == "cloud" and intent.intent_type in (
+            IntentType.QUESTION, IntentType.CONVERSATION, IntentType.CLOUD_SKILL
+        ):
+            return ""
         
         # Predefined responses for specific intents (used when LLM unavailable)
         response_map = {

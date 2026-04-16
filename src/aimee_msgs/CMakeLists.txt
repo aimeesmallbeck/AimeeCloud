@@ -35,6 +35,7 @@ set(msg_files
 
 # Service files (add as needed)
 set(srv_files
+  "srv/CaptureSnapshot.srv"
 )
 
 # Action files

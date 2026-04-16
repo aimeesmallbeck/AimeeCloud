@@ -1,0 +1,7 @@
+# Request a high-resolution snapshot from the OBSBOT camera
+string resolution   # "1080p", "4k", or empty for default (1920x1080)
+int32 quality       # JPEG quality 1-100, default 95
+---
+bool success
+string message
+sensor_msgs/CompressedImage image

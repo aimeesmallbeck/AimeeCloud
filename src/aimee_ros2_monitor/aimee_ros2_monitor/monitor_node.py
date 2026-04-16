@@ -27,14 +27,17 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from rcl_interfaces.msg import Log
+from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String, Bool
 from geometry_msgs.msg import Twist
 
 try:
     from aimee_msgs.msg import TrackingCommand
+    from aimee_msgs.srv import CaptureSnapshot
     AIMEE_MSGS_AVAILABLE = True
 except ImportError:
     AIMEE_MSGS_AVAILABLE = False
+    CaptureSnapshot = None
 
 try:
     from rosidl_runtime_py.utilities import get_message
@@ -114,10 +117,19 @@ NODE_DEFINITIONS = {
     },
     'usb_camera': {
         'name': 'USB Camera',
-        'ros_name': '/usb_camera',
+        'ros_name': '/camera/usb_cam',
         'package': 'usb_cam',
         'executable': 'usb_cam_node_exe',
-        'args': [],
+        'args': [
+            '--ros-args',
+            '-p', 'video_device:=/dev/video2',
+            '-p', 'image_width:=640',
+            '-p', 'image_height:=480',
+            '-p', 'pixel_format:=raw_mjpeg',
+            '-p', 'io_method:=mmap',
+            '-p', 'camera_name:=usb_camera',
+            '-r', '__ns:=/camera'
+        ],
         'category': 'vision',
         'icon': '🎥'
     },
@@ -175,6 +187,15 @@ NODE_DEFINITIONS = {
         'category': 'ai',
         'icon': '🧠'
     },
+    'aimee_cloud_client': {
+        'name': 'AimeeCloud Client (ACC)',
+        'ros_name': '/aimee_cloud_client',
+        'package': 'aimee_cloud_bridge',
+        'executable': 'cloud_bridge_node',
+        'args': [],
+        'category': 'ai',
+        'icon': '☁️'
+    },
     'lerobot_bridge': {
         'name': 'LeRobot Bridge',
         'ros_name': '/lerobot_bridge',
@@ -193,6 +214,15 @@ NODE_DEFINITIONS = {
         'category': 'skills',
         'icon': '🚗'
     },
+    'ros2_monitor': {
+        'name': 'ROS2 Monitor',
+        'ros_name': '/ros2_monitor',
+        'package': 'aimee_ros2_monitor',
+        'executable': 'monitor_node',
+        'args': [],
+        'category': 'tools',
+        'icon': '🔍'
+    },
 }
 
 # ==================== Flask Routes ====================
@@ -204,6 +234,8 @@ def index():
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
     resp.headers['Expires'] = '0'
+    resp.headers['Vary'] = '*'
+    resp.headers['Last-Modified'] = datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
     return resp
 
 
@@ -338,6 +370,77 @@ def get_topics():
     })
 
 
+def _read_cpu_times():
+    """Parse /proc/stat to get (idle, total) CPU time."""
+    try:
+        with open('/proc/stat', 'r') as f:
+            line = f.readline()
+        parts = line.strip().split()
+        if parts[0] != 'cpu':
+            return None
+        values = list(map(int, parts[1:]))
+        idle = values[3]
+        total = sum(values)
+        return idle, total
+    except Exception:
+        return None
+
+
+def _get_cpu_percent():
+    """Calculate CPU usage percentage over a short sample."""
+    first = _read_cpu_times()
+    if first is None:
+        return None
+    time.sleep(0.2)
+    second = _read_cpu_times()
+    if second is None:
+        return None
+    idle_delta = second[0] - first[0]
+    total_delta = second[1] - first[1]
+    if total_delta == 0:
+        return 0.0
+    return round(100.0 * (1.0 - idle_delta / total_delta), 1)
+
+
+def _get_ram_info():
+    """Return (used_mb, total_mb, percent) from /proc/meminfo."""
+    try:
+        mem_total = 0
+        mem_available = 0
+        with open('/proc/meminfo', 'r') as f:
+            for line in f:
+                if line.startswith('MemTotal:'):
+                    mem_total = int(line.split()[1])
+                elif line.startswith('MemAvailable:'):
+                    mem_available = int(line.split()[1])
+        total_mb = mem_total // 1024
+        used_mb = (mem_total - mem_available) // 1024
+        percent = round(used_mb / total_mb * 100, 1) if total_mb else 0.0
+        return used_mb, total_mb, percent
+    except Exception:
+        return None, None, None
+
+
+def _get_temperature():
+    """Read CPU/board temperature from thermal zones (millidegrees -> C)."""
+    try:
+        best = None
+        import glob
+        for path in glob.glob('/sys/class/thermal/thermal_zone*/temp'):
+            try:
+                with open(path, 'r') as f:
+                    val = int(f.read().strip())
+                if val > 0:
+                    c = val / 1000.0
+                    if best is None or c > best:
+                        best = c
+            except Exception:
+                continue
+        return round(best, 1) if best is not None else None
+    except Exception:
+        return None
+
+
 @app.route('/api/system')
 def get_system_status():
     """Get overall system status."""
@@ -346,6 +449,21 @@ def get_system_status():
         'log_stats': _log_stats,
         'uptime': time.time() - _system_status.get('start_time', time.time()),
         'timestamp': datetime.now().isoformat()
+    })
+
+
+@app.route('/api/system/metrics')
+def get_system_metrics():
+    """Get CPU, RAM, and temperature metrics."""
+    cpu_percent = _get_cpu_percent()
+    ram_used_mb, ram_total_mb, ram_percent = _get_ram_info()
+    temp_c = _get_temperature()
+    return jsonify({
+        'cpu_percent': cpu_percent,
+        'ram_used_mb': ram_used_mb,
+        'ram_total_mb': ram_total_mb,
+        'ram_percent': ram_percent,
+        'temp_c': temp_c,
     })
 
 
@@ -447,6 +565,160 @@ def tts_speak():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+def _stop_usb_camera():
+    """Stop usb_camera node to free V4L2 device for snapshot."""
+    try:
+        # Target the actual executable path to avoid killing unrelated shells
+        subprocess.run(
+            ['pkill', '-f', '/opt/ros/humble/lib/usb_cam/usb_cam_node_exe'],
+            capture_output=True, timeout=5
+        )
+        # Wait up to 5 seconds for /dev/video2 to be released
+        for _ in range(25):
+            time.sleep(0.2)
+            check = subprocess.run(
+                ['lsof', '/dev/video2'],
+                capture_output=True, timeout=5
+            )
+            if check.returncode != 0:
+                logger.info("Stopped usb_camera for snapshot")
+                return True
+        logger.warning("usb_camera still holding /dev/video2 after 5s")
+        return False
+    except Exception as e:
+        logger.warning(f"Failed to stop usb_camera: {e}")
+        return False
+
+
+def _start_usb_camera():
+    """Start usb_camera node using monitor configuration."""
+    # Avoid spawning duplicate processes
+    check = subprocess.run(['pgrep', '-f', 'usb_cam_node_exe'], capture_output=True, timeout=2)
+    if check.returncode == 0:
+        logger.info("usb_camera already running, skip restart")
+        return True
+    node_def = NODE_DEFINITIONS.get('usb_camera')
+    if not node_def:
+        return False
+    try:
+        cmd_parts = [
+            'source /opt/ros/humble/setup.bash',
+            'source /workspace/install/setup.bash',
+            f'ros2 run {node_def["package"]} {node_def["executable"]}'
+        ]
+        if node_def.get('args'):
+            cmd_parts[-1] += ' ' + ' '.join(node_def['args'])
+        cmd = ' && '.join(cmd_parts)
+        proc = subprocess.Popen(
+            cmd, shell=True, executable='/bin/bash',
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            start_new_session=True, close_fds=True
+        )
+        logger.info(f"Started usb_camera after snapshot (PID: {proc.pid})")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to start usb_camera: {e}")
+        return False
+
+
+@app.route('/api/snapshot', methods=['POST'])
+def take_snapshot():
+    """Trigger a camera snapshot and return the image."""
+    if _ros_node is None:
+        return jsonify({'success': False, 'error': 'ROS2 node not ready'}), 503
+    
+    data = request.get_json() or {}
+    resolution = data.get('resolution', '')
+    quality = data.get('quality', 95)
+    
+    usb_check = subprocess.run(['pgrep', '-f', 'usb_cam_node_exe'], capture_output=True, timeout=2)
+    usb_was_running = usb_check.returncode == 0
+    
+    result = None
+    for attempt in range(2):
+        if usb_was_running:
+            stopped = _stop_usb_camera()
+            if stopped:
+                time.sleep(0.5)  # let V4L2 driver settle
+        try:
+            result = _ros_node.capture_snapshot(resolution=resolution, quality=quality)
+            if result.get('success') or 'busy' not in result.get('message', '').lower():
+                break
+            logger.warning(f"Snapshot busy on attempt {attempt+1}, retrying...")
+            time.sleep(1.5)
+        except Exception as e:
+            result = {'success': False, 'message': str(e)}
+            break
+    
+    if usb_was_running:
+        _start_usb_camera()
+    return jsonify(result)
+
+
+@app.route('/api/snapshot/send', methods=['POST'])
+def send_snapshot_to_cloud():
+    """Capture snapshot and forward it to AimeeCloud via the cloud bridge."""
+    if _ros_node is None:
+        return jsonify({'success': False, 'error': 'ROS2 node not ready'}), 503
+    
+    data = request.get_json() or {}
+    resolution = data.get('resolution', '')
+    quality = data.get('quality', 95)
+    
+    usb_check = subprocess.run(['pgrep', '-f', 'usb_cam_node_exe'], capture_output=True, timeout=2)
+    usb_was_running = usb_check.returncode == 0
+    
+    result = None
+    for attempt in range(2):
+        if usb_was_running:
+            stopped = _stop_usb_camera()
+            if stopped:
+                time.sleep(0.5)
+        try:
+            result = _ros_node.capture_snapshot(resolution=resolution, quality=quality)
+            if result.get('success') or 'busy' not in result.get('message', '').lower():
+                break
+            logger.warning(f"Snapshot busy on attempt {attempt+1}, retrying...")
+            time.sleep(1.5)
+        except Exception as e:
+            result = {'success': False, 'message': str(e)}
+            break
+    
+    if result and result.get('success'):
+        import json as _json
+        payload = {
+            'image_base64': result.get('image_base64', ''),
+            'request_id': data.get('request_id', ''),
+            'session_id': data.get('session_id', ''),
+        }
+        msg = String()
+        msg.data = _json.dumps(payload)
+        _ros_node._cloud_snapshot_pub.publish(msg)
+        if usb_was_running:
+            _start_usb_camera()
+        return jsonify({'success': True, 'message': 'Snapshot sent to AimeeCloud'})
+    
+    if usb_was_running:
+        _start_usb_camera()
+    return jsonify({'success': False, 'message': result.get('message', 'Snapshot failed')}), 500
+
+
+@app.route('/api/camera/frame.jpg')
+def camera_frame():
+    """Serve the latest compressed camera frame as a JPEG image."""
+    if _ros_node is None:
+        return Response('', status=503)
+    
+    frame = _ros_node.get_camera_frame()
+    if not frame:
+        return Response('', status=204)
+    
+    resp = make_response(frame)
+    resp.headers['Content-Type'] = 'image/jpeg'
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return resp
+
+
 # ==================== Node Control Endpoints ====================
 
 @app.route('/api/nodes/definitions')
@@ -455,6 +727,23 @@ def get_node_definitions():
     return jsonify({
         'nodes': NODE_DEFINITIONS,
         'count': len(NODE_DEFINITIONS)
+    })
+
+
+@app.route('/api/nodes/running')
+def get_running_nodes():
+    """Get a simple list of running node IDs."""
+    ros_running = {}
+    for node_id, node_def in NODE_DEFINITIONS.items():
+        ros_name = node_def.get('ros_name', '')
+        if ros_name and ros_name in _nodes_cache:
+            ros_running[node_id] = True
+    
+    core_running = _core_process is not None and _core_process.poll() is None
+    
+    return jsonify({
+        'nodes': ros_running,
+        'core_running': core_running
     })
 
 
@@ -535,7 +824,8 @@ def start_node():
             executable='/bin/bash',
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            start_new_session=True
+            start_new_session=True,
+            close_fds=True
         )
         
         _managed_nodes[node_id] = {
@@ -550,6 +840,19 @@ def start_node():
         }
         
         logger.info(f"Started node {node_id} (PID: {proc.pid})")
+        
+        # Brief wait for usb_camera to register in ROS graph
+        if node_id == 'usb_camera':
+            for _ in range(15):
+                time.sleep(0.2)
+                if _ros_node is not None:
+                    try:
+                        node_names = _ros_node.get_node_names_and_namespaces()
+                        _refresh_nodes(node_names)
+                    except Exception:
+                        pass
+                if node_def.get('ros_name') and node_def['ros_name'] in _nodes_cache:
+                    break
         
         return jsonify({
             'success': True,
@@ -588,35 +891,44 @@ def stop_node():
             # Managed process - kill by process group
             try:
                 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-                proc.wait(timeout=5)
+                proc.wait(timeout=2)
             except (subprocess.TimeoutExpired, ProcessLookupError):
-                try:
-                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-                    proc.wait(timeout=2)
-                except Exception:
-                    pass
+                pass
+            # Always follow up with SIGKILL
+            try:
+                os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                proc.wait(timeout=2)
+            except Exception:
+                pass
             
             _managed_nodes[node_id]['status'] = 'stopped'
             _managed_nodes[node_id]['stopped_at'] = datetime.now().isoformat()
-        else:
-            # Core-launched or orphaned process - find by executable name
-            executable = node_def['executable']
-            # Try graceful pkill first
+        
+        # Core-launched or orphaned process - find by executable name
+        executable = node_def['executable']
+        subprocess.run(
+            ['pkill', '-f', executable],
+            capture_output=True, timeout=5
+        )
+        time.sleep(0.5)
+        # Force kill if still running
+        check = subprocess.run(
+            ['pgrep', '-f', executable],
+            capture_output=True, timeout=2
+        )
+        if check.returncode == 0:
             subprocess.run(
-                ['pkill', '-f', executable],
+                ['pkill', '-9', '-f', executable],
                 capture_output=True, timeout=5
             )
-            time.sleep(1)
-            # Check if still running, force kill if so
-            check = subprocess.run(
-                ['pgrep', '-f', executable],
-                capture_output=True, timeout=2
+        
+        # Extra cleanup for usb_camera: also target the absolute path
+        if node_id == 'usb_camera':
+            time.sleep(0.5)
+            subprocess.run(
+                ['pkill', '-9', '-f', '/opt/ros/humble/lib/usb_cam/usb_cam_node_exe'],
+                capture_output=True, timeout=5
             )
-            if check.returncode == 0:
-                subprocess.run(
-                    ['pkill', '-9', '-f', executable],
-                    capture_output=True, timeout=5
-                )
         
         logger.info(f"Stopped node {node_id}")
         
@@ -648,7 +960,8 @@ def start_core():
             executable='/bin/bash',
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            start_new_session=True
+            start_new_session=True,
+            close_fds=True
         )
         
         logger.info(f"Started core (PID: {_core_process.pid})")
@@ -713,6 +1026,13 @@ def _refresh_nodes(native_api=None):
     """Refresh the nodes cache using native ROS2 API when available."""
     global _nodes_cache, _nodes_last_update
     
+    # Build reverse lookup from ros_name -> definition
+    ros_name_to_def = {}
+    for def_info in NODE_DEFINITIONS.values():
+        rn = def_info.get('ros_name', '')
+        if rn:
+            ros_name_to_def[rn] = def_info
+    
     try:
         if native_api is not None:
             nodes = {}
@@ -721,27 +1041,41 @@ def _refresh_nodes(native_api=None):
                 if not full_name.startswith('/'):
                     full_name = '/' + full_name
                 
-                category = 'other'
-                if 'wake_word' in full_name.lower():
-                    category = 'audio'
-                elif 'voice' in full_name.lower() or 'stt' in full_name.lower():
-                    category = 'audio'
-                elif 'tts' in full_name.lower():
-                    category = 'audio'
-                elif 'intent' in full_name.lower():
-                    category = 'ai'
-                elif 'llm' in full_name.lower():
-                    category = 'ai'
-                elif 'skill' in full_name.lower():
-                    category = 'skills'
-                elif 'camera' in full_name.lower() or 'vision' in full_name.lower():
-                    category = 'vision'
-                elif 'dashboard' in full_name.lower() or 'monitor' in full_name.lower():
-                    category = 'tools'
+                # Skip transient CLI nodes
+                if name.startswith('_ros2cli_'):
+                    continue
+                
+                definition = ros_name_to_def.get(full_name)
+                if definition:
+                    display_name = definition['name']
+                    category = definition.get('category', 'other')
+                    icon = definition.get('icon', '⚙️')
+                else:
+                    display_name = full_name
+                    icon = None
+                    category = 'other'
+                    if 'wake_word' in full_name.lower():
+                        category = 'audio'
+                    elif 'voice' in full_name.lower() or 'stt' in full_name.lower():
+                        category = 'audio'
+                    elif 'tts' in full_name.lower():
+                        category = 'audio'
+                    elif 'intent' in full_name.lower():
+                        category = 'ai'
+                    elif 'llm' in full_name.lower():
+                        category = 'ai'
+                    elif 'skill' in full_name.lower():
+                        category = 'skills'
+                    elif 'camera' in full_name.lower() or 'vision' in full_name.lower():
+                        category = 'vision'
+                    elif 'dashboard' in full_name.lower() or 'monitor' in full_name.lower():
+                        category = 'tools'
                 
                 nodes[full_name] = {
-                    'name': full_name,
+                    'name': display_name,
+                    'ros_name': full_name,
                     'category': category,
+                    'icon': icon,
                     'status': 'running',
                     'last_seen': time.time()
                 }
@@ -778,11 +1112,25 @@ class MonitorNode(Node):
             )
         )
         
-        # Publishers for camera control and TTS testing
+        # Publishers for camera control, TTS testing, and cloud snapshot upload
         self._ptz_pub = self.create_publisher(Twist, '/camera/cmd_ptz', 10)
         self._tts_pub = self.create_publisher(String, '/tts/speak', 10)
+        self._cloud_snapshot_pub = self.create_publisher(String, '/cloud/snapshot_manual_upload', 10)
         if AIMEE_MSGS_AVAILABLE:
             self._tracking_pub = self.create_publisher(TrackingCommand, '/camera/tracking', 10)
+            self._snapshot_cli = self.create_client(CaptureSnapshot, '/camera/capture_snapshot')
+        else:
+            self._tracking_pub = None
+            self._snapshot_cli = None
+        
+        # Camera frame cache for live view
+        self._camera_frame_lock = threading.Lock()
+        self._camera_frame_data = None
+        self._camera_frame_sub = self.create_subscription(
+            CompressedImage, '/camera/image_raw/compressed',
+            self._on_camera_frame,
+            QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
+        )
         
         # Pipeline subscriptions
         self._voice_sub = self.create_subscription(
@@ -815,6 +1163,40 @@ class MonitorNode(Node):
         
         self.get_logger().info("ROS2 Monitor Node started")
     
+    def capture_snapshot(self, resolution: str = "", quality: int = 95, timeout_sec: float = 15.0) -> dict:
+        """Call the /camera/capture_snapshot service and return result dict."""
+        if not self._snapshot_cli:
+            return {"success": False, "message": "aimee_msgs not available"}
+        
+        if not self._snapshot_cli.wait_for_service(timeout_sec=2.0):
+            return {"success": False, "message": "Snapshot service not available"}
+        
+        req = CaptureSnapshot.Request()
+        req.resolution = resolution
+        req.quality = quality
+        
+        future = self._snapshot_cli.call_async(req)
+        
+        start = time.time()
+        while not future.done() and time.time() - start < timeout_sec:
+            time.sleep(0.1)
+        
+        if not future.done():
+            return {"success": False, "message": "Snapshot service call timed out"}
+        
+        try:
+            resp = future.result()
+            import base64
+            image_b64 = base64.b64encode(resp.image.data).decode('utf-8') if resp.success else ""
+            return {
+                "success": resp.success,
+                "message": resp.message,
+                "format": resp.image.format if resp.success else "",
+                "image_base64": image_b64,
+            }
+        except Exception as e:
+            return {"success": False, "message": f"Snapshot error: {e}"}
+    
     def _initial_refresh(self):
         """One-shot initial refresh after node is fully initialized."""
         self._update_nodes()
@@ -837,6 +1219,21 @@ class MonitorNode(Node):
     def _on_tts_speak(self, msg: String):
         global _pipeline_state
         _pipeline_state['tts'] = {'text': msg.data, 'timestamp': time.time()}
+    
+    def _on_camera_frame(self, msg: CompressedImage):
+        """Cache latest compressed camera frame."""
+        with self._camera_frame_lock:
+            self._camera_frame_data = bytes(msg.data)
+            self._camera_frame_time = time.time()
+    
+    def get_camera_frame(self) -> bytes:
+        """Return latest camera frame bytes or empty bytes if stale (>2s)."""
+        with self._camera_frame_lock:
+            if self._camera_frame_data is None:
+                return b''
+            if getattr(self, '_camera_frame_time', 0) < time.time() - 2.0:
+                return b''
+            return self._camera_frame_data
     
     def _on_cloud_connected(self, msg: Bool):
         global _pipeline_state
@@ -946,7 +1343,7 @@ class MonitorNode(Node):
             # Start cleanup timer if not running
             if not hasattr(self, '_echo_cleanup_timer') or self._echo_cleanup_timer is None:
                 self._echo_cleanup_timer = self.create_timer(10.0, self._cleanup_echo_subs)
-            self.get_logger().info(f"Echo subscription created for {topic_name}")
+            self.get_logger().debug(f"Echo subscription created for {topic_name}")
             return True
         except Exception as e:
             logger.warning(f"Failed to create echo sub for {topic_name}: {e}")

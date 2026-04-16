@@ -1,430 +1,273 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
-#
-# SPDX-License-Identifier: MPL-2.0
-
 """
-ROS2 Node for Intent Router
+ROS2 Node for Intent Router (Standard ROS2 implementation)
 
-This node integrates:
 - Subscribes to /voice/transcription
-- Calls LLM via /llm/generate action for intent classification
-- Routes to skills
-- Publishes responses to /tts/speak
-
-Usage:
-    ros2 run aimee_intent_router intent_router_node
+- Classifies intent via external JSON config (no rebuilds needed)
+- Executes local skills (movement, arm, camera, system) directly
+- Routes everything else to AimeeCloud as AimeeAgent
 """
 
-import asyncio
+import json
 import logging
-import sys
-import threading
-from typing import Optional
+import os
+import uuid
 
 import rclpy
 from rclpy.node import Node
-from rclpy.action import ActionClient
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from std_msgs.msg import String
+from geometry_msgs.msg import Twist
 from aimee_msgs.msg import Transcription, Intent as IntentMsg
-from aimee_msgs.action import LLMGenerate
 
-from aimee_intent_router.brick.intent_router import (
-    IntentRouterBrick, IntentType
-)
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
 class IntentRouterNode(Node):
-    """
-    ROS2 Node for Intent Router.
-    
-    This node:
-    - Receives transcriptions from Voice Manager
-    - Classifies intent using LLM Action Server
-    - Routes to skills
-    - Generates responses and sends to TTS
-    """
-    
+    """Standard ROS2 Intent Router Node."""
+
     def __init__(self):
         super().__init__('intent_router')
-        
-        # Declare parameters
+
+        # Parameters
         self.declare_parameters(namespace='', parameters=[
             ('confidence_threshold', 0.6),
-            ('enable_conversation_mode', True),
-            ('conversation_timeout', 60.0),
-            ('max_context_length', 10),
-            ('fallback_to_chat', True),
             ('debug', False),
+            ('intent_config_path', '/workspace/config/aimee_intent_config.json'),
         ])
-        
-        # Get parameters
-        confidence_threshold = self.get_parameter('confidence_threshold').value
-        enable_conversation_mode = self.get_parameter('enable_conversation_mode').value
-        conversation_timeout = self.get_parameter('conversation_timeout').value
-        max_context_length = self.get_parameter('max_context_length').value
-        fallback_to_chat = self.get_parameter('fallback_to_chat').value
-        debug = self.get_parameter('debug').value
-        
-        # Setup QoS
+
+        self._confidence_threshold = self.get_parameter('confidence_threshold').value
+        self._debug = self.get_parameter('debug').value
+        intent_config_path = self.get_parameter('intent_config_path').value
+
+        if self._debug:
+            logger.setLevel(logging.DEBUG)
+
         reliable_qos = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
             history=HistoryPolicy.KEEP_LAST,
             depth=10
         )
-        
+
         # Publishers
-        self._tts_pub = self.create_publisher(
-            String, '/tts/speak', reliable_qos
-        )
-        self._intent_pub = self.create_publisher(
-            IntentMsg, '/intent/classified', reliable_qos
-        )
-        self._status_pub = self.create_publisher(
-            String, '/intent/status', reliable_qos
-        )
-        
+        self._tts_pub = self.create_publisher(String, '/tts/speak', reliable_qos)
+        self._intent_pub = self.create_publisher(IntentMsg, '/intent/classified', reliable_qos)
+        self._status_pub = self.create_publisher(String, '/intent/status', reliable_qos)
+        self._movement_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+
         # Subscribers
-        self._transcription_sub = self.create_subscription(
+        self.create_subscription(
             Transcription,
             '/voice/transcription',
             self._on_transcription,
             10
         )
-        
-        # Action client for LLM
-        self._llm_client = ActionClient(
-            self,
-            LLMGenerate,
-            '/llm/generate'
-        )
-        
-        # Create the brick
-        self._brick = IntentRouterBrick(
-            confidence_threshold=confidence_threshold,
-            enable_conversation_mode=enable_conversation_mode,
-            conversation_timeout=conversation_timeout,
-            max_context_length=max_context_length,
-            fallback_to_chat=fallback_to_chat,
-            debug=debug
-        )
-        
-        # Register skill handlers (placeholder - will be extended)
-        self._register_skills()
-        
-        # Async handling
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
-        self._thread: Optional[threading.Thread] = None
-        self._shutdown_event = threading.Event()
-        
-        # State
-        self._initialized = False
-        self._llm_available = False
-        
+
+        # Load intent configuration
+        self._intent_config = self._load_intent_config(intent_config_path)
+        self._noise_words = set(self._intent_config.get('noise_words', []))
+        self._local_only_skill_names = set(self._intent_config.get('local_only_skill_names', []))
+
         self.get_logger().info(
-            f"IntentRouterNode initialized:\n"
-            f"  Confidence threshold: {confidence_threshold}\n"
-            f"  Conversation mode: {enable_conversation_mode}\n"
-            f"  Fallback to chat: {fallback_to_chat}"
+            f"Intent Router initialized: "
+            f"confidence_threshold={self._confidence_threshold}, "
+            f"config={intent_config_path}"
         )
-        
-        # Start async thread
-        self._start_async_thread()
-        
-        # Wait for LLM action server
-        self._wait_for_llm()
-    
-    def _start_async_thread(self):
-        """Start async event loop in background thread."""
-        def run_async_loop():
-            self._loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self._loop)
-            
-            try:
-                self._loop.run_until_complete(self._async_main())
-            except Exception as e:
-                self.get_logger().error(f"Async loop error: {e}")
-            finally:
-                self._loop.close()
-        
-        self._thread = threading.Thread(target=run_async_loop, daemon=True)
-        self._thread.start()
-    
-    async def _async_main(self):
-        """Main async coroutine."""
+
+    def _load_intent_config(self, path: str, silent: bool = False) -> dict:
+        """Load intent configuration from external JSON file."""
         try:
-            await self._brick.initialize()
-            self._initialized = True
-            self.get_logger().info("Brick initialized successfully")
-            
-            # Keep running
-            while not self._shutdown_event.is_set():
-                await asyncio.sleep(0.1)
-                
+            with open(path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            if not silent:
+                self.get_logger().info(f"Loaded intent config from {path}")
+            return config
         except Exception as e:
-            self.get_logger().error(f"Async main error: {e}")
-    
-    def _wait_for_llm(self):
-        """Wait for LLM action server."""
-        self.get_logger().info("Waiting for LLM action server...")
-        if not self._llm_client.wait_for_server(timeout_sec=5.0):
-            self.get_logger().warning(
-                "LLM action server not available. "
-                "Will use fallback classification."
-            )
-            self._llm_available = False
-        else:
-            self._llm_available = True
-            self.get_logger().info("LLM action server connected")
-    
-    def _register_skills(self):
-        """Register skill handlers."""
-        # Movement skill
-        self._brick.register_skill_handler(
-            "movement",
-            self._handle_movement_skill
-        )
-        
-        # Arm control skill
-        self._brick.register_skill_handler(
-            "arm_control",
-            self._handle_arm_skill
-        )
-        
-        # Camera skill
-        self._brick.register_skill_handler(
-            "camera",
-            self._handle_camera_skill
-        )
-        
-        # Response handler
-        self._brick.on_response(self._on_response)
-    
-    def _handle_movement_skill(self, intent, context):
-        """Handle movement skill."""
-        self.get_logger().info(f"Executing movement: {intent.action}")
-        # TODO: Publish to movement controller
-        # self._movement_pub.publish(...)
-        return f"Executed {intent.action}"
-    
-    def _handle_arm_skill(self, intent, context):
-        """Handle arm control skill."""
-        self.get_logger().info(f"Executing arm control: {intent.action}")
-        # TODO: Publish to arm controller
-        return f"Executed arm {intent.action}"
-    
-    def _handle_camera_skill(self, intent, context):
-        """Handle camera skill."""
-        self.get_logger().info(f"Executing camera: {intent.action}")
-        # TODO: Publish to camera controller
-        return f"Camera {intent.action}"
-    
-    def _on_response(self, response: str, intent):
-        """Send response to TTS."""
-        if not response:
-            self.get_logger().debug("Empty response, skipping TTS")
-            return
-        msg = String()
-        msg.data = response
-        self._tts_pub.publish(msg)
-        self.get_logger().info(f"Sent to TTS: {response[:50]}...")
-    
+            self.get_logger().error(f"Failed to load intent config from {path}: {e}")
+            return {"intents": {}, "noise_words": [], "local_only_skill_names": []}
+
+    # ─────────────────────────────── Intent Classification ───────────────────────────────
+
+    def _classify_intent(self, text: str) -> dict:
+        """Classify intent using external JSON configuration (reloaded each call)."""
+        # Reload config each time so edits take effect immediately
+        config = self._load_intent_config(self.get_parameter('intent_config_path').value, silent=True)
+        noise_words = set(config.get('noise_words', []))
+
+        text_lower = text.lower().strip()
+        cleaned = text_lower.rstrip('.').rstrip('?').rstrip('!')
+        words = set(text_lower.split())
+
+        if len(cleaned) < 2 or cleaned in noise_words:
+            return {'intent_type': 'unclassified', 'action': 'noise', 'confidence': 0.0, 'requires_skill': False, 'parameters': {}}
+
+        intents = config.get('intents', {})
+        for intent_name, intent_def in intents.items():
+            matched = False
+
+            # Check words
+            intent_words = set(intent_def.get('words', []))
+            if intent_words and any(w in words for w in intent_words):
+                matched = True
+
+            # Check phrases (exact match when intent has exact=true)
+            if not matched:
+                for phrase in intent_def.get('phrases', []):
+                    if intent_def.get('exact', False):
+                        if text_lower == phrase:
+                            matched = True
+                            break
+                    else:
+                        if phrase in text_lower:
+                            matched = True
+                            break
+
+            if matched:
+                confidence = intent_def.get('confidence', 0.6)
+                skill_name = intent_def.get('skill_name', '')
+                requires_skill = bool(skill_name)
+                if not requires_skill:
+                    skill_name = "AimeeCloud"
+                return {
+                    'intent_type': intent_name,
+                    'action': intent_name,
+                    'confidence': confidence,
+                    'requires_skill': requires_skill,
+                    'skill_name': skill_name,
+                    'parameters': {}
+                }
+
+        # Fallback: route to AimeeCloud
+        return {'intent_type': 'unclassified', 'action': 'chat', 'confidence': 0.5, 'requires_skill': False, 'skill_name': 'AimeeCloud', 'parameters': {}}
+
+    def _is_local_skill(self, skill_name: str) -> bool:
+        return skill_name in self._local_only_skill_names
+
     def _on_transcription(self, msg: Transcription):
-        """
-        Callback when transcription is received.
-        
-        This is the main entry point for intent processing.
-        """
-        if not self._initialized:
-            self.get_logger().warning("Not initialized, ignoring transcription")
-            return
-        
-        # Only process commands (post-wake-word)
+        """Main entry point for incoming transcriptions."""
         if not msg.is_command:
-            self.get_logger().debug("Not a command, ignoring")
             return
-        
+
         text = msg.text.strip()
         if not text:
             return
-        
+
+        session_id = msg.session_id if msg.session_id else str(uuid.uuid4())[:8]
         self.get_logger().info(f"Processing: '{text}'")
-        
-        if self._loop and self._initialized:
-            asyncio.run_coroutine_threadsafe(
-                self._process_async(text, msg.session_id),
-                self._loop
-            )
-    
-    async def _process_async(self, text: str, session_id: str):
-        """Async processing task."""
-        # Create LLM function wrapper
-        llm_func = None
-        if self._llm_available:
-            llm_func = self._call_llm
-        
-        # Process through intent router
-        result = await self._brick.process_text(
-            text=text,
-            session_id=session_id,
-            llm_generate_func=llm_func
-        )
-        
-        if result.success:
-            # Publish intent message
+
+        intent = self._classify_intent(text)
+        intent_type = intent['intent_type']
+        skill_name = intent.get('skill_name', '')
+
+        # AimeeCloud routing: everything except local skills goes to AimeeCloud
+        if not self._is_local_skill(skill_name):
             intent_msg = IntentMsg()
-            intent_msg.intent_type = result.intent.intent_type.value
-            intent_msg.action = result.intent.action
-            intent_msg.confidence = result.intent.confidence
+            intent_msg.intent_type = intent_type
+            intent_msg.action = intent.get('action', '')
+            intent_msg.confidence = intent.get('confidence', 0.0)
             intent_msg.raw_text = text
-            intent_msg.requires_skill = result.intent.requires_skill
-            intent_msg.skill_name = result.intent.skill_name
+            intent_msg.requires_skill = False
+            intent_msg.skill_name = "AimeeCloud"
             intent_msg.session_id = session_id
-            
-            # Convert parameters to JSON string
             try:
-                import json
-                intent_msg.parameters_json = json.dumps(result.intent.parameters)
-            except:
+                intent_msg.parameters_json = json.dumps(intent.get('parameters', {}))
+            except Exception:
                 intent_msg.parameters_json = "{}"
-            
             self._intent_pub.publish(intent_msg)
-            
             self.get_logger().info(
-                f"Intent classified: {result.intent.intent_type.value} "
-                f"(confidence: {result.intent.confidence:.2f})"
+                f"Processing: '{text}' -> {intent_type} (AimeeCloud routing, "
+                f"confidence: {intent['confidence']:.2f})"
             )
-        else:
-            self.get_logger().error(f"Intent processing failed: {result.error_message}")
-            
-            # Send error response
-            error_msg = String()
-            error_msg.data = "I'm sorry, I didn't understand that."
-            self._tts_pub.publish(error_msg)
-    
-    async def _call_llm(
-        self,
-        prompt: str,
-        system_context: str = "",
-        max_tokens: int = 150,
-        temperature: float = 0.7
-    ) -> dict:
-        """
-        Call LLM via action client.
-        
-        This is the bridge between the brick and ROS2 LLM action server.
-        Must NOT use spin_until_future_complete because this runs in a
-        background asyncio thread while the node is spun in the main thread.
-        """
-        if not self._llm_available:
-            raise Exception("LLM not available")
-        
-        # Create goal
-        goal = LLMGenerate.Goal()
-        goal.prompt = prompt
-        goal.system_context = system_context
-        goal.max_tokens = max_tokens
-        goal.temperature = temperature
-        goal.stream = False  # Non-streaming for classification
-        goal.session_id = "intent_router"
-        
-        self.get_logger().debug("Sending LLM goal...")
-        
-        # Send goal
-        send_future = self._llm_client.send_goal_async(goal)
-        
-        # Wait for goal handle (poll without spinning) with timeout
-        timeout = 0.0
-        while not send_future.done() and timeout < 8.0:
-            await asyncio.sleep(0.05)
-            timeout += 0.05
-        
-        if not send_future.done():
-            self.get_logger().error("Timeout waiting for LLM goal acceptance")
-            raise Exception("Timeout waiting for LLM goal acceptance")
-        
-        goal_handle = send_future.result()
-        
-        if not goal_handle or not goal_handle.accepted:
-            self.get_logger().error("LLM goal rejected")
-            raise Exception("LLM goal rejected")
-        
-        self.get_logger().debug("LLM goal accepted, waiting for result...")
-        
-        # Wait for result with timeout
-        result_future = goal_handle.get_result_async()
-        timeout = 0.0
-        while not result_future.done() and timeout < 15.0:
-            await asyncio.sleep(0.05)
-            timeout += 0.05
-        
-        if not result_future.done():
-            self.get_logger().error("Timeout waiting for LLM result")
-            # Try to cancel the goal so the server doesn't waste time
-            goal_handle.cancel_goal_async()
-            raise Exception("Timeout waiting for LLM result")
-        
-        result = result_future.result().result
-        
-        if not result.success:
-            self.get_logger().error(f"LLM generation failed: {result.error_message}")
-            raise Exception(f"LLM generation failed: {result.error_message}")
-        
-        self.get_logger().debug(f"LLM result received ({result.tokens_generated} tokens)")
-        
-        return {
-            'response': result.response,
-            'tokens_generated': result.tokens_generated
+            return
+
+        # Local execution path
+        self._execute_intent(text, intent, session_id)
+
+    def _execute_intent(self, text: str, intent: dict, session_id: str):
+        """Execute intent locally and generate response."""
+        intent_type = intent['intent_type']
+        action = intent.get('action', '')
+        confidence = intent.get('confidence', 0.0)
+        skill_name = intent.get('skill_name', '')
+        parameters = intent.get('parameters', {})
+
+        # Publish the classified intent
+        intent_msg = IntentMsg()
+        intent_msg.intent_type = intent_type
+        intent_msg.action = action
+        intent_msg.confidence = confidence
+        intent_msg.raw_text = text
+        intent_msg.requires_skill = True
+        intent_msg.skill_name = skill_name
+        intent_msg.session_id = session_id
+        try:
+            intent_msg.parameters_json = json.dumps(parameters)
+        except Exception:
+            intent_msg.parameters_json = "{}"
+        self._intent_pub.publish(intent_msg)
+
+        self.get_logger().info(
+            f"Processing: '{text}' -> {intent_type} (local, confidence: {confidence:.2f})"
+        )
+
+        # Execute local skills with fallback TTS
+        response = ""
+        if skill_name == 'movement':
+            self._handle_movement(action)
+            response = self._get_local_response(intent_type)
+        elif skill_name == 'arm_control':
+            response = self._get_local_response(intent_type)
+        elif skill_name == 'camera':
+            response = "Camera adjusted."
+
+        if response:
+            self._tts_pub.publish(String(data=response))
+            self.get_logger().info(f"Sent to TTS: {response[:50]}...")
+
+    def _get_local_response(self, intent_type: str) -> str:
+        """Return a predefined response for local intents."""
+        response_map = {
+            'robot_forward': "Moving forward.",
+            'robot_backward': "Moving backward.",
+            'robot_left': "Turning left.",
+            'robot_right': "Turning right.",
+            'robot_stop': "Stopping.",
+            'arm_raise': "Raising arm.",
+            'arm_lower': "Lowering arm.",
+            'arm_wave': "Waving arm.",
+            'gripper_open': "Opening gripper.",
+            'gripper_close': "Closing gripper.",
+            'camera': "Camera adjusted.",
         }
-    
-    def destroy_node(self):
-        """Clean shutdown."""
-        self.get_logger().info("Shutting down IntentRouterNode...")
-        
-        self._shutdown_event.set()
-        
-        # Shutdown brick
-        if self._loop and self._initialized:
-            future = asyncio.run_coroutine_threadsafe(
-                self._brick.shutdown(),
-                self._loop
-            )
-            try:
-                future.result(timeout=5.0)
-            except Exception as e:
-                self.get_logger().error(f"Error during brick shutdown: {e}")
-        
-        # Stop thread
-        if self._thread and self._thread.is_alive():
-            self._thread.join(timeout=2.0)
-        
-        super().destroy_node()
-        self.get_logger().info("Shutdown complete")
+        return response_map.get(intent_type, "Done.")
+
+    def _handle_movement(self, action: str):
+        """Publish movement commands."""
+        twist = Twist()
+        if action == 'robot_forward':
+            twist.linear.x = 0.3
+        elif action == 'robot_backward':
+            twist.linear.x = -0.3
+        elif action == 'robot_left':
+            twist.angular.z = 0.5
+        elif action == 'robot_right':
+            twist.angular.z = -0.5
+        elif action == 'robot_stop':
+            twist.linear.x = 0.0
+            twist.angular.z = 0.0
+        self._movement_pub.publish(twist)
 
 
 def main(args=None):
-    """Main entry point."""
     rclpy.init(args=args)
-    
-    node = None
+    node = IntentRouterNode()
     try:
-        node = IntentRouterNode()
         rclpy.spin(node)
     except KeyboardInterrupt:
-        logger.info("Interrupted by user")
-    except Exception as e:
-        logger.error(f"Error: {e}")
+        pass
     finally:
-        if node:
-            node.destroy_node()
+        node.destroy_node()
         rclpy.shutdown()
 
 

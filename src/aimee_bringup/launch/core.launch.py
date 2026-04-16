@@ -35,17 +35,10 @@ def generate_launch_description():
         description='Use simulation time'
     )
     
-    enable_camera_arg = DeclareLaunchArgument(
-        'enable_camera',
-        default_value='true',
-        description='Enable OBSBOT camera'
-    )
-    
     # Get launch configurations
     robot_name = LaunchConfiguration('robot_name')
     config_path = LaunchConfiguration('config_path')
     use_sim_time = LaunchConfiguration('use_sim_time')
-    enable_camera = LaunchConfiguration('enable_camera')
     
     # Set environment variables
     set_ros_domain_id = SetEnvironmentVariable(
@@ -69,6 +62,9 @@ def generate_launch_description():
             'publish_partials': True,
             'energy_threshold': 80.0,
             'enabled': True,
+            'whisper_enabled': True,
+            'whisper_api_base_url': 'https://api.lemonfox.ai/v1/audio/transcriptions',
+            'whisper_api_key': 'znbgizLXwKc0LM51TcSmJs2myBGt53WY',
         }]
     )
     
@@ -80,10 +76,19 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'default_engine': 'gtts',
-            'fallback_engine': 'pyttsx3',
+            'fallback_engine': 'gtts',
             'auto_fallback': True,
+            'default_voice': 'af_heart',
             'volume': 1.0,
         }]
+    )
+    
+    # ROS2 Monitor Node (Web Dashboard)
+    monitor_node = Node(
+        package='aimee_ros2_monitor',
+        executable='monitor_node',
+        name='ros2_monitor',
+        output='screen',
     )
     
     # === Intelligence Nodes ===
@@ -96,7 +101,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'backend': 'llama_cpp_server',
-            'server_url': 'http://localhost:8080',
+            'server_url': 'http://172.17.0.1:8080',
             'default_max_tokens': 150,
             'default_temperature': 0.7,
         }]
@@ -112,6 +117,7 @@ def generate_launch_description():
             'confidence_threshold': 0.6,
             'enable_conversation_mode': True,
             'fallback_to_chat': True,
+            'intent_config_path': '/workspace/config/aimee_intent_config.json',
         }]
     )
     
@@ -127,11 +133,11 @@ def generate_launch_description():
         }]
     )
     
-    # Cloud Bridge Node
-    cloud_bridge_node = Node(
+    # AimeeCloud Client (ACC) Node
+    aimee_cloud_client_node = Node(
         package='aimee_cloud_bridge',
         executable='cloud_bridge_node',
-        name='cloud_bridge',
+        name='aimee_cloud_client',
         output='screen',
         parameters=[os.path.join(
             os.getenv('AIMEE_ROBOT_WS', '/home/arduino/aimee-robot-ws'),
@@ -139,54 +145,11 @@ def generate_launch_description():
         )]
     )
     
-    # === Vision Nodes ===
-    
-    # OBSBOT SDK Control Node (PTZ/Tracking only)
-    obsbot_node = Node(
-        package='aimee_vision_obsbot',
-        executable='obsbot_node',
-        name='obsbot_camera',
-        output='screen',
-        parameters=[{
-            'host': '192.168.5.1',
-            'osc_send_port': 16284,
-            'control_mode': 'auto',
-            'auto_reconnect': True,
-            'tracking_sensitivity': 0.5,
-            'enabled': True,
-        }],
-        condition=IfCondition(enable_camera)
-    )
-    
-    # USB Camera Node (dedicated video streaming)
-    usb_cam_node = Node(
-        package='usb_cam',
-        executable='usb_cam_node_exe',
-        name='usb_camera',
-        output='screen',
-        parameters=[{
-            'video_device': '/dev/video2',
-            'frame_id': 'obsbot_camera',
-            'camera_name': 'obsbot_camera',
-            'image_width': 1280,
-            'image_height': 720,
-            'pixel_format': 'mjpeg2rgb',
-            'io_method': 'mmap',
-            'framerate': 30.0,
-        }],
-        remappings=[
-            ('/image_raw', '/camera/image_raw'),
-            ('/camera_info', '/camera/camera_info'),
-        ],
-        condition=IfCondition(enable_camera)
-    )
-    
     return LaunchDescription([
         # Arguments
         robot_name_arg,
         config_path_arg,
         use_sim_time_arg,
-        enable_camera_arg,
         
         # Environment
         set_ros_domain_id,
@@ -195,13 +158,12 @@ def generate_launch_description():
         voice_manager_node,
         tts_node,
         
+        # Monitor
+        monitor_node,
+        
         # Intelligence
         llm_server_node,
         intent_router_node,
         skill_manager_node,
-        cloud_bridge_node,
-        
-        # Vision
-        obsbot_node,
-        usb_cam_node,
+        aimee_cloud_client_node,
     ])

@@ -201,12 +201,14 @@ class CloudBridgeBrick:
             self._connected = True
             logger.info("Connected to AimeeCloud MQTT broker")
             
-            # Subscribe to out and status BEFORE publishing connect
+            # Subscribe to out, status, and system BEFORE publishing connect
             out_topic = f"aimeecloud/device/{self.device_id}/out"
             status_topic = f"aimeecloud/device/{self.device_id}/status"
+            system_topic = f"aimeecloud/device/{self.device_id}/system"
             client.subscribe(out_topic, qos=1)
             client.subscribe(status_topic, qos=1)
-            logger.info(f"Subscribed to {out_topic} and {status_topic}")
+            client.subscribe(system_topic, qos=1)
+            logger.info(f"Subscribed to {out_topic}, {status_topic}, and {system_topic}")
             
             # Publish connect message
             self._publish_connect()
@@ -241,6 +243,10 @@ class CloudBridgeBrick:
                 elif topic.endswith("/status"):
                     asyncio.run_coroutine_threadsafe(
                         self._handle_status_message(payload), self._loop
+                    )
+                elif topic.endswith("/system"):
+                    asyncio.run_coroutine_threadsafe(
+                        self._handle_system_message(payload), self._loop
                     )
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to decode MQTT message: {e}")
@@ -283,6 +289,9 @@ class CloudBridgeBrick:
             elif self._on_chat_response:
                 self._on_chat_response(tts)
         
+        elif sub_type == "interstitial":
+            logger.debug(f"Received interstitial from cloud: {tts[:60]}...")
+        
         elif sub_type == "pong":
             logger.debug("Received pong from cloud")
         
@@ -304,6 +313,56 @@ class CloudBridgeBrick:
         if status == "expired":
             logger.warning("Session expired by cloud")
             self._clear_session()
+    
+    async def _handle_system_message(self, payload: Dict[str, Any]):
+        """Handle system messages from the cloud (docs, config updates, etc.)."""
+        msg_type = payload.get("type")
+        if msg_type != "system_message":
+            logger.debug(f"Ignoring non-system_message on system topic: {msg_type}")
+            return
+        
+        doc = payload.get("payload", {})
+        if doc.get("format") == "markdown" and doc.get("content"):
+            msg_id = doc.get("msg_id", "unknown")
+            title = doc.get("title", "Untitled Document")
+            content = doc.get("content", "")
+            
+            # Save to filesystem
+            docs_dir = os.path.expanduser("~/.config/aimee_docs")
+            os.makedirs(docs_dir, exist_ok=True)
+            safe_name = "".join(c if c.isalnum() or c in "._-" else "_" for c in msg_id)
+            filepath = os.path.join(docs_dir, f"{safe_name}.md")
+            
+            try:
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write(f"# {title}\n\n{content}")
+                logger.info(f"Saved system doc: {title} -> {filepath} ({len(content)} bytes)")
+            except Exception as e:
+                logger.error(f"Failed to save system doc {msg_id}: {e}")
+                return
+            
+            # Publish ack
+            self._publish_system_ack(msg_id)
+        else:
+            logger.debug(f"Received system message with unsupported format: {doc.get('format')}")
+    
+    def _publish_system_ack(self, msg_id: str):
+        """Publish ack for a received system message."""
+        if not self._mqtt_client or not self._connected:
+            return
+        
+        topic = f"aimeecloud/device/{self.device_id}/system/in"
+        payload = {
+            "type": "ack",
+            "session_id": self._session_id or "",
+            "ack_for": msg_id,
+            "payload": {
+                "received_at": self._iso_timestamp()
+            },
+            "timestamp": self._iso_timestamp()
+        }
+        self._mqtt_client.publish(topic, json.dumps(payload), qos=1)
+        logger.info(f"Published system ack for {msg_id}")
     
     def _publish_connect(self):
         """Publish connect message to cloud."""

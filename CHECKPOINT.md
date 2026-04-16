@@ -1,7 +1,7 @@
 # Aimee Robot - Session Checkpoint
 
-**Date:** 2026-04-13  
-**Session Focus:** Separate video capture from OBSBOT SDK control; fix monitor node CPU starvation
+**Date:** 2026-04-13 (Updated 2026-04-16)  
+**Session Focus:** Migrate routing to AimeeAgent; simplify Intent Router; add command execution in ACC
 
 ---
 
@@ -44,29 +44,190 @@
 
 ---
 
+## 🔊 TTS Migration to Standard ROS2 Node (2026-04-15)
+
+### What Was Done
+
+1. **Migrated TTS to Pure Standard ROS2 Node**
+   - `tts_node.py` was already a standard ROS2 node; removed all remaining brick artifacts
+   - Deleted `aimee_tts/aimee_tts/brick/tts.py` (old brick implementation)
+   - Removed Piper and pyttsx3 support per migration plan
+
+2. **Engine Consolidation: Kokoro Primary + gTTS Fallback**
+   - Updated `tts_engines.py` to support only **Kokoro** (primary, offline) and **gTTS** (cloud fallback)
+   - Removed `PiperEngine`, `Pyttsx3Engine`, and all related parameters/fallback logic
+   - `TTSEngineManager` now initializes only Kokoro (pykokoro preferred, official package fallback) and gTTS
+
+3. **Configuration & Launch Updates**
+   - Updated `core.launch.py` to default `default_engine:=kokoro` and `fallback_engine:=gtts`
+   - Updated `config/brick_config.yaml` to remove deprecated engines and reflect new defaults
+   - Cleaned up `setup.py` and `package.xml` descriptions
+   - Rewrote `README.md` to document the standard ROS2 node usage with Kokoro/gTTS
+
+4. **Files Modified**
+   ```
+   /home/arduino/aimee-robot-ws/src/
+   ├── aimee_tts/
+   │   ├── aimee_tts/tts_node.py            [UPDATED - removed piper/pyttsx3 params]
+   │   ├── aimee_tts/tts_engines.py         [UPDATED - kokoro + gtts only]
+   │   ├── aimee_tts/brick/tts.py           [DELETED - deprecated brick]
+   │   ├── config/brick_config.yaml         [UPDATED - removed deprecated engines]
+   │   ├── setup.py                         [UPDATED - description]
+   │   ├── package.xml                      [UPDATED - description]
+   │   └── README.md                        [REWRITTEN - standard node docs]
+   └── aimee_bringup/launch/core.launch.py  [UPDATED - kokoro primary, gtts fallback]
+   ```
+
+---
+
+## 🎯 Intent Router Rewrite & AimeeCloud Integration (2026-04-16)
+
+### What Was Done
+
+1. **External Intent Configuration**
+   - Created `/workspace/config/aimee_intent_config.json` containing all keyword/phrase matching rules
+   - Intent Router now loads intent definitions from this file at runtime
+   - Config is reloaded on every classification so edits apply immediately without node restart
+
+2. **Intent Router Rewrite (`aimee_intent_router`)**
+   - Converted to standard ROS2 node loading config from external JSON
+   - Classification uses word-boundary checks, phrase substrings, and `question_words` fallback for `chat`
+   - Emits AimeeCloud-compatible intent types directly: `chat`, `weather`, `news`, `story`, `game`, `help`, `status`, `robot_*`, `arm_*`, `gripper_*`, `unclassified`
+   - Added `"exact": true` phrase matching for movement and arm/gripper commands so only exact full utterances trigger local skills
+
+3. **Explicit Local Command Requirements**
+   - Robot movement commands must now be the exact phrases:
+     - `move forward`, `move backward`, `move left`, `move right`, `move stop`
+   - Arm/gripper commands must now be the exact phrases:
+     - `wave arm`, `raise arm`, `lower arm`, `open gripper`, `close gripper`
+   - Single words like `right`, `stop`, `wave`, `open` no longer trigger local skills and are routed to AimeeCloud
+
+4. **Noise Word Updates**
+   - Added `hello` and `hey` to `noise_words` in the intent config
+   - These single-word utterances are now silently ignored instead of being routed to `chat` or AimeeCloud
+
+5. **AimeeCloud Client Simplification (`aimee_cloud_bridge`)**
+   - Renamed all `cloud_proxy` / `cloud_bridge` references to `AimeeCloud` in code and docs
+   - `cloud_bridge_node.py` now forwards intents to AimeeCloud solely based on `skill_name == "AimeeCloud"`
+   - Removed the old intent-type-to-skill mapping layer
+   - Session lifecycle (load, save, resume, expiry, clear) handled by ACC
+
+6. **Launch File Updates**
+   - `core.launch.py` updated to pass `intent_config_path` to the Intent Router
+   - Whisper API credentials (Lemonfox.ai `api_base_url` and `api_key`) passed to Voice Manager
+
+### Files Modified
+```
+/home/arduino/aimee-robot-ws/
+├── config/aimee_intent_config.json                    [NEW - external intent config]
+├── src/aimee_intent_router/
+│   └── aimee_intent_router/intent_router_node.py      [REWRITTEN - external config, hot-reload, exact matching]
+├── src/aimee_cloud_bridge/
+│   └── aimee_cloud_bridge/cloud_bridge_node.py        [UPDATED - AimeeCloud branding, simplified forwarding]
+├── src/aimee_bringup/launch/core.launch.py            [UPDATED - intent_config_path + Whisper API params]
+├── Aimee_Project_Plan.md                              [UPDATED - AimeeCloud branding, intent routing docs]
+└── CHECKPOINT.md                                      [THIS FILE - updated]
+```
+
+### Verification Results
+
+| Input | Classification | Routing |
+|-------|----------------|---------|
+| `move right` | `robot_right` | local movement ✅ |
+| `move left` | `robot_left` | local movement ✅ |
+| `move forward` | `robot_forward` | local movement ✅ |
+| `move backward` | `robot_backward` | local movement ✅ |
+| `move stop` | `robot_stop` | local movement ✅ |
+| `wave arm` | `arm_wave` | local arm_control ✅ |
+| `raise arm` | `arm_raise` | local arm_control ✅ |
+| `lower arm` | `arm_lower` | local arm_control ✅ |
+| `open gripper` | `gripper_open` | local arm_control ✅ |
+| `close gripper` | `gripper_close` | local arm_control ✅ |
+| `right` | `unclassified` | AimeeCloud ✅ |
+| `stop` | `unclassified` | AimeeCloud ✅ |
+| `wave` | `unclassified` | AimeeCloud ✅ |
+| `open` | `unclassified` | AimeeCloud ✅ |
+| `hello` | ignored | noise ✅ |
+| `hey` | ignored | noise ✅ |
+| `what time is it right now` | `chat` | AimeeCloud ✅ |
+
+---
+
+## 🤖 AimeeAgent Migration & ACC Command Execution (2026-04-16)
+
+### What Was Done
+
+1. **Retrieved AimeeCloud Protocol v1.1**
+   - Subscribed to MQTT topic `aimeecloud/service/protocol`
+   - Saved updated spec to `docs/AimeeCloud_Protocol_v1.1.md`
+   - Key addition: `AimeeAgent` message type and `commands` array in responses
+
+2. **Simplified Intent Router (`aimee_intent_router`)**
+   - Removed all LLM action client code (`_llm_client`, `_call_llm`, `_generate_llm_response_async`)
+   - Router now has exactly two paths:
+     - **Local skills** (`movement`, `arm_control`, `camera`) → execute locally with fallback TTS
+     - **Everything else** → publish `IntentMsg(skill_name="AimeeCloud")` for ACC to forward
+   - Removed `chat_routing`, `enable_conversation_mode`, and conversation context parameters
+   - This eliminates the problematic local intent-to-response generation path
+
+3. **Updated AimeeCloud Client (`aimee_cloud_bridge`)**
+   - Added `send_agent_request()` to publish `type: "AimeeAgent"` instead of `type: "intent"`
+   - All non-local voice requests now bypass AimeeCloud's keyword router and go straight to the LLM agent
+   - Added `aimee_agent` response handler in `_handle_out_message()`
+   - Added `_execute_command()` dispatcher that handles:
+     - `motor` → publishes `Twist` to `/cmd_vel` with optional duration
+     - `arm` / `gripper` → publishes `ArmCommand` to `/arm/command`
+     - `snapshot` → stops `usb_camera`, calls `CaptureSnapshot` service, uploads result back to AimeeCloud, restarts camera
+     - `game_move` → publishes `CloudIntent` to `/game/command`
+   - Fixed missing `import subprocess` bug
+   - Added `/game/command` publisher for local game handler integration
+
+4. **Rebuild & Verification**
+   - Rebuilt both packages with `colcon build --packages-select aimee_cloud_bridge aimee_intent_router`
+   - Cleanly restarted the ROS2 core stack
+   - All 7 nodes up and running with no duplicates
+
+### New Voice Request Flow
+
+1. **Voice Manager** → `/voice/transcription`
+2. **Intent Router** classifies:
+   - `move forward`, `wave arm`, etc. → local execution + TTS
+   - Everything else → `IntentMsg(skill_name="AimeeCloud")`
+3. **ACC** receives intent and sends `AimeeAgent` MQTT message to AimeeCloud
+4. **AimeeCloud** responds with `sub_type: "aimee_agent"` + optional `commands` array
+5. **ACC** speaks the `tts` response and executes commands locally in order
+
+### Files Modified
+
+```
+/home/arduino/aimee-robot-ws/
+├── docs/AimeeCloud_Protocol_v1.1.md                    [NEW - retrieved from MQTT]
+├── src/aimee_intent_router/
+│   └── aimee_intent_router/intent_router_node.py      [UPDATED - stripped LLM, simplified routing]
+├── src/aimee_cloud_bridge/
+│   └── aimee_cloud_bridge/cloud_bridge_node.py        [UPDATED - AimeeAgent requests + command execution]
+├── Aimee_Project_Plan.md                              [UPDATED - AimeeAgent docs]
+└── CHECKPOINT.md                                      [THIS FILE - updated]
+```
+
+### Notes
+
+- Offline fallback LLM will be implemented later as a separate layer (e.g., in the bridge or a dedicated offline-agent node), not inside the intent router.
+- The `AimeeAgent` command reference from the protocol:
+  - Motor: `{ "type": "motor", "action": "forward", "duration_ms": 1000 }`
+  - Arm: `{ "type": "arm", "action": "raise" }`
+  - Gripper: `{ "type": "gripper", "action": "open" }`
+  - Snapshot: `{ "type": "snapshot", "camera": "front", "purpose": "analysis" }`
+  - Game move: `{ "type": "game_move", "game": "tic-tac-toe", "position": 4 }`
+
+---
+
 ## 📊 Running Services
 
 | Service | Container | Status | URL |
 |---------|-----------|--------|-----|
 | **ROS2 Core** | `aimee-robot` | 🟢 Running | — |
 | **Monitor** | `aimee-robot` | 🟢 Operational | http://192.168.1.100:8081 |
-
----
-
-## 📁 Files Created/Modified
-
-```
-/home/arduino/
-├── start_dashboard.sh              [UPDATED - usb-cam image, no auto monitor]
-├── aimee-robot-ws/src/
-│   ├── aimee_bringup/launch/core.launch.py
-│   │   [UPDATED - usb_cam_node + image_transport republish]
-│   ├── aimee_vision_obsbot/
-│   │   ├── obsbot_node.py          [UPDATED - stripped video publishing]
-│   │   └── brick/obsbot_brick.py   [UPDATED - stripped UVC/OpenCV capture]
-│   └── aimee_ros2_monitor/
-│       └── monitor_node.py         [UPDATED - compressed image, native APIs]
-```
 
 ---
 
@@ -83,6 +244,10 @@
 3. **Remaining Optimizations**
    - Further reduce monitor camera-stream CPU (e.g., lower-resolution direct V4L2 read or reduce republish frequency)
 
+4. **Brick-to-Standard-ROS2 Migration (Remaining Nodes)**
+   - Cloud Bridge (already migrated to AimeeCloud ACC) ✅
+   - Voice Manager (Priority 1)
+
 ---
 
 ## 📝 Notes
@@ -90,5 +255,44 @@
 - `usb_cam` package works well for MJPEG streams on the UNO Q; `v4l2_camera` does not.
 - The `image_transport/republish` C++ node consumes significant CPU (~85%) because it re-encodes 1280×720 rgb8 back to JPEG. This is acceptable for now since it offloads work from the Python monitor.
 - Fast DDS SHM config is still disabled (`FASTRTPS_DEFAULT_PROFILES_FILE` set to disable SHM) to avoid `open_and_lock_file` errors.
+- TTS brick `__pycache__` directory could not be fully removed due to root-owned `.pyc` files inside the container; source brick files are deleted.
+- Intent Router config hot-reload means future keyword/phrase tuning can be done by editing `/workspace/config/aimee_intent_config.json` with no node restart required.
 
-**Status:** 🤖 **VIDEO PIPELINE SEPARATED AND MONITOR OPERATIONAL!**
+---
+
+## 🔊 TTS Storytelling Voice Options — Research Notes (2026-04-15)
+
+**Context:** Kokoro TTS exhibits ~20 s latency on the UNO Q. The `PyKokoroEngine` (ONNX-based) recreates its entire pipeline when switching voices, making mid-story character voice changes impractical. The `KokoroOfficialEngine` (torch-based) does *not* recreate the pipeline on voice changes, but the initial model load is slow on this hardware. Default engine was switched back to `gtts` while we evaluate storytelling alternatives.
+
+### Decision Log
+- **Immediate action:** Revert default TTS engine to `gtts` to restore responsive speech.
+- **Future work:** Evaluate one of the four approaches below for multi-voice storytelling.
+
+### Option 1: Pre-recorded Character Clips + gTTS Narrator (Recommended)
+- **How it works:** Use gTTS for the narrator and any dynamic / unpredictable text. Pre-record character dialogue as `.wav`/`.mp3` files, store them on the robot, and play them directly via `pygame.mixer` or a dedicated media player node.
+- **Message format idea:** `play:/path/to/owl.wav` or `char_owl:Hello` routed to playback instead of synthesis.
+- **Pros:** Theatrical quality, zero latency, works offline, true distinct voices.
+- **Cons:** Requires recording / generating lines ahead of time.
+
+### Option 2: gTTS with Regional Accents (Easy Code Change)
+- **How it works:** Leverage gTTS `tld` parameter (`com`, `co.uk`, `com.au`, `co.in`, `ca`, `ie`) combined with `slow=True/False` to create 6–10 recognizably different "characters."
+- **Message format idea:** `gtts|co.uk:Hello, I'm the British fox`
+- **Pros:** No new dependencies, works today with a small parser patch.
+- **Cons:** Still sounds like Google Translate, just with different accents.
+
+### Option 3: OpenAI TTS Engine (Best Cloud Multi-Voice Quality)
+- **How it works:** Add an `OpenAITTSEngine` to `tts_engines.py` that calls the OpenAI TTS API. Supports 6 distinct voices: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`.
+- **Pros:** Excellent storytelling quality, fast, natural sounding, true multi-voice.
+- **Cons:** Requires internet connection and an API key; not free at scale.
+
+### Option 4: Fix Kokoro for True Offline Multi-Voice
+- **Sub-option A — Official `kokoro` package:** Use `kokoro` (torch-based) instead of `pykokoro`. It keeps one `KPipeline` instance and passes `voice=` directly, so voice switching is instant after the slow initial load.
+- **Sub-option B — Cached `PyKokoroEngine` instances:** Modify `TTSEngineManager` to maintain one ONNX pipeline per voice in a dictionary (`voice -> pipeline`). Switching voices just selects a different cached pipeline instead of rebuilding it.
+- **Pros:** High quality, fully offline.
+- **Cons:** Sub-option A uses more RAM (torch). Sub-option B uses more RAM (multiple ONNX sessions) and needs code changes.
+
+### Configuration Changes Made Today
+- `aimee_bringup/launch/core.launch.py`: `default_engine` changed from `kokoro` back to `gtts`.
+- `aimee_tts/config/brick_config.yaml`: `DEFAULT_ENGINE` default and `development` profile changed from `kokoro` back to `gtts`.
+
+**Status:** 🤖 **VIDEO PIPELINE SEPARATED, MONITOR OPERATIONAL, TTS MIGRATED TO STANDARD ROS2 NODE, INTENT ROUTER REWRITTEN WITH EXTERNAL CONFIG, AIMEEAGENT PROTOCOL IMPLEMENTED!**

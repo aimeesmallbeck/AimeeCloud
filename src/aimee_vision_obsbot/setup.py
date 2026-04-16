@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'obsbot_node = aimee_vision_obsbot.obsbot_node:main',
+            'obsbot_keepalive_node = aimee_vision_obsbot.obsbot_keepalive_node:main',
         ],
     },
 )

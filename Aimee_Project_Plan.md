@@ -93,8 +93,8 @@ This project plan outlines a complete rebuild of the Aimee robot system using **
 │  │                    SKILL LAYER (Local + Cloud)                        │  │
 │  │                           │                                           │  │
 │  │   ┌─────────────┐  ┌──────┴──────┐  ┌─────────────┐  ┌─────────────┐ │  │
-│  │   │ SkillRobot  │  │ SkillCloud  │  │ SkillGame   │  │ SkillIdentity│ │  │
-│  │   │ Control     │  │ Proxy       │  │ Module      │  │             │ │  │
+│  │   │ SkillRobot  │  │ AimeeCloud  │  │ SkillGame   │  │ SkillIdentity│ │  │
+│  │   │ Control     │  │ Client      │  │ Module      │  │             │ │  │
 │  │   └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 │                                                                             │
@@ -584,7 +584,7 @@ Each ROS2 node wraps a brick and handles:
 | `voice_manager` | `aimee_voice_manager` | Vosk STT/Voice recording | Publishes `/voice/transcription` | ✅ **COMPLETE** |
 | `tts` | `aimee_tts` | Piper/gTTS text-to-speech | Subscribes `/tts/speak` | ✅ **COMPLETE** |
 | `llm_server` | `aimee_llm_server` | LLM Action Server | **Action** `/llm/generate` | ✅ **COMPLETE** |
-| `intent_router` | `aimee_intent_router` | Intent classification & routing | Publishes `/intent/classified` | ✅ **COMPLETE** |
+| `intent_router` | `aimee_intent_router` | Intent classification & routing (local only, rest → AimeeAgent) | Publishes `/intent/classified` | ✅ **COMPLETE** |
 | `skill_manager` | `aimee_skill_manager` | Skill execution management | **Action** `/skill/execute` | ✅ **COMPLETE** |
 | `obsbot_node` | `aimee_vision_obsbot` | OBSBOT PTZ/tracking control (SDK) | Subscribes `/camera/*` topics | ✅ **COMPLETE** |
 | `usb_camera` | `usb_cam` | OBSBOT video streaming (UVC) | Publishes `/camera/image_raw` | ✅ **COMPLETE** |
@@ -636,7 +636,7 @@ aimee_<node_name>/
 | `/manipulation/pick_place` | `PickPlace` (Action) | Skills | PickPlace Server |
 | `/camera/face_detected` | `FaceDetection` | Face Recog | Skills |
 | `/robot/state` | `RobotState` | System | All Nodes |
-| `/llm/generate` | `LLMGenerate` (Action) | Intent Router | LLM Server |
+| `/llm/generate` | `LLMGenerate` (Action) | Skills / Other nodes | LLM Server |
 
 ---
 
@@ -834,75 +834,75 @@ class ObsbotBrick:
 
 ## AimeeCloud Integration
 
+### Branding & Naming Conventions
+Any external cloud service integration **must** be branded as **AimeeCloud** in code, configuration, documentation, and user-facing messages. Do not use generic terms such as `cloud_proxy`, `cloud_bridge`, or `cloud_skill` in user-facing logic, ROS message fields, or configuration files.
+
+| Context | Correct | Incorrect |
+|---------|---------|-----------|
+| `skill_name` in Intent message | `AimeeCloud` | `cloud_proxy` |
+| User-facing docs / logs | "AimeeCloud" | "the cloud", "cloud bridge" |
+| Node reference | "AimeeCloud client" | "cloud bridge node" |
+
+### Intent Routing to AimeeCloud
+
+The Intent Router loads keyword/phrase matching rules from an external JSON configuration (`/workspace/config/aimee_intent_config.json`). The config is reloaded on every utterance so edits take effect without restarting the node.
+
+**Routing Logic:**
+- Intents with `skill_name` in `local_only_skill_names` (`movement`, `arm_control`, `camera`) execute locally with fallback TTS.
+- All other intents are forwarded to AimeeCloud by setting `skill_name = "AimeeCloud"`.
+- The AimeeCloud Client (ACC) subscribes to `/intent/classified` and forwards any message where `msg.skill_name == "AimeeCloud"` as an **`AimeeAgent`** request.
+
+**AimeeAgent Mode**
+
+Instead of sending `type: "intent"` messages to AimeeCloud, the ACC now publishes `type: "AimeeAgent"` messages. This bypasses AimeeCloud's keyword router and sends the request directly to the LLM agent. Responses come back with `sub_type: "aimee_agent"` and may include a `commands` array that the ACC executes locally.
+
+**AimeeAgent Command Reference:**
+
+| Command | Action | ROS2 Output |
+|---------|--------|-------------|
+| `motor` | `{ "action": "forward", "duration_ms": 1000 }` | `Twist` on `/cmd_vel` |
+| `arm` | `{ "action": "raise" }` | `ArmCommand` on `/arm/command` |
+| `gripper` | `{ "action": "open" }` | `ArmCommand` on `/arm/command` |
+| `snapshot` | `{ "camera": "front", "purpose": "analysis" }` | Capture → upload response to cloud |
+| `game_move` | `{ "game": "tic-tac-toe", "position": 4 }` | `CloudIntent` on `/game/command` |
+
+**AimeeCloud-Compatible Intent Types (legacy keyword router):**
+`chat`, `weather`, `news`, `story`, `game`, `help`, `status`, `robot_forward/backward/left/right/stop`, `arm_raise/lower`, `gripper_open/close`, `unclassified`
+
 ### Cloud API Contract
 
-#### Robot → Cloud Request
+The AimeeCloud protocol is documented in `docs/AimeeCloud_Protocol_v1.1.md`.
+
+#### Robot → Cloud Request (AimeeAgent)
 
 ```json
-POST /api/v1/skills/execute
 {
-  "robot_id": "ron-001",
-  "user_input": "tell me a story about robots",
-  "robot_state": {
-    "name": "ron",
-    "battery": 85,
-    "location": "living_room",
-    "current_action": "idle",
-    "arm_position": "home",
-    "camera_mode": "tracking"
-  },
-  "user_context": {
-    "user_id": "user-123",
-    "name": "John",
-    "age": 8,
-    "preferences": ["robots", "space", "dinosaurs"],
-    "mood": "happy",
-    "last_topic": "space_adventure"
-  },
+  "type": "AimeeAgent",
+  "device_id": "arduino-uno-q-001",
   "session_id": "sess-abc-123",
-  "timestamp": "2026-04-10T11:30:00Z"
+  "payload": "Look at the red block and tell me what you see",
+  "timestamp": "2026-04-16T11:30:00Z"
 }
 ```
 
-#### Cloud → Robot Response
+#### Cloud → Robot Response (AimeeAgent)
 
 ```json
 {
-  "skill_id": "storytelling",
-  "text_response": "Once upon a time, in a galaxy far, far away, there was a friendly robot named Bolt...",
-  "tts_audio_url": "https://aimeecloud.example.com/audio/xyz123.mp3",
-  "tts_text": null,
-  "motor_actions": [
-    {
-      "device": "arm",
-      "action": "gesture",
-      "gesture_name": "storytelling_wave",
-      "delay": 0
-    },
-    {
-      "device": "base",
-      "action": "rotate",
-      "angle": 15,
-      "delay": 2
-    }
+  "type": "response",
+  "sub_type": "aimee_agent",
+  "session_id": "sess-abc-123",
+  "device_id": "arduino-uno-q-001",
+  "text": "Sure, let me take a look.",
+  "tts": "Sure, let me take a look.",
+  "commands": [
+    { "type": "snapshot", "camera": "front", "purpose": "analysis" }
   ],
-  "camera_actions": [
-    {
-      "action": "set_tracking_mode",
-      "mode": "upper_body"
-    }
-  ],
-  "led_matrix": {
-    "pattern": "listening",
-    "duration": 30
+  "context": {
+    "active_context": null,
+    "context_stack": []
   },
-  "session_updates": {
-    "mood": "engaged",
-    "topic": "robot_story",
-    "story_progress": "intro"
-  },
-  "requires_follow_up": true,
-  "follow_up_timeout": 60
+  "timestamp": "2026-04-16T11:30:00Z"
 }
 ```
 
@@ -1054,33 +1054,22 @@ cloud:
 intent_routing:
   robot_control:
     intents:
-      - forward
-      - backward
-      - left
-      - right
-      - stop
+      - robot_forward
+      - robot_backward
+      - robot_left
+      - robot_right
+      - robot_stop
       - arm_raise
       - arm_lower
+      - arm_wave
       - gripper_open
       - gripper_close
     target: skill_robot_control
-    
-  identity_check:
-    intents:
-      - who_are_you
-      - how_are_you
-      - what_can_you_do
-    target: skill_identity
-    use_llm: true
-    
+    execute_locally: true
+
   cloud_skills:
-    intents:
-      - storytelling
-      - weather
-      - news
-      - math
-      - general_chat
-    target: skill_cloud_proxy
+    # All unmatched intents are automatically routed to AimeeCloud as AimeeAgent
+    target: AimeeCloud
     
 emergency:
   intents:
@@ -1227,7 +1216,7 @@ Create a checkpoint/summary system to track daily progress:
 │   │
 │   ├── aimee_ugv02_controller/     # TODO: Base robot control
 │   ├── aimee_roarm_controller/     # TODO: Arm control
-│   ├── aimee_cloud_bridge/         # TODO: Cloud communication
+│   ├── aimee_cloud_bridge/         # ✅ AimeeCloud client (ACC)
 │   ├── aimee_vision_obsbot/        # ✅ Camera control
 │   ├── aimee_vision_pipeline/      # ✅ Color detection & tracking
 │   ├── aimee_perception/           # ✅ 3D estimation & grasp planning
@@ -1239,7 +1228,7 @@ Create a checkpoint/summary system to track daily progress:
 │       ├── skill_robot_control/    # Hardware control skill
 │       ├── skill_identity/         # Identity/story skill
 │       ├── skill_games/            # Game module skill
-│       └── skill_cloud_proxy/      # Cloud skill dispatcher
+│       └── aimee_cloud/            # AimeeCloud skill dispatcher
 │
 ├── config/
 │   ├── robot_config.yaml           # Robot hardware configuration
@@ -1271,14 +1260,14 @@ Create a checkpoint/summary system to track daily progress:
 | Message Types | ✅ Complete | `aimee_msgs` with custom types |
 | Wake Word | ✅ Complete | Edge Impulse integration |
 | Voice Manager | ✅ Complete | Vosk STT with partial results |
-| TTS | ✅ Complete | Multi-engine (Piper, gTTS, pyttsx3) |
+| TTS | ✅ Complete | Kokoro + gTTS (standard ROS2 node) |
 | LLM Server | ✅ Complete | Action server with streaming |
-| Intent Router | ✅ Complete | LLM-based classification |
+| Intent Router | ✅ Complete | External JSON config, exact-phrase matching, hot-reload |
 | Skill Manager | ✅ Complete | Action server for skill execution |
 | Arduino Utils | ✅ Complete | `@brick` decorator framework |
 | UGV02 Control | ✅ Complete | JSON serial protocol, teleop, Nav2 ready |
 | RoArm Control | ✅ Complete | Simulated (ready for real arm) |
-| Cloud Bridge | ⬜ TODO | WebSocket client |
+| Cloud Bridge | ✅ Complete | AimeeCloud MQTT client with AimeeAgent support |
 | Vision/OBSBOT | ✅ Complete | SDK-based camera control |
 | Vision Pipeline | ✅ Complete | Color detection & tracking |
 | Perception | ✅ Complete | 3D pose estimation & grasp planning |
@@ -1289,9 +1278,10 @@ Create a checkpoint/summary system to track daily progress:
 
 ---
 
-*Document Version: 2.5*  
-*Last Updated: April 13, 2026*  
+*Document Version: 2.6*  
+*Last Updated: April 16, 2026*  
 *Vision System: COMPLETE*  
 *ROS2 Monitor: COMPLETE*  
+*Intent Router: COMPLETE (external config + exact-phrase matching + AimeeAgent forwarding)*  
 *Author: AI Assistant*  
 *Status: Phase 4 In Progress - Hardware Control*

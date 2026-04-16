@@ -17,6 +17,7 @@ Usage:
 
 import asyncio
 import logging
+import queue
 import sys
 import threading
 from typing import Optional
@@ -60,11 +61,11 @@ class LLMServerNode(Node):
         # Declare parameters
         self.declare_parameters(namespace='', parameters=[
             ('backend', 'llama_cpp_server'),
-            ('server_url', 'http://localhost:8080'),
+            ('server_url', 'http://172.17.0.1:8080'),
             ('model_path', ''),
-            ('default_max_tokens', 150),
+            ('default_max_tokens', 80),
             ('default_temperature', 0.7),
-            ('timeout_seconds', 60.0),
+            ('timeout_seconds', 180.0),
             ('max_context_length', 2048),
             ('debug', False),
         ])
@@ -189,16 +190,12 @@ class LLMServerNode(Node):
         """
         Execute the LLM generation goal.
         
-        This is the main execution function that:
-        1. Creates LLMRequest from goal
-        2. Generates text with streaming feedback
-        3. Handles preemption
-        4. Returns final result
+        Runs the actual generation in the background async loop (where aiohttp
+        works correctly) and marshals results back to the action server thread.
         """
         goal = goal_handle.request
         self.get_logger().info(f"Executing goal: {goal.session_id}")
         
-        # Create request
         request = LLMRequest(
             prompt=goal.prompt,
             system_context=goal.system_context,
@@ -208,9 +205,7 @@ class LLMServerNode(Node):
             session_id=goal.session_id
         )
         
-        # Feedback helper
         def publish_feedback(feedback: LLMFeedback):
-            """Publish streaming feedback."""
             if goal.stream:
                 fb_msg = LLMGenerate.Feedback()
                 fb_msg.partial_response = feedback.partial_response
@@ -218,25 +213,28 @@ class LLMServerNode(Node):
                 fb_msg.tokens_total = feedback.tokens_total
                 fb_msg.is_complete = feedback.is_complete
                 fb_msg.current_word = feedback.current_word
-                
                 goal_handle.publish_feedback(fb_msg)
         
         try:
             if goal.stream:
-                # Streaming generation
+                # Streaming: background loop feeds a queue, we drain it here
+                feedback_queue = queue.Queue()
+                
+                stream_future = asyncio.run_coroutine_threadsafe(
+                    self._run_stream_in_loop(request, feedback_queue),
+                    self._loop
+                )
+                
                 final_text = ""
                 final_tokens = 0
+                done = False
                 
-                async for feedback in self._brick.generate_stream(request):
-                    publish_feedback(feedback)
-                    final_text = feedback.partial_response
-                    final_tokens = feedback.tokens_generated
-                    
-                    # Check for preemption
+                while not done:
                     if goal_handle.is_cancel_requested:
                         self.get_logger().info("Goal preempted")
+                        self._brick.set_preempt()  # signal background loop
+                        stream_future.cancel()
                         goal_handle.canceled()
-                        
                         result = LLMGenerate.Result()
                         result.response = final_text
                         result.success = False
@@ -244,19 +242,37 @@ class LLMServerNode(Node):
                         result.tokens_generated = final_tokens
                         result.tokens_input = 0
                         return result
+                    
+                    try:
+                        item = feedback_queue.get(timeout=0.1)
+                        if item.get('done'):
+                            done = True
+                            final_text = item.get('text', final_text)
+                            final_tokens = item.get('tokens', final_tokens)
+                        elif 'error' in item:
+                            raise Exception(item['error'])
+                        else:
+                            fb = item['feedback']
+                            publish_feedback(fb)
+                            final_text = fb.partial_response
+                            final_tokens = fb.tokens_generated
+                    except queue.Empty:
+                        continue
                 
-                # Build final result
                 result = LLMGenerate.Result()
                 result.response = final_text
                 result.success = True
                 result.tokens_generated = final_tokens
-                result.tokens_input = len(goal.prompt.split())  # Rough estimate
-                
+                result.tokens_input = len(goal.prompt.split())
                 goal_handle.succeed()
                 
             else:
-                # Non-streaming generation
-                llm_result = await self._brick.generate(request)
+                # Non-streaming: simple call-and-wait on background loop
+                gen_future = asyncio.run_coroutine_threadsafe(
+                    self._brick.generate(request),
+                    self._loop
+                )
+                llm_result = gen_future.result(timeout=60.0)
                 
                 result = LLMGenerate.Result()
                 result.response = llm_result.response
@@ -275,18 +291,32 @@ class LLMServerNode(Node):
                 f"Goal completed: success={result.success}, "
                 f"tokens={result.tokens_generated}"
             )
-            
             return result
             
         except Exception as e:
             self.get_logger().error(f"Goal execution failed: {e}")
-            
             result = LLMGenerate.Result()
             result.success = False
             result.error_message = str(e)
-            
             goal_handle.abort()
             return result
+    
+    async def _run_stream_in_loop(self, request: LLMRequest, feedback_queue: queue.Queue):
+        """Consume streaming feedback in the background async loop."""
+        try:
+            async for feedback in self._brick.generate_stream(request):
+                feedback_queue.put({'feedback': feedback})
+                if feedback.is_complete:
+                    feedback_queue.put({
+                        'done': True,
+                        'text': feedback.partial_response,
+                        'tokens': feedback.tokens_generated
+                    })
+                    return
+            # If loop exits without is_complete, mark done anyway
+            feedback_queue.put({'done': True, 'text': '', 'tokens': 0})
+        except Exception as e:
+            feedback_queue.put({'error': str(e)})
     
     def destroy_node(self):
         """Clean shutdown."""

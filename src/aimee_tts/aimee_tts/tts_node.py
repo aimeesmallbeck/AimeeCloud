@@ -4,319 +4,371 @@
 # SPDX-License-Identifier: MPL-2.0
 
 """
-ROS2 Node for Text-to-Speech
+ROS2 Node for Text-to-Speech (standard node, no brick abstraction)
 
-This node wraps the TTSBrick and provides:
-- Subscribe to /tts/speak for text to speak
-- Service for synchronous speech
-- Preemption support
-- Status reporting
+Supports:
+- kokoro  (primary, offline, high quality, multiple voices)
+- gtts    (cloud fallback)
 
-Usage:
-    ros2 run aimee_tts tts_node
+Topics:
+  /tts/speak        std_msgs/String   Text to speak (format: [engine|voice:]text)
+  /tts/control      std_msgs/String   stop | preempt | status
+  /tts/volume       std_msgs/Float32  0.0–1.0
+  /tts/voice        std_msgs/String   Change voice dynamically
+  /tts/status       std_msgs/String   Status info
+  /tts/is_speaking  std_msgs/Bool     True while audio plays
 """
 
-import asyncio
 import logging
 import os
-import sys
+import queue
+import subprocess
 import threading
+import time
 from typing import Optional
 
+import pygame
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from std_msgs.msg import String, Bool, Float32
-from rcl_interfaces.msg import SetParametersResult
 
-from aimee_tts.brick.tts import TTSBrick, TTSRequest
+from aimee_tts.tts_engines import TTSEngineManager
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
 
 class TTSNode(Node):
-    """
-    ROS2 Node for Text-to-Speech.
-    
-    This node:
-    - Subscribes to text to speak
-    - Publishes status
-    - Handles preemption
-    """
-    
+    """Standard ROS2 TTS node with multi-engine and multi-voice support."""
+
     def __init__(self):
-        super().__init__('tts')
-        
+        super().__init__("tts")
+
         # Declare parameters
-        self.declare_parameters(namespace='', parameters=[
-            ('default_engine', 'gtts'),
-            ('fallback_engine', 'pyttsx3'),
-            ('auto_fallback', True),
-            ('piper_model', ''),
-            ('piper_config', ''),
-            ('piper_speaker_id', 0),
-            ('gtts_lang', 'en'),
-            ('gtts_tld', 'com'),
-            ('gtts_slow', False),
-            ('volume', 1.0),
-            ('speed', 1.0),
-            ('use_pygame', True),
-            ('debug', False),
-        ])
-        
-        # Get parameters
-        default_engine = self.get_parameter('default_engine').value
-        fallback_engine = self.get_parameter('fallback_engine').value
-        auto_fallback = self.get_parameter('auto_fallback').value
-        piper_model = self.get_parameter('piper_model').value
-        piper_config = self.get_parameter('piper_config').value
-        piper_speaker_id = self.get_parameter('piper_speaker_id').value
-        gtts_lang = self.get_parameter('gtts_lang').value
-        gtts_tld = self.get_parameter('gtts_tld').value
-        gtts_slow = self.get_parameter('gtts_slow').value
-        volume = self.get_parameter('volume').value
-        speed = self.get_parameter('speed').value
-        use_pygame = self.get_parameter('use_pygame').value
-        debug = self.get_parameter('debug').value
-        
-        # Expand user path for piper model
-        if piper_model:
-            piper_model = os.path.expanduser(piper_model)
-        if piper_config:
-            piper_config = os.path.expanduser(piper_config)
-        
-        # Setup QoS
+        self.declare_parameters(
+            namespace="",
+            parameters=[
+                ("default_engine", "gtts"),
+                ("fallback_engine", "gtts"),
+                ("auto_fallback", True),
+                ("default_voice", "af_heart"),
+                ("kokoro_lang", "en-us"),
+                ("kokoro_speed", 1.0),
+                ("gtts_lang", "en"),
+                ("gtts_tld", "com"),
+                ("gtts_slow", False),
+                ("volume", 1.0),
+                ("speed", 1.0),
+                ("use_pygame", True),
+                ("debug", False),
+            ],
+        )
+
+        # Read parameters
+        default_engine = self.get_parameter("default_engine").value
+        fallback_engine = self.get_parameter("fallback_engine").value
+        auto_fallback = self.get_parameter("auto_fallback").value
+        default_voice = self.get_parameter("default_voice").value
+        kokoro_lang = self.get_parameter("kokoro_lang").value
+        kokoro_speed = self.get_parameter("kokoro_speed").value
+        gtts_lang = self.get_parameter("gtts_lang").value
+        gtts_tld = self.get_parameter("gtts_tld").value
+        gtts_slow = self.get_parameter("gtts_slow").value
+        volume = self.get_parameter("volume").value
+        speed = self.get_parameter("speed").value
+        use_pygame = self.get_parameter("use_pygame").value
+        debug = self.get_parameter("debug").value
+
+        if debug:
+            self.get_logger().set_level(logging.DEBUG)
+
         reliable_qos = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
             history=HistoryPolicy.KEEP_LAST,
-            depth=10
+            depth=10,
         )
-        
+
         # Publishers
-        self._status_pub = self.create_publisher(
-            String, '/tts/status', reliable_qos
-        )
-        self._speaking_pub = self.create_publisher(
-            Bool, '/tts/is_speaking', reliable_qos
-        )
-        
+        self._status_pub = self.create_publisher(String, "/tts/status", reliable_qos)
+        self._speaking_pub = self.create_publisher(Bool, "/tts/is_speaking", reliable_qos)
+
         # Subscribers
-        self._speak_sub = self.create_subscription(
-            String,
-            '/tts/speak',
-            self._on_speak,
-            10
-        )
-        
-        self._control_sub = self.create_subscription(
-            String,
-            '/tts/control',
-            self._on_control,
-            10
-        )
-        
-        self._volume_sub = self.create_subscription(
-            Float32,
-            '/tts/volume',
-            self._on_volume,
-            10
-        )
-        
-        # Create the brick
-        self._brick = TTSBrick(
+        self.create_subscription(String, "/tts/speak", self._on_speak, 10)
+        self.create_subscription(String, "/tts/control", self._on_control, 10)
+        self.create_subscription(Float32, "/tts/volume", self._on_volume, 10)
+        self.create_subscription(String, "/tts/voice", self._on_voice, 10)
+
+        # Engine manager
+        self._manager = TTSEngineManager(
             default_engine=default_engine,
             fallback_engine=fallback_engine,
             auto_fallback=auto_fallback,
-            piper_model=piper_model if piper_model else None,
-            piper_config=piper_config if piper_config else None,
-            piper_speaker_id=piper_speaker_id,
+            default_voice=default_voice,
+            kokoro_lang=kokoro_lang,
+            kokoro_speed=kokoro_speed,
             gtts_lang=gtts_lang,
             gtts_tld=gtts_tld,
             gtts_slow=gtts_slow,
-            volume=volume,
-            speed=speed,
-            use_pygame=use_pygame,
-            debug=debug
         )
-        
-        # Async handling
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
-        self._thread: Optional[threading.Thread] = None
-        self._shutdown_event = threading.Event()
-        
-        # State
-        self._initialized = False
-        
+
+        # Runtime state
+        self._volume = max(0.0, min(1.0, volume))
+        self._speed = speed
+        self._current_voice = default_voice
+        self._use_pygame = use_pygame
+        self._pygame_initialized = False
+        self._is_speaking = False
+        self._preempt_event = threading.Event()
+        self._queue: queue.Queue = queue.Queue()
+        self._speak_count = 0
+        self._total_duration = 0.0
+        self._consecutive_failures = 0
+        self._last_health_ok = True
+        self._shutdown = False
+
+        # Init pygame
+        if self._use_pygame:
+            self._init_pygame()
+
+        # Start worker thread
+        self._worker_thread = threading.Thread(target=self._queue_worker, daemon=True)
+        self._worker_thread.start()
+
         # Status timer
         self._status_timer = self.create_timer(1.0, self._publish_status)
-        
+
+        voices = self._manager.get_voices()
         self.get_logger().info(
             f"TTSNode initialized:\n"
             f"  Default engine: {default_engine}\n"
             f"  Fallback: {fallback_engine}\n"
-            f"  Auto fallback: {auto_fallback}\n"
-            f"  Piper model: {piper_model or 'None'}"
+            f"  Voice: {default_voice}\n"
+            f"  Available voices: {voices}\n"
+            f"  Engines: {list(self._manager._engines.keys())}"
         )
-        
-        # Start async thread
-        self._start_async_thread()
-    
-    def _start_async_thread(self):
-        """Start async event loop in background thread."""
-        def run_async_loop():
-            self._loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self._loop)
-            
-            try:
-                self._loop.run_until_complete(self._async_main())
-            except Exception as e:
-                self.get_logger().error(f"Async loop error: {e}")
-            finally:
-                self._loop.close()
-        
-        self._thread = threading.Thread(target=run_async_loop, daemon=True)
-        self._thread.start()
-    
-    async def _async_main(self):
-        """Main async coroutine."""
+
+    def _init_pygame(self):
         try:
-            await self._brick.initialize()
-            self._initialized = True
-            self.get_logger().info("Brick initialized successfully")
-            
-            # Keep running
-            while not self._shutdown_event.is_set():
-                await asyncio.sleep(0.1)
-                
+            pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+            self._pygame_initialized = True
+            self.get_logger().info("Pygame mixer initialized")
         except Exception as e:
-            self.get_logger().error(f"Async main error: {e}")
-    
+            self.get_logger().warning(f"Failed to initialize pygame: {e}")
+            self._pygame_initialized = False
+
+    @staticmethod
+    def _parse_speak_text(text: str) -> tuple[Optional[str], Optional[str], str]:
+        """Parse speak text formats:
+        - text
+        - engine:text
+        - engine|voice:text
+        """
+        engine = None
+        voice = None
+
+        if ":" in text:
+            prefix, rest = text.split(":", 1)
+            engine_part = prefix
+            if "|" in engine_part:
+                engine_part, voice = engine_part.split("|", 1)
+            if engine_part.lower() in ("gtts", "kokoro", "auto"):
+                engine = engine_part.lower()
+                text = rest
+                voice = voice.strip() if voice else None
+
+        return engine, voice, text
+
     def _on_speak(self, msg: String):
-        """
-        Callback to speak text.
-        
-        Format: "text" or "engine:text" or "priority:text"
-        """
         text = msg.data.strip()
         if not text:
             return
-        
-        # Parse format: "engine:text" or just "text"
-        engine = None
-        if ':' in text:
-            parts = text.split(':', 1)
-            if parts[0] in ['gtts', 'piper', 'pyttsx3', 'auto']:
-                engine = parts[0]
-                text = parts[1]
-        
-        self.get_logger().info(f"Speaking (engine={engine or 'default'}): {text[:50]}...")
-        
-        if self._loop and self._initialized:
-            asyncio.run_coroutine_threadsafe(
-                self._speak_async(text, engine),
-                self._loop
+
+        engine, voice, clean_text = self._parse_speak_text(text)
+        self.get_logger().info(
+            f"Speaking (engine={engine or 'default'}, voice={voice or 'default'}): {clean_text[:50]}..."
+        )
+        self._queue.put({"text": clean_text, "engine": engine, "voice": voice})
+
+    def _queue_worker(self):
+        """Background thread that processes the speech queue."""
+        while not self._shutdown:
+            try:
+                req = self._queue.get(timeout=0.1)
+                self._process_request(req)
+            except queue.Empty:
+                continue
+            except Exception as e:
+                self.get_logger().error(f"Queue worker error: {e}")
+
+    def _process_request(self, req: dict):
+        text = req["text"]
+        engine = req.get("engine")
+        voice = req.get("voice") or self._current_voice
+
+        # Generate audio
+        result = self._manager.generate(
+            text, engine_name=engine, voice=voice, speed=self._speed
+        )
+
+        if not result.success:
+            self._consecutive_failures += 1
+            self.get_logger().error(
+                f"Speak failed: {result.error_message} (consecutive={self._consecutive_failures})"
             )
-    
-    async def _speak_async(self, text: str, engine: Optional[str]):
-        """Async speak task."""
-        result = await self._brick.speak(text, engine=engine, block=True)
-        
-        if result.success:
-            self.get_logger().info(f"Spoke successfully using {result.engine_used}")
-        else:
-            self.get_logger().error(f"Speak failed: {result.error_message}")
-    
+            return
+
+        self._consecutive_failures = 0
+        self._speak_count += 1
+        self._total_duration += result.duration_seconds
+        self.get_logger().info(f"Spoke successfully using {result.engine_used}")
+
+        # Play audio
+        if result.audio_path and os.path.exists(result.audio_path):
+            self._play_audio(result.audio_path)
+            try:
+                os.unlink(result.audio_path)
+            except Exception:
+                pass
+
+    def _play_audio(self, audio_path: str):
+        self._is_speaking = True
+        try:
+            if self._pygame_initialized:
+                pygame.mixer.music.load(audio_path)
+                pygame.mixer.music.set_volume(self._volume)
+                pygame.mixer.music.play()
+                while pygame.mixer.music.get_busy():
+                    if self._preempt_event.is_set():
+                        pygame.mixer.music.stop()
+                        self._preempt_event.clear()
+                        self.get_logger().info("Speech preempted")
+                        break
+                    time.sleep(0.05)
+            else:
+                self._play_aplay(audio_path)
+        except Exception as e:
+            self.get_logger().error(f"Playback failed: {e}")
+            # Fallback to aplay
+            if self._pygame_initialized:
+                self._play_aplay(audio_path)
+        finally:
+            self._is_speaking = False
+
+    def _play_aplay(self, audio_path: str):
+        try:
+            proc = subprocess.Popen(
+                ["aplay", audio_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            while proc.poll() is None:
+                if self._preempt_event.is_set():
+                    proc.terminate()
+                    self._preempt_event.clear()
+                    self.get_logger().info("Speech preempted")
+                    break
+                time.sleep(0.05)
+        except Exception as e:
+            self.get_logger().error(f"aplay failed: {e}")
+
     def _on_control(self, msg: String):
-        """
-        Handle control commands.
-        
-        Commands:
-        - 'stop': Stop current speech
-        - 'preempt': Preempt current speech
-        - 'clear': Clear speech queue
-        - 'status': Publish status
-        """
         command = msg.data.lower().strip()
         self.get_logger().info(f"Received control command: {command}")
-        
-        if command == 'stop' or command == 'preempt':
-            if self._loop and self._initialized:
-                asyncio.run_coroutine_threadsafe(
-                    self._brick.preempt(),
-                    self._loop
-                )
-                
-        elif command == 'status':
+
+        if command in ("stop", "preempt"):
+            self._preempt_event.set()
+            if self._pygame_initialized:
+                try:
+                    pygame.mixer.music.stop()
+                except Exception:
+                    pass
+        elif command == "status":
             self._publish_status()
-            
         else:
             self.get_logger().warning(f"Unknown command: {command}")
-    
+
     def _on_volume(self, msg: Float32):
-        """Handle volume change."""
-        volume = max(0.0, min(1.0, msg.data))
-        self._brick.volume = volume
-        self.get_logger().info(f"Volume set to {volume}")
-    
+        self._volume = max(0.0, min(1.0, msg.data))
+        self.get_logger().info(f"Volume set to {self._volume}")
+
+    def _on_voice(self, msg: String):
+        voice = msg.data.strip()
+        if voice:
+            self._current_voice = voice
+            self.get_logger().info(f"Voice set to {voice}")
+
     def _publish_status(self):
-        """Publish TTS status."""
-        if not self._initialized:
+        if not self.context or not self.context.ok():
             return
-        
-        status = self._brick.get_status()
-        
+        health = self._manager.health_status()
+        issues = []
+        healthy = True
+
+        if not self._manager._engines:
+            issues.append("No TTS engines available")
+            healthy = False
+
+        if self._use_pygame and self._pygame_initialized and pygame.mixer.get_init() is None:
+            issues.append("Pygame mixer died")
+            healthy = False
+
         # Publish speaking state
         speaking_msg = Bool()
-        speaking_msg.data = status['is_speaking']
+        speaking_msg.data = self._is_speaking
         self._speaking_pub.publish(speaking_msg)
-        
-        # Publish status string
+
         status_str = (
-            f"engine={status['default_engine']}, "
-            f"online={status['is_online']}, "
-            f"speaking={status['is_speaking']}, "
-            f"count={status['speak_count']}"
+            f"engine={self._manager.default_engine}, "
+            f"voice={self._current_voice}, "
+            f"online={health['online']}, "
+            f"speaking={self._is_speaking}, "
+            f"count={self._speak_count}"
         )
-        
         msg = String()
         msg.data = status_str
         self._status_pub.publish(msg)
-    
-    def destroy_node(self):
-        """Clean shutdown."""
-        self.get_logger().info("Shutting down TTSNode...")
-        
-        self._status_timer.cancel()
-        self._shutdown_event.set()
-        
-        # Shutdown brick
-        if self._loop and self._initialized:
-            future = asyncio.run_coroutine_threadsafe(
-                self._brick.shutdown(),
-                self._loop
+
+        if not healthy:
+            for issue in issues:
+                self.get_logger().error(f"TTS health issue: {issue}")
+            self._last_health_ok = False
+        elif self._consecutive_failures >= 3:
+            self.get_logger().error(
+                f"TTS health issue: {self._consecutive_failures} consecutive speak failures"
             )
+            self._last_health_ok = False
+        else:
+            if not self._last_health_ok:
+                self.get_logger().info("TTS health recovered")
+            self._last_health_ok = True
+
+    def destroy_node(self):
+        self.get_logger().info("Shutting down TTSNode...")
+        self._shutdown = True
+        self._status_timer.cancel()
+        self._preempt_event.set()
+
+        if self._pygame_initialized:
             try:
-                future.result(timeout=5.0)
-            except Exception as e:
-                self.get_logger().error(f"Error during brick shutdown: {e}")
-        
-        # Stop thread
-        if self._thread and self._thread.is_alive():
-            self._thread.join(timeout=2.0)
-        
+                pygame.mixer.music.stop()
+                pygame.mixer.quit()
+            except Exception:
+                pass
+
+        # Allow worker to exit
+        if self._worker_thread.is_alive():
+            self._worker_thread.join(timeout=2.0)
+
         super().destroy_node()
         self.get_logger().info("Shutdown complete")
 
 
 def main(args=None):
-    """Main entry point."""
     rclpy.init(args=args)
-    
     node = None
     try:
         node = TTSNode()
@@ -327,9 +379,16 @@ def main(args=None):
         logger.error(f"Error: {e}")
     finally:
         if node:
-            node.destroy_node()
-        rclpy.shutdown()
+            try:
+                node.destroy_node()
+            except Exception:
+                pass
+        try:
+            if rclpy.ok():
+                rclpy.shutdown()
+        except Exception:
+            pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

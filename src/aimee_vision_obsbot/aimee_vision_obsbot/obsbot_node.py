@@ -17,18 +17,24 @@ Usage:
 
 import asyncio
 import logging
+import os
+import subprocess
 import sys
+import tempfile
 import threading
+import time
 from typing import Optional
 
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from rcl_interfaces.msg import SetParametersResult
-from std_msgs.msg import String, Bool
+from sensor_msgs.msg import CompressedImage
+from std_msgs.msg import String, Bool, Header
 from geometry_msgs.msg import Twist
 
 from aimee_msgs.msg import TrackingCommand, CameraAction, RobotState
+from aimee_msgs.srv import CaptureSnapshot
 
 from aimee_vision_obsbot.brick.obsbot_brick import (
     ObsbotBrick, ObsbotStatus, TrackingMode
@@ -67,6 +73,8 @@ class ObsbotNode(Node):
             ('default_tracking_mode', 'normal'),
             ('enabled', True),
             ('debug', False),
+            ('video_device', '/dev/video2'),
+            ('snapshot_default_resolution', '1920x1080'),
         ])
         
         # Get parameters
@@ -79,6 +87,8 @@ class ObsbotNode(Node):
         default_tracking_mode = self.get_parameter('default_tracking_mode').value
         self._enabled = self.get_parameter('enabled').value
         debug = self.get_parameter('debug').value
+        self._video_device = self.get_parameter('video_device').value
+        self._snapshot_default_resolution = self.get_parameter('snapshot_default_resolution').value
         
         # Setup QoS
         reliable_qos = QoSProfile(
@@ -128,6 +138,13 @@ class ObsbotNode(Node):
             '/camera/control',
             self._on_control_command,
             10
+        )
+        
+        # Snapshot service
+        self._snapshot_srv = self.create_service(
+            CaptureSnapshot,
+            '/camera/capture_snapshot',
+            self._on_capture_snapshot
         )
         
         # Parameter callback
@@ -190,10 +207,20 @@ class ObsbotNode(Node):
             self._initialized = True
             self.get_logger().info("Brick initialized successfully")
             
-            # Keep running
+            # Wake camera to ensure PTZ commands work
+            if self._brick.is_connected():
+                self.get_logger().info("Waking up camera...")
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, self._brick.wake_up)
+                self.get_logger().info("Camera wake-up complete")
+            
+            # Keep running with periodic wake-up to prevent sleep
             while not self._shutdown_event.is_set():
-                await asyncio.sleep(0.1)
-                
+                await asyncio.sleep(60.0)
+                if self._brick.is_connected() and self._enabled:
+                    loop = asyncio.get_running_loop()
+                    await loop.run_in_executor(None, self._brick.wake_up)
+                    
         except Exception as e:
             self.get_logger().error(f"Async main error: {e}")
     
@@ -209,30 +236,39 @@ class ObsbotNode(Node):
         - linear.z: Zoom (positive=in, negative=out)
         """
         if not self._enabled or not self._initialized:
+            self.get_logger().debug(f"PTZ ignored: enabled={self._enabled}, initialized={self._initialized}")
             return
         
         pan_speed = int(abs(msg.angular.z) * 100)
         tilt_speed = int(abs(msg.angular.y) * 100)
         zoom_step = int(msg.linear.z * 10)
         
-        # Execute commands
-        if pan_speed > 5:
-            if msg.angular.z > 0:
-                self._brick.gimbal_left(pan_speed)
-            else:
-                self._brick.gimbal_right(pan_speed)
+        # Stop gimbal if all values are zero (e.g. stop command from UI)
+        if pan_speed <= 5 and tilt_speed <= 5 and zoom_step == 0:
+            self.get_logger().debug("Stopping gimbal")
+            threading.Thread(target=self._brick.stop_gimbal, daemon=True).start()
+            return
         
-        if tilt_speed > 5:
-            if msg.angular.y > 0:
-                self._brick.gimbal_up(tilt_speed)
-            else:
-                self._brick.gimbal_down(tilt_speed)
+        def _execute_ptz():
+            if pan_speed > 5:
+                if msg.angular.z > 0:
+                    self._brick.gimbal_left(pan_speed)
+                else:
+                    self._brick.gimbal_right(pan_speed)
+            
+            if tilt_speed > 5:
+                if msg.angular.y > 0:
+                    self._brick.gimbal_up(tilt_speed)
+                else:
+                    self._brick.gimbal_down(tilt_speed)
+            
+            if zoom_step != 0:
+                if zoom_step > 0:
+                    self._brick.zoom_in(zoom_step)
+                else:
+                    self._brick.zoom_out(abs(zoom_step))
         
-        if zoom_step != 0:
-            if zoom_step > 0:
-                self._brick.zoom_in(zoom_step)
-            else:
-                self._brick.zoom_out(abs(zoom_step))
+        threading.Thread(target=_execute_ptz, daemon=True).start()
     
     def _on_tracking_command(self, msg: TrackingCommand):
         """Handle AI tracking command."""
@@ -368,6 +404,16 @@ class ObsbotNode(Node):
                 self.get_logger().info(f"Updated sensitivity: {param.value}")
                 results.append(SetParametersResult(successful=True))
                 
+            elif param.name == 'video_device':
+                self._video_device = param.value
+                self.get_logger().info(f"Updated video device: {param.value}")
+                results.append(SetParametersResult(successful=True))
+                
+            elif param.name == 'snapshot_default_resolution':
+                self._snapshot_default_resolution = param.value
+                self.get_logger().info(f"Updated snapshot resolution: {param.value}")
+                results.append(SetParametersResult(successful=True))
+                
             else:
                 results.append(SetParametersResult(
                     successful=False,
@@ -375,6 +421,142 @@ class ObsbotNode(Node):
                 ))
         
         return results
+    
+    # === Snapshot Service ===
+    
+    def _on_capture_snapshot(self, request, response):
+        """Handle snapshot capture request via ffmpeg."""
+        resolution = request.resolution.strip().lower()
+        quality = request.quality
+        
+        # Map resolution string to size
+        size_map = {
+            '': self._snapshot_default_resolution,
+            'default': self._snapshot_default_resolution,
+            '1080p': '1920x1080',
+            '1920x1080': '1920x1080',
+            '4k': '3840x2160',
+            '2160p': '3840x2160',
+            '3840x2160': '3840x2160',
+            '720p': '1280x720',
+            '1280x720': '1280x720',
+        }
+        video_size = size_map.get(resolution, self._snapshot_default_resolution)
+        
+        # Clamp quality and map to ffmpeg q:v (1=best, 31=worst)
+        quality = max(1, min(100, quality))
+        qv = max(1, min(31, 32 - quality // 3))
+        
+        self.get_logger().info(
+            f"Snapshot requested: {video_size} (quality={quality}, q:v={qv})"
+        )
+        
+        with tempfile.NamedTemporaryFile(
+            suffix='.jpg', prefix='obsbot_snapshot_', delete=False
+        ) as tmp:
+            output_path = tmp.name
+        
+        try:
+            image_data = b''
+            
+            # Primary method: v4l2-ctl (fast raw MJPEG capture, no re-encode)
+            width, height = video_size.split('x')
+            cmd_v4l2 = [
+                'v4l2-ctl', '--device', self._video_device,
+                '--set-fmt-video', f'width={width},height={height},pixelformat=MJPG',
+                '--stream-mmap', '--stream-to', output_path, '--stream-count', '1'
+            ]
+            result_v4l2 = subprocess.run(
+                cmd_v4l2, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10
+            )
+            if result_v4l2.returncode == 0:
+                with open(output_path, 'rb') as f:
+                    image_data = f.read()
+            else:
+                err_v4l2 = result_v4l2.stderr.decode('utf-8', errors='replace').strip()
+                self.get_logger().warning(f"v4l2-ctl failed, falling back to ffmpeg: {err_v4l2}")
+            
+            # Fallback to ffmpeg if v4l2-ctl didn't produce data
+            if not image_data:
+                cmd = [
+                    'ffmpeg', '-y',
+                    '-f', 'v4l2',
+                    '-input_format', 'mjpeg',
+                    '-video_size', video_size,
+                    '-i', self._video_device,
+                    '-frames:v', '1',
+                    '-q:v', str(qv),
+                    output_path,
+                ]
+                
+                result = subprocess.run(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    timeout=15
+                )
+                
+                if result.returncode != 0:
+                    stderr = result.stderr.decode('utf-8', errors='replace')
+                    self.get_logger().error(f"ffmpeg failed: {stderr}")
+                    
+                    # Extract last meaningful lines (banner is at the top)
+                    err_lines = [l.strip() for l in stderr.strip().splitlines() if l.strip()]
+                    short_err = ' '.join(err_lines[-5:]) if err_lines else 'unknown error'
+                    
+                    if 'busy' in stderr.lower() or 'resource temporarily unavailable' in stderr.lower():
+                        response.success = False
+                        response.message = (
+                            f"Device {self._video_device} is busy. "
+                            "Stop the usb_camera node before capturing a snapshot."
+                        )
+                    else:
+                        response.success = False
+                        response.message = f"ffmpeg capture failed: {short_err}"
+                    return response
+                
+                with open(output_path, 'rb') as f:
+                    image_data = f.read()
+            
+            if not image_data:
+                response.success = False
+                response.message = "Captured image is empty"
+                return response
+            
+            # Build CompressedImage response
+            header = Header()
+            header.stamp = self.get_clock().now().to_msg()
+            header.frame_id = 'camera'
+            
+            response.image = CompressedImage(
+                header=header,
+                format='jpeg',
+                data=image_data,
+            )
+            response.success = True
+            response.message = (
+                f"Snapshot captured: {video_size}, "
+                f"{len(image_data)} bytes"
+            )
+            self.get_logger().info(response.message)
+            
+        except subprocess.TimeoutExpired:
+            response.success = False
+            response.message = "Snapshot capture timed out (ffmpeg took >15s)"
+            self.get_logger().error(response.message)
+            
+        except Exception as e:
+            response.success = False
+            response.message = f"Snapshot error: {e}"
+            self.get_logger().error(response.message)
+            
+        finally:
+            try:
+                os.unlink(output_path)
+            except Exception:
+                pass
+        
+        return response
     
     # === Lifecycle ===
     

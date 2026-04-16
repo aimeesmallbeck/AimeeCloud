@@ -17,6 +17,7 @@ Usage:
 
 import asyncio
 import logging
+import os
 import signal
 import sys
 import threading
@@ -27,7 +28,7 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from rcl_interfaces.msg import SetParametersResult
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
 from aimee_msgs.msg import Transcription
 
 # Import the brick
@@ -63,6 +64,10 @@ class VoiceManagerNode(Node):
             ('enabled', True),
             ('publish_partials', True),
             ('debug', False),
+            ('whisper_enabled', True),
+            ('whisper_api_key', ''),
+            ('whisper_api_base_url', 'https://api.openai.com/v1/audio/transcriptions'),
+            ('online_topic', '/cloud/connected'),
         ])
 
         # Get parameters
@@ -76,6 +81,10 @@ class VoiceManagerNode(Node):
         self._enabled = self.get_parameter('enabled').value
         self._publish_partials = self.get_parameter('publish_partials').value
         debug = self.get_parameter('debug').value
+        whisper_enabled = self.get_parameter('whisper_enabled').value
+        whisper_api_key = self.get_parameter('whisper_api_key').value or os.environ.get('OPENAI_API_KEY', '')
+        whisper_api_base_url = self.get_parameter('whisper_api_base_url').value
+        online_topic = self.get_parameter('online_topic').value
 
         # Setup QoS
         sensor_qos = QoSProfile(
@@ -117,6 +126,39 @@ class VoiceManagerNode(Node):
             10
         )
 
+        self._tts_speak_sub = self.create_subscription(
+            String,
+            '/tts/speak',
+            self._on_tts_speak,
+            QoSProfile(
+                reliability=ReliabilityPolicy.BEST_EFFORT,
+                history=HistoryPolicy.KEEP_LAST,
+                depth=1
+            )
+        )
+
+        self._tts_speaking_sub = self.create_subscription(
+            Bool,
+            '/tts/is_speaking',
+            self._on_tts_speaking,
+            QoSProfile(
+                reliability=ReliabilityPolicy.BEST_EFFORT,
+                history=HistoryPolicy.KEEP_LAST,
+                depth=1
+            )
+        )
+
+        self._online_sub = self.create_subscription(
+            Bool,
+            online_topic,
+            self._on_online_changed,
+            QoSProfile(
+                reliability=ReliabilityPolicy.BEST_EFFORT,
+                history=HistoryPolicy.KEEP_LAST,
+                depth=1
+            )
+        )
+
         # Parameter callback
         self.add_on_set_parameters_callback(self._on_parameters_changed)
 
@@ -129,13 +171,17 @@ class VoiceManagerNode(Node):
             command_timeout=command_timeout,
             min_command_length=min_command_length,
             energy_threshold=energy_threshold,
-            debug=debug
+            debug=debug,
+            whisper_enabled=whisper_enabled,
+            whisper_api_key=whisper_api_key,
+            whisper_api_base_url=whisper_api_base_url,
         )
 
         # Register callbacks
         self._brick.on_transcription(self._on_transcription)
         if self._publish_partials:
             self._brick.on_partial(self._on_partial)
+        self._brick.on_health(self._on_health)
 
         # Async handling
         self._loop: Optional[asyncio.AbstractEventLoop] = None
@@ -152,6 +198,7 @@ class VoiceManagerNode(Node):
             f"  Sample rate: {sample_rate}Hz\n"
             f"  Audio device: {audio_device}\n"
             f"  Energy threshold: {energy_threshold}\n"
+            f"  Whisper API enabled: {whisper_enabled}\n"
             f"  Continuous mode: True"
         )
 
@@ -213,6 +260,26 @@ class VoiceManagerNode(Node):
             f"(confidence: {result.confidence:.2f})"
         )
 
+    def _on_online_changed(self, msg: Bool):
+        """Update online connectivity state for Whisper fallback."""
+        self._brick.set_online(msg.data)
+        self.get_logger().info(
+            f"Online state changed: {msg.data} "
+            f"(Whisper {'active' if msg.data else 'fallback to Vosk'})"
+        )
+
+    def _on_tts_speak(self, msg: String):
+        """Track TTS text for echo suppression."""
+        self._brick.set_tts_text(msg.data)
+
+    def _on_tts_speaking(self, msg: Bool):
+        """Enable/disable TTS-aware echo suppression."""
+        self._brick.set_tts_active(msg.data)
+        if msg.data:
+            self.get_logger().debug("TTS active — echo suppression enabled")
+        else:
+            self.get_logger().debug("TTS inactive — echo suppression disabled")
+
     def _on_partial(self, result: TranscriptionResult):
         """Callback for partial transcription results."""
         if not self._publish_partials:
@@ -230,6 +297,22 @@ class VoiceManagerNode(Node):
         msg.session_id = result.session_id
 
         self._partial_pub.publish(msg)
+
+    def _on_health(self, report: dict):
+        """Callback for health/diagnostics reports from the brick."""
+        status_msg = String()
+        if not report.get("healthy", True):
+            status_msg.data = f"ERROR: {report.get('issue', 'unknown')} — {report.get('message', '')}"
+            self.get_logger().error(status_msg.data)
+            self._status_pub.publish(status_msg)
+        else:
+            status_msg.data = f"OK: {report.get('message', 'healthy')}"
+            # Only log healthy status at debug level to reduce spam
+            self.get_logger().debug(status_msg.data)
+            # Publish periodically but not every single heartbeat to avoid topic flooding
+            # (the status topic is mainly for external watchdogs; we'll publish on state changes only)
+            # For simplicity we publish every time since the brick already throttles to 10s
+            self._status_pub.publish(status_msg)
 
     def _on_control_command(self, msg: String):
         """
@@ -285,6 +368,16 @@ class VoiceManagerNode(Node):
             elif param.name == 'min_command_length':
                 self._brick.min_command_length = param.value
                 self.get_logger().info(f"Updated min_command_length: {param.value}")
+                results.append(SetParametersResult(successful=True))
+
+            elif param.name == 'whisper_api_key':
+                self._brick._whisper_api_key = param.value
+                self.get_logger().info("Updated whisper_api_key")
+                results.append(SetParametersResult(successful=True))
+
+            elif param.name == 'whisper_api_base_url':
+                self._brick._whisper_api_base_url = param.value
+                self.get_logger().info(f"Updated whisper_api_base_url: {param.value}")
                 results.append(SetParametersResult(successful=True))
 
             else:
