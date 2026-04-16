@@ -12,7 +12,7 @@ package_name = 'aimee_voice_manager'
 setup(
     name=package_name,
     version='0.1.0',
-    packages=[package_name, f'{package_name}.brick'],
+    packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),

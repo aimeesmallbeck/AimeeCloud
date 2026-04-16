@@ -1,13 +1,13 @@
 # AimeeCloud Robot Protocol Specification
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Date:** 2026-04-16
 
 ---
 
 ## 1. Overview
 
-AimeeCloud uses MQTT as the transport layer between robots (clients) and the cloud gateway. All messages are JSON-encoded. The protocol supports session management, keyword-based intent routing, game state handling, and a new LLM-driven agent mode (`AimeeAgent`).
+AimeeCloud uses MQTT as the transport layer between robots (clients) and the cloud gateway. All messages are JSON-encoded. The protocol supports session management, keyword-based intent routing, game state handling, LLM-driven agent mode (`AimeeAgent`), and voice-directed TTS responses.
 
 ---
 
@@ -112,7 +112,7 @@ Supported games: `tic-tac-toe`, `yahtzee`, `candyland`.
 
 Response: `sub_type: "pong"`.
 
-### 4.4 AimeeAgent (`AimeeAgent`) — NEW IN v1.1
+### 4.4 AimeeAgent (`AimeeAgent`)
 Bypasses the keyword router and sends the request directly to the LLM agent. The agent generates both a conversational reply and any robot-specific commands needed to fulfill the action.
 
 ```json
@@ -133,6 +133,12 @@ Bypasses the keyword router and sends the request directly to the LLM agent. The
   "device_id": "arduino-uno-q-001",
   "text": "Sure, let me take a look.",
   "tts": "Sure, let me take a look.",
+  "voice": {
+    "persona": "aimee-default",
+    "id": "sarah",
+    "provider": "lemonfox",
+    "lang": "en"
+  },
   "commands": [
     { "type": "snapshot", "camera": "front", "purpose": "analysis" }
   ],
@@ -165,14 +171,62 @@ Robots MUST execute `commands` in the order provided after (or concurrently with
 |------------|-------------|
 | `chat_response` | General text/tts reply (from keyword routing or LLM fallback). |
 | `robot_command` | Keyword-routed robot action; `command` field contains the directive. |
-| `game_update` | Game state update; includes `game`, `state`, `text`, `tts`. |
-| `aimee_agent` | LLM-agent reply with optional `commands` array (v1.1). |
+| `game_update` | Game state update; includes `game`, `state`, `text`, `tts`, `voice`. |
+| `aimee_agent` | LLM-agent reply with `voice`, optional `voice_segments`, and `commands`. |
 | `pong` | Reply to a `ping`. |
-| `error` | Error condition; includes `error` code and human-readable `text`/`tts`. |
+| `error` | Error condition; includes `error` code, human-readable `text`/`tts`, and `voice`. |
 
 ---
 
-## 6. System Messages (`…/system`)
+## 6. Voice Metadata (v1.2)
+
+Every outbound response (except `session_init`) now includes a `voice` object that tells the robot which TTS voice to use. The robot is responsible for mapping the `voice.id` to its local Lemonfox primary voice, falling back to gTTS if the voice is unavailable.
+
+### 6.1 `voice` object
+
+```json
+{
+  "voice": {
+    "persona": "aimee-default",
+    "id": "sarah",
+    "provider": "lemonfox",
+    "lang": "en",
+    "description": "Warm, friendly default Aimee voice"
+  }
+}
+```
+
+### 6.2 `voice_segments` (optional)
+For rich storytelling or multi-character dialogue, `aimee_agent` responses may include `voice_segments`:
+
+```json
+{
+  "voice_segments": [
+    { "speaker": "Narrator", "text": "Once upon a time...", "voice": "narrator" },
+    { "speaker": "Dragon", "text": "Roar!", "voice": "character-dragon" }
+  ]
+}
+```
+
+When `voice_segments` is present, the robot SHOULD synthesize and play each segment sequentially in order, using the per-segment `voice` mapped through the voice registry.
+
+### 6.3 Voice Personas
+The gateway maintains a `voiceRegistry.json` that maps abstract personas to concrete provider voice IDs. Suggested personas include:
+
+| Persona | Example ID | Use Case |
+|---------|------------|----------|
+| `aimee-default` | `sarah` | Normal conversational replies |
+| `aimee-surprised` | `jessica` | Expressive reactions |
+| `aimee-calm` | `echo` | Soothing / reassuring tone |
+| `narrator` | `liam` | Story narration |
+| `character-wizard` | `adam` | Elderly male character |
+| `character-dragon` | `onyx` | Deep, gruff creature |
+| `character-fairy` | `fable` | Light, playful voice |
+| `game-announcer` | `echo` | Neutral game updates |
+
+---
+
+## 7. System Messages (`…/system`)
 
 Sent by operators or deployment tools via `send-system-message.js`.
 
@@ -180,9 +234,9 @@ Sent by operators or deployment tools via `send-system-message.js`.
 {
   "type": "protocol_update",
   "device_id": "arduino-uno-q-001",
-  "msg_id": "proto-v1.1-20260416",
+  "msg_id": "proto-v1.2-20260416",
   "timestamp": "2026-04-16T07:00:00.000Z",
-  "version": "1.1"
+  "version": "1.2"
 }
 ```
 
@@ -195,7 +249,12 @@ Supported system message types:
 
 ---
 
-## 7. Change Log
+## 8. Change Log
+
+### v1.2 — 2026-04-16
+- Added `voice` metadata to all outbound response types.
+- Added optional `voice_segments` array for multi-character TTS (stories, dramatic readings).
+- AimeeAgent LLM prompt updated to select voice persona and emit `voice_segments` when appropriate.
 
 ### v1.1 — 2026-04-16
 - Added `AimeeAgent` inbound message type and `aimee_agent` response sub-type.

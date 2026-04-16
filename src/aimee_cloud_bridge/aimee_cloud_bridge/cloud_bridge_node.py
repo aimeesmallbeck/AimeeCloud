@@ -57,8 +57,6 @@ class AimeeCloudClientNode(Node):
             ('reconnect_interval_sec', 5.0),
             ('ping_interval_sec', 60.0),
             ('session_file', '/home/arduino/.config/aimee_session.json'),
-            ('enable_interstitials', False),
-            ('interstitial_phrases', ["Hey! I'm Aimee."]),
         ])
 
         self._device_id = self.get_parameter('device_id').value
@@ -72,8 +70,6 @@ class AimeeCloudClientNode(Node):
         self._reconnect_interval_sec = self.get_parameter('reconnect_interval_sec').value
         self._ping_interval_sec = self.get_parameter('ping_interval_sec').value
         self._session_file = self.get_parameter('session_file').value
-        self._enable_interstitials = self.get_parameter('enable_interstitials').value
-        self._interstitial_phrases = self.get_parameter('interstitial_phrases').value
 
         self._capabilities = {
             "input": ["voice", "text"],
@@ -117,6 +113,9 @@ class AimeeCloudClientNode(Node):
 
         # Subscriber for manual snapshot uploads from monitor/dashboard
         self.create_subscription(String, '/cloud/snapshot_manual_upload', self._on_manual_snapshot_upload, 10)
+
+        # Subscriber for session clear requests from monitor/dashboard
+        self.create_subscription(Bool, '/cloud/clear_session', self._on_clear_session, 10)
 
         # Timers for reconnect and ping
         self._reconnect_timer = self.create_timer(self._reconnect_interval_sec, self._reconnect_tick)
@@ -243,7 +242,11 @@ class AimeeCloudClientNode(Node):
         try:
             payload = json.loads(msg.payload.decode("utf-8"))
             topic = msg.topic
-            self.get_logger().info(f"Received MQTT on {topic}: {json.dumps(payload)}")
+            is_pong = payload.get("sub_type") == "pong"
+            if is_pong:
+                self.get_logger().debug(f"Received MQTT on {topic}: {json.dumps(payload)}")
+            else:
+                self.get_logger().info(f"Received MQTT on {topic}: {json.dumps(payload)}")
 
             if topic.endswith("/out"):
                 self._handle_out_message(payload)
@@ -278,24 +281,25 @@ class AimeeCloudClientNode(Node):
         sub_type = payload.get("sub_type")
         tts = payload.get("tts", "")
 
+        voice = payload.get("voice", {})
+        voice_segments = payload.get("voice_segments", [])
+
         if sub_type == "chat_response":
-            self._on_chat_response(tts)
+            self._speak_response(tts, voice, voice_segments)
         elif sub_type == "game_update":
-            self._on_chat_response(tts)
+            self._speak_response(tts, voice, voice_segments)
             self.get_logger().info(f"Game update received")
         elif sub_type == "robot_command":
             intent = payload.get("intent", "")
             command = payload.get("command", {})
-            self._on_robot_command(intent, command, tts)
+            self._on_robot_command(intent, command, tts, voice, voice_segments)
         elif sub_type == "aimee_agent":
             text = payload.get("tts", "") or payload.get("text", "")
             commands = payload.get("commands", [])
-            self._on_chat_response(text)
+            self._speak_response(text, voice, voice_segments)
             for cmd in commands:
                 self._execute_command(cmd)
             self.get_logger().info(f"AimeeAgent response handled with {len(commands)} commands")
-        elif sub_type == "interstitial":
-            self.get_logger().debug(f"Received interstitial from cloud: {tts[:60]}...")
         elif sub_type == "pong":
             self.get_logger().debug("Received pong from cloud")
         elif sub_type == "error":
@@ -306,7 +310,7 @@ class AimeeCloudClientNode(Node):
                 self._publish_connect()
             else:
                 if tts:
-                    self._on_chat_response(tts)
+                    self._speak_response(tts, voice, voice_segments)
                 self.get_logger().error(f"Cloud error: {error_code}")
 
     def _handle_status_message(self, payload: dict):
@@ -406,7 +410,7 @@ class AimeeCloudClientNode(Node):
         if intent_dict:
             payload["intent"] = intent_dict
         self._mqtt_client.publish(topic, json.dumps(payload), qos=1)
-        self.get_logger().info(f"Published intent: {text[:50]}")
+        self.get_logger().info(f"Published intent: {text}")
 
     def send_game_move(self, game: str, move: dict):
         if not self._mqtt_client:
@@ -463,7 +467,7 @@ class AimeeCloudClientNode(Node):
             "timestamp": self._iso_timestamp()
         }
         self._mqtt_client.publish(topic, json.dumps(payload), qos=1)
-        self.get_logger().info(f"Published AimeeAgent request: {text[:50]}...")
+        self.get_logger().info(f"Published AimeeAgent request: {text}")
 
     # ─────────────────────────────── ROS2 Callbacks ───────────────────────────────
 
@@ -481,17 +485,34 @@ class AimeeCloudClientNode(Node):
     def _on_cloud_raw_text(self, msg: String):
         self.send_agent_request(msg.data)
 
-    def _on_chat_response(self, text: str):
+    def _speak_response(self, text: str, voice: dict = None, voice_segments: list = None):
+        """Publish TTS text, optionally with voice metadata from AimeeCloud."""
+        if voice_segments:
+            for segment in voice_segments:
+                seg_text = segment.get("text", "")
+                seg_voice = segment.get("voice", "")
+                if seg_text:
+                    speak_text = self._format_tts_text(seg_text, voice_id=seg_voice)
+                    self._tts_pub.publish(String(data=speak_text))
+                    self.get_logger().info(f"Cloud TTS segment ({seg_voice}): {seg_text[:60]}...")
+            return
+
         if not text:
             return
-        normalized = text.strip().rstrip('.').lower()
-        if not self._enable_interstitials:
-            for phrase in self._interstitial_phrases:
-                if normalized == phrase.strip().rstrip('.').lower():
-                    self.get_logger().debug(f"Suppressed interstitial: {text[:60]}...")
-                    return
-        self._tts_pub.publish(String(data=text))
+        speak_text = self._format_tts_text(text, voice=voice)
+        self._tts_pub.publish(String(data=speak_text))
         self.get_logger().info(f"Cloud TTS: {text[:60]}...")
+
+    def _format_tts_text(self, text: str, voice: dict = None, voice_id: str = "") -> str:
+        """Format TTS text with engine|voice prefix for the TTS node."""
+        provider = "lemonfox"
+        vid = voice_id
+        if not vid and voice:
+            vid = voice.get("id", "")
+            provider = voice.get("provider", provider)
+        if vid:
+            return f"{provider}|{vid}:{text}"
+        return text
 
     def _on_manual_snapshot_upload(self, msg: String):
         """Handle a snapshot manually uploaded from the monitor dashboard."""
@@ -510,6 +531,13 @@ class AimeeCloudClientNode(Node):
             self.get_logger().info(f"Manual snapshot uploaded to AimeeCloud: {request_id}")
         except Exception as e:
             self.get_logger().error(f"Manual snapshot upload error: {e}")
+
+    def _on_clear_session(self, msg: Bool):
+        """Handle a session clear request from the monitor dashboard."""
+        self.get_logger().info("Received session clear request from monitor")
+        self._clear_session()
+        self._publish_connect()
+        self.get_logger().info("Session cleared and reconnect published; next request will use a new session")
 
     def _handle_snapshot_request(self, payload: dict):
         """Handle snapshot_request from AimeeCloud."""
@@ -646,7 +674,7 @@ class AimeeCloudClientNode(Node):
             self.get_logger().error(f"Failed to start usb_camera: {e}")
             return False
 
-    def _on_robot_command(self, intent: str, command: dict, text: str):
+    def _on_robot_command(self, intent: str, command: dict, text: str, voice: dict = None, voice_segments: list = None):
         motor = command.get("motor")
         arm = command.get("arm")
         gripper = command.get("gripper")
@@ -682,7 +710,7 @@ class AimeeCloudClientNode(Node):
             self._arm_cmd_pub.publish(arm_msg)
 
         if text:
-            self._on_chat_response(text)
+            self._speak_response(text, voice, voice_segments)
 
         self.get_logger().info(f"Robot command executed: {intent}")
 

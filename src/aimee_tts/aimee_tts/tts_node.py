@@ -52,15 +52,17 @@ class TTSNode(Node):
         self.declare_parameters(
             namespace="",
             parameters=[
-                ("default_engine", "gtts"),
+                ("default_engine", "lemonfox"),
                 ("fallback_engine", "gtts"),
                 ("auto_fallback", True),
-                ("default_voice", "af_heart"),
+                ("default_voice", "sarah"),
                 ("kokoro_lang", "en-us"),
                 ("kokoro_speed", 1.0),
                 ("gtts_lang", "en"),
                 ("gtts_tld", "com"),
                 ("gtts_slow", False),
+                ("lemonfox_api_key", ""),
+                ("lemonfox_api_base_url", "https://api.lemonfox.ai/v1"),
                 ("volume", 1.0),
                 ("speed", 1.0),
                 ("use_pygame", True),
@@ -78,6 +80,8 @@ class TTSNode(Node):
         gtts_lang = self.get_parameter("gtts_lang").value
         gtts_tld = self.get_parameter("gtts_tld").value
         gtts_slow = self.get_parameter("gtts_slow").value
+        lemonfox_api_key = self.get_parameter("lemonfox_api_key").value
+        lemonfox_api_base_url = self.get_parameter("lemonfox_api_base_url").value
         volume = self.get_parameter("volume").value
         speed = self.get_parameter("speed").value
         use_pygame = self.get_parameter("use_pygame").value
@@ -113,6 +117,8 @@ class TTSNode(Node):
             gtts_lang=gtts_lang,
             gtts_tld=gtts_tld,
             gtts_slow=gtts_slow,
+            lemonfox_api_key=lemonfox_api_key,
+            lemonfox_api_base_url=lemonfox_api_base_url,
         )
 
         # Runtime state
@@ -153,9 +159,9 @@ class TTSNode(Node):
 
     def _init_pygame(self):
         try:
-            pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+            pygame.mixer.init(frequency=24000, size=-16, channels=1, buffer=512)
             self._pygame_initialized = True
-            self.get_logger().info("Pygame mixer initialized")
+            self.get_logger().info("Pygame mixer initialized at 24kHz")
         except Exception as e:
             self.get_logger().warning(f"Failed to initialize pygame: {e}")
             self._pygame_initialized = False
@@ -175,7 +181,7 @@ class TTSNode(Node):
             engine_part = prefix
             if "|" in engine_part:
                 engine_part, voice = engine_part.split("|", 1)
-            if engine_part.lower() in ("gtts", "kokoro", "auto"):
+            if engine_part.lower() in ("lemonfox", "gtts", "kokoro", "auto"):
                 engine = engine_part.lower()
                 text = rest
                 voice = voice.strip() if voice else None

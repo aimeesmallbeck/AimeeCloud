@@ -581,8 +581,8 @@ Each ROS2 node wraps a brick and handles:
 | Node | Package | Purpose | ROS2 Interface | Status |
 |------|---------|---------|----------------|--------|
 | `wake_word_ei` | `aimee_wake_word_ei` | Edge Impulse wake word detection | Publishes `/wake_word/detected` | ✅ **COMPLETE** |
-| `voice_manager` | `aimee_voice_manager` | Vosk STT/Voice recording | Publishes `/voice/transcription` | ✅ **COMPLETE** |
-| `tts` | `aimee_tts` | Piper/gTTS text-to-speech | Subscribes `/tts/speak` | ✅ **COMPLETE** |
+| `voice_manager` | `aimee_voice_manager` | Vosk STT/Voice recording (standard ROS2 node) | Publishes `/voice/transcription` | ✅ **COMPLETE** |
+| `tts` | `aimee_tts` | Lemonfox primary + Kokoro/gTTS fallback | Subscribes `/tts/speak` | ✅ **COMPLETE** |
 | `llm_server` | `aimee_llm_server` | LLM Action Server | **Action** `/llm/generate` | ✅ **COMPLETE** |
 | `intent_router` | `aimee_intent_router` | Intent classification & routing (local only, rest → AimeeAgent) | Publishes `/intent/classified` | ✅ **COMPLETE** |
 | `skill_manager` | `aimee_skill_manager` | Skill execution management | **Action** `/skill/execute` | ✅ **COMPLETE** |
@@ -856,6 +856,24 @@ The Intent Router loads keyword/phrase matching rules from an external JSON conf
 
 Instead of sending `type: "intent"` messages to AimeeCloud, the ACC now publishes `type: "AimeeAgent"` messages. This bypasses AimeeCloud's keyword router and sends the request directly to the LLM agent. Responses come back with `sub_type: "aimee_agent"` and may include a `commands` array that the ACC executes locally.
 
+**Voice Metadata (Protocol v1.2)**
+
+Every outbound response now includes a `voice` object that tells the robot which TTS voice to use. The ACC maps the `voice.id` to the local TTS engine and publishes formatted speak messages (e.g., `lemonfox|sarah:Hello!`).
+
+```json
+{
+  "voice": {
+    "persona": "aimee-default",
+    "id": "sarah",
+    "provider": "lemonfox",
+    "lang": "en",
+    "description": "Warm, friendly default Aimee voice"
+  }
+}
+```
+
+For rich storytelling, responses may also include `voice_segments` — an array of `{speaker, text, voice}` objects that the robot synthesizes and plays sequentially.
+
 **AimeeAgent Command Reference:**
 
 | Command | Action | ROS2 Output |
@@ -895,6 +913,12 @@ The AimeeCloud protocol is documented in `docs/AimeeCloud_Protocol_v1.1.md`.
   "device_id": "arduino-uno-q-001",
   "text": "Sure, let me take a look.",
   "tts": "Sure, let me take a look.",
+  "voice": {
+    "persona": "aimee-default",
+    "id": "sarah",
+    "provider": "lemonfox",
+    "lang": "en"
+  },
   "commands": [
     { "type": "snapshot", "camera": "front", "purpose": "analysis" }
   ],
@@ -1259,29 +1283,31 @@ Create a checkpoint/summary system to track daily progress:
 | ROS2 Workspace | ✅ Complete | `~/aimee-robot-ws/` with colcon build |
 | Message Types | ✅ Complete | `aimee_msgs` with custom types |
 | Wake Word | ✅ Complete | Edge Impulse integration |
-| Voice Manager | ✅ Complete | Vosk STT with partial results |
-| TTS | ✅ Complete | Kokoro + gTTS (standard ROS2 node) |
+| Voice Manager | ✅ Complete | Vosk STT with partial results (migrated to standard ROS2 node, auto-recovery for arecord stalls) |
+| TTS | ✅ Complete | Lemonfox primary + Kokoro/gTTS fallback (standard ROS2 node) |
 | LLM Server | ✅ Complete | Action server with streaming |
 | Intent Router | ✅ Complete | External JSON config, exact-phrase matching, hot-reload |
 | Skill Manager | ✅ Complete | Action server for skill execution |
 | Arduino Utils | ✅ Complete | `@brick` decorator framework |
 | UGV02 Control | ✅ Complete | JSON serial protocol, teleop, Nav2 ready |
 | RoArm Control | ✅ Complete | Simulated (ready for real arm) |
-| Cloud Bridge | ✅ Complete | AimeeCloud MQTT client with AimeeAgent support |
+| Cloud Bridge | ✅ Complete | AimeeCloud MQTT client with AimeeAgent support, session clear + auto-reconnect |
 | Vision/OBSBOT | ✅ Complete | SDK-based camera control |
 | Vision Pipeline | ✅ Complete | Color detection & tracking |
 | Perception | ✅ Complete | 3D pose estimation & grasp planning |
 | Manipulation | ✅ Complete | PickPlace action server |
 | Memory | ⬜ TODO | Context persistence |
 | PickPlace Skill | 🔄 Ready | Waiting for voice integration |
-| ROS2 Monitor | ✅ COMPLETE | Management console at :8081 |
+| ROS2 Monitor | ✅ COMPLETE | Management console at :8081 with Cloud Session clear, TTS/STT tests, log viewer |
 
 ---
 
-*Document Version: 2.6*  
+*Document Version: 2.7*  
 *Last Updated: April 16, 2026*  
 *Vision System: COMPLETE*  
 *ROS2 Monitor: COMPLETE*  
-*Intent Router: COMPLETE (external config + exact-phrase matching + AimeeAgent forwarding)*  
+*Intent Router: COMPLETE (external config + exact-phrase matching + AimeeAgent forwarding)*
+*TTS: COMPLETE (Lemonfox primary + Kokoro/gTTS fallback with voice metadata support)*  
+*Voice Manager: COMPLETE (migrated to standard ROS2 node with auto-recovery)*  
 *Author: AI Assistant*  
 *Status: Phase 4 In Progress - Hardware Control*

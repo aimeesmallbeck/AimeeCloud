@@ -153,6 +153,75 @@
 
 ---
 
+## 🎤 Voice Manager Migration to Standard ROS2 Node (2026-04-16)
+
+### What Was Done
+
+1. **Migrated `voice_manager` from Brick Pattern to Standard ROS2 Node**
+   - Merged `brick/voice_manager.py` directly into `voice_manager_node.py`
+   - Removed the background asyncio thread and brick callbacks
+   - The Vosk listen loop now runs as a simple `threading.Thread` inside the node
+   - TTS echo suppression now uses native ROS2 subscriptions (`/tts/is_speaking`, `/tts/speak`) directly
+   - Removed `brick` package from `setup.py`; `brick/voice_manager.py` is now unused
+
+2. **Added Auto-Recovery for Audio Capture Stalls**
+   - Replaced blocking `stdout.read(4000)` with `select.select` + `os.read` in the listen loop
+   - Detects arecord stalls (no data for 5+ seconds) and exits the loop, triggering auto-restart after 2 seconds
+   - Detects arecord process death and restarts automatically
+   - Detects zero-byte silence floods and restarts
+
+3. **Fixed OBSBOT Microphone Dependency on `usb_cam`**
+   - Discovered that the OBSBOT Tiny 2 Lite microphone only produces audio when its video stream is active
+   - Added `_ensure_usb_camera_running()` to start `usb_cam_node_exe` before the listen loop
+   - Includes a 3-second delay to let the V4L2 interface activate the mic
+   - Verified: `hw_ptr` and `appl_ptr` advance correctly after `usb_cam` starts
+
+4. **PONG Log Spam Reduction**
+   - Changed AimeeCloud Client (`cloud_bridge_node.py`) to log MQTT `pong` messages at `debug` level instead of `info`
+
+### Files Modified
+```
+/home/arduino/aimee-robot-ws/
+├── src/aimee_voice_manager/
+│   ├── aimee_voice_manager/voice_manager_node.py      [REWRITTEN - merged brick, standard ROS2 node]
+│   └── setup.py                                         [UPDATED - removed brick package]
+├── src/aimee_cloud_bridge/
+│   └── aimee_cloud_bridge/cloud_bridge_node.py          [UPDATED - pong at debug level]
+└── CHECKPOINT.md                                        [THIS FILE - updated]
+```
+
+---
+
+## ☁️ Monitor Cloud Session Clear Button (2026-04-16)
+
+### What Was Done
+
+1. **Added "Clear AimeeCloud Session" Button to Monitor Dashboard**
+   - New "☁️ Cloud Session" panel in the left sidebar
+   - Button publishes `Bool(data=True)` to `/cloud/clear_session`
+
+2. **Cloud Bridge Handles Session Clear**
+   - New subscriber `/cloud/clear_session` in `cloud_bridge_node.py`
+   - Calls `_clear_session()` then immediately `_publish_connect()` to request a new session from AimeeCloud
+   - Fixed initial bug where clearing only deleted the local session file without sending a new `connect`, causing subsequent requests to fail
+
+3. **End-to-End Verification**
+   - Clicked "Clear Session" → local session cleared → new `connect` sent → AimeeCloud replied with `session_init`
+   - Voice query "What time is it in Seattle right now?" flowed through correctly after session reset
+
+### Files Modified
+```
+/home/arduino/aimee-robot-ws/
+├── src/aimee_cloud_bridge/
+│   └── aimee_cloud_bridge/cloud_bridge_node.py          [UPDATED - clear_session subscriber + reconnect]
+├── src/aimee_ros2_monitor/
+│   ├── aimee_ros2_monitor/monitor_node.py               [UPDATED - /cloud/clear_session publisher + API endpoint]
+│   └── aimee_ros2_monitor/templates/index.html          [UPDATED - Cloud Session panel + JS handler]
+└── CHECKPOINT.md                                        [THIS FILE - updated]
+```
+
+---
+
 ## 🤖 AimeeAgent Migration & ACC Command Execution (2026-04-16)
 
 ### What Was Done
@@ -219,6 +288,55 @@
   - Gripper: `{ "type": "gripper", "action": "open" }`
   - Snapshot: `{ "type": "snapshot", "camera": "front", "purpose": "analysis" }`
   - Game move: `{ "type": "game_move", "game": "tic-tac-toe", "position": 4 }`
+
+---
+
+## 🔊 Lemonfox TTS Primary, Voice Metadata & Interstitial Removal (2026-04-16)
+
+### What Was Done
+
+1. **Retrieved AimeeCloud Protocol v1.2**
+   - Subscribed to MQTT topic `aimeecloud/service/protocol`
+   - Saved updated spec to `docs/AimeeCloud_Protocol_v1.1.md`
+   - Key addition: `voice` object in all outbound responses and optional `voice_segments` for multi-character dialogue
+
+2. **Added Lemonfox.ai TTS Engine**
+   - Implemented `LemonfoxEngine` in `tts_engines.py` using OpenAI-compatible TTS API (`/v1/audio/speech`)
+   - Added API key and base URL parameters to `TTSEngineManager` and `TTSNode`
+   - Updated `core.launch.py` to pass the Lemonfox API key and set `default_engine:=lemonfox`, `fallback_engine:=gtts`
+   - Updated `brick_config.yaml` to reflect new defaults
+
+3. **TTS Node Voice Support**
+   - `tts_node.py` now recognizes `lemonfox` in the `engine|voice:text` prefix parser
+   - Default voice changed from `af_heart` (Kokoro) to `sarah` (Lemonfox)
+   - All three engines available: `lemonfox`, `kokoro`, `gtts`
+
+4. **AimeeCloud Client Voice Integration**
+   - ACC parses `voice` metadata from every AimeeCloud response
+   - Publishes TTS with engine|voice prefix (e.g., `lemonfox|sarah:Hello!`)
+   - Supports `voice_segments`: publishes sequential `/tts/speak` messages with per-segment voice mapping
+   - `robot_command`, `chat_response`, `game_update`, `error`, and `aimee_agent` sub-types all pass voice info to TTS
+
+5. **Removed Interstitial Responses**
+   - Stripped `_enable_interstitials`, `_interstitial_phrases`, and suppression logic from ACC
+   - Interstitials unnecessary while AimeeCloud is online (responses are fast)
+   - Will re-introduce later as part of offline fallback architecture
+
+### Files Modified
+
+```
+/home/arduino/aimee-robot-ws/
+├── docs/AimeeCloud_Protocol_v1.1.md                    [UPDATED - protocol v1.2 retrieved]
+├── src/aimee_tts/
+│   ├── aimee_tts/tts_engines.py                       [UPDATED - LemonfoxEngine added]
+│   ├── aimee_tts/tts_node.py                          [UPDATED - lemonfox support, voice params]
+│   └── config/brick_config.yaml                       [UPDATED - lemonfox defaults]
+├── src/aimee_cloud_bridge/
+│   └── aimee_cloud_bridge/cloud_bridge_node.py        [UPDATED - voice support, removed interstitials]
+├── src/aimee_bringup/launch/core.launch.py            [UPDATED - lemonfox TTS params]
+├── Aimee_Project_Plan.md                              [UPDATED - TTS and voice docs]
+└── CHECKPOINT.md                                      [THIS FILE - updated]
+```
 
 ---
 
@@ -295,4 +413,4 @@
 - `aimee_bringup/launch/core.launch.py`: `default_engine` changed from `kokoro` back to `gtts`.
 - `aimee_tts/config/brick_config.yaml`: `DEFAULT_ENGINE` default and `development` profile changed from `kokoro` back to `gtts`.
 
-**Status:** 🤖 **VIDEO PIPELINE SEPARATED, MONITOR OPERATIONAL, TTS MIGRATED TO STANDARD ROS2 NODE, INTENT ROUTER REWRITTEN WITH EXTERNAL CONFIG, AIMEEAGENT PROTOCOL IMPLEMENTED!**
+**Status:** 🤖 **VIDEO PIPELINE SEPARATED, MONITOR OPERATIONAL, TTS MIGRATED TO STANDARD ROS2 NODE WITH LEMONFOX PRIMARY, INTENT ROUTER REWRITTEN WITH EXTERNAL CONFIG, AIMEEAGENT PROTOCOL IMPLEMENTED WITH VOICE SUPPORT!**

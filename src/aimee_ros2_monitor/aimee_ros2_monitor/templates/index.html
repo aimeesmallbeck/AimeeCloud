@@ -354,11 +354,47 @@
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="panel-content" style="padding: 0.75rem;">
+                    <div class="tts-row" style="margin-bottom: 0.5rem;">
+                        <select id="ttsVoice" style="background: var(--bg-dark); color: var(--text); border: 1px solid var(--bg-card); padding: 0.5rem; border-radius: 4px; font-size: 0.9rem;">
+                            <option value="">Default Voice</option>
+                        </select>
+                    </div>
                     <div class="tts-row">
                         <input type="text" id="ttsInput" placeholder="Type something to say..." onkeydown="if(event.key==='Enter') speakTTS()">
                         <button onclick="speakTTS()">Speak</button>
                     </div>
                     <div id="ttsMessage" class="tts-message"></div>
+                </div>
+            </div>
+
+            <!-- STT Test -->
+            <div class="panel collapsible" style="flex: 0 0 auto; min-height: 80px;">
+                <div class="panel-header" onclick="togglePanel(this)">
+                    <span>🎤 STT Test</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="panel-content" style="padding: 0.75rem;">
+                    <div class="tts-row">
+                        <input type="text" id="sttInput" placeholder="Type text to send as transcription..." onkeydown="if(event.key==='Enter') submitSTT()">
+                        <button onclick="submitSTT()">Submit</button>
+                    </div>
+                    <div id="sttMessage" class="tts-message"></div>
+                </div>
+            </div>
+
+            <!-- Cloud Session -->
+            <div class="panel collapsible" style="flex: 0 0 auto; min-height: 80px;">
+                <div class="panel-header" onclick="togglePanel(this)">
+                    <span>☁️ Cloud Session</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="panel-content" style="padding: 0.75rem;">
+                    <div class="tts-row">
+                        <button class="core-btn core-stop" onclick="clearCloudSession()" style="flex:1; padding: 0.5rem; font-size: 0.85rem;">
+                            Clear AimeeCloud Session
+                        </button>
+                    </div>
+                    <div id="cloudSessionMessage" class="tts-message"></div>
                 </div>
             </div>
         </div>
@@ -486,6 +522,19 @@
             </div>
         </div>
     </div>
+
+    <!-- Log Detail Modal -->
+    <div class="modal-overlay" id="logDetailModal" onclick="closeLogDetail(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Log Detail</h3>
+                <button onclick="closeLogDetail()">&times;</button>
+            </div>
+            <div class="modal-content" id="logDetailContent">
+                <p style="color:var(--text-muted);">Loading...</p>
+            </div>
+        </div>
+    </div>
     
     <style>
         .ptz-btn {
@@ -520,6 +569,7 @@
             loadManagedNodes();
             updateStatus();
             updateMetrics();
+            loadTTSVoices();
             
             setInterval(() => {
                 if (autoRefresh) {
@@ -560,7 +610,10 @@
             debounceTimer = setTimeout(loadLogs, 300);
         }
         
+        let currentLogs = [];
+
         function renderLogs(logs) {
+            currentLogs = logs;
             const tbody = document.getElementById('logTableBody');
             
             if (logs.length === 0) {
@@ -568,15 +621,15 @@
                 return;
             }
             
-            const html = logs.map(log => {
+            const html = logs.map((log, index) => {
                 const time = new Date(log.timestamp).toLocaleTimeString();
                 const levelClass = `level-${log.level}`;
                 return `
-                    <tr>
+                    <tr onclick="showLogDetail(${index})" style="cursor:pointer;">
                         <td class="timestamp">${time}</td>
                         <td class="${levelClass}">${log.level.toUpperCase()}</td>
                         <td class="node-name" title="${log.node}">${truncate(log.node, 20)}</td>
-                        <td title="${escapeHtml(log.msg)}">${escapeHtml(truncate(log.msg, 80))}</td>
+                        <td title="Click to view full message">${escapeHtml(truncate(log.msg, 80))}</td>
                     </tr>
                 `;
             }).join('');
@@ -697,6 +750,26 @@
         function closeModal(event) {
             if (!event || event.target.id === 'nodeModal') {
                 document.getElementById('nodeModal').classList.remove('active');
+            }
+        }
+
+        // ==================== Log Detail Modal ====================
+        function showLogDetail(index) {
+            const log = currentLogs[index];
+            if (!log) return;
+            const modal = document.getElementById('logDetailModal');
+            const time = new Date(log.timestamp).toLocaleString();
+            document.getElementById('logDetailContent').innerHTML = `
+                <div style="margin-bottom:0.5rem;color:var(--text-muted);font-size:0.8rem;">${time}</div>
+                <div style="margin-bottom:0.5rem;"><span class="level-${log.level}">${log.level.toUpperCase()}</span> · <span style="color:var(--accent-green);">${escapeHtml(log.node)}</span></div>
+                <pre style="background:var(--bg-dark);padding:0.75rem;border-radius:4px;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:0.9rem;">${escapeHtml(log.msg)}</pre>
+            `;
+            modal.classList.add('active');
+        }
+
+        function closeLogDetail(event) {
+            if (!event || event.target.id === 'logDetailModal') {
+                document.getElementById('logDetailModal').classList.remove('active');
             }
         }
         
@@ -1198,8 +1271,21 @@
         }
         
         // ==================== TTS Test ====================
+        async function loadTTSVoices() {
+            try {
+                const response = await fetch('/api/tts/voices');
+                const data = await response.json();
+                const select = document.getElementById('ttsVoice');
+                select.innerHTML = '<option value="">Default Voice</option>' +
+                    data.voices.map(v => `<option value="${v}" ${v === data.default ? 'selected' : ''}>${v}</option>`).join('');
+            } catch (err) {
+                console.error('Failed to load TTS voices:', err);
+            }
+        }
+
         async function speakTTS() {
             const input = document.getElementById('ttsInput');
+            const voiceSelect = document.getElementById('ttsVoice');
             const msg = document.getElementById('ttsMessage');
             const text = input.value.trim();
             if (!text) {
@@ -1213,7 +1299,7 @@
                 const response = await fetch('/api/tts/speak', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
+                    body: JSON.stringify({ text, voice: voiceSelect.value })
                 });
                 const data = await response.json();
                 if (data.success) {
@@ -1229,7 +1315,60 @@
                 msg.style.color = 'var(--error)';
             }
         }
-        
+
+        // ==================== STT Test ====================
+        async function submitSTT() {
+            const input = document.getElementById('sttInput');
+            const msg = document.getElementById('sttMessage');
+            const text = input.value.trim();
+            if (!text) {
+                msg.textContent = 'Please enter some text';
+                msg.style.color = 'var(--warn)';
+                return;
+            }
+            msg.textContent = 'Sending...';
+            msg.style.color = 'var(--text-muted)';
+            try {
+                const response = await fetch('/api/stt/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    msg.textContent = 'Sent transcription: ' + truncate(text, 40);
+                    msg.style.color = '#28a745';
+                    input.value = '';
+                } else {
+                    msg.textContent = data.error || 'Failed';
+                    msg.style.color = 'var(--error)';
+                }
+            } catch (err) {
+                msg.textContent = 'Error: ' + err.message;
+                msg.style.color = 'var(--error)';
+            }
+        }
+
+        async function clearCloudSession() {
+            const msg = document.getElementById('cloudSessionMessage');
+            msg.textContent = 'Clearing session...';
+            msg.style.color = 'var(--text-muted)';
+            try {
+                const response = await fetch('/api/session/clear', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    msg.textContent = 'Session cleared. Next request will start a new session.';
+                    msg.style.color = '#28a745';
+                } else {
+                    msg.textContent = data.error || 'Failed to clear session';
+                    msg.style.color = 'var(--error)';
+                }
+            } catch (err) {
+                msg.textContent = 'Error: ' + err.message;
+                msg.style.color = 'var(--error)';
+            }
+        }
+
         // ==================== Utilities ====================
         function truncate(str, maxLen) {
             if (str.length <= maxLen) return str;
@@ -1249,7 +1388,9 @@
         
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                if (document.getElementById('cameraModal').classList.contains('active')) {
+                if (document.getElementById('logDetailModal').classList.contains('active')) {
+                    closeLogDetail();
+                } else if (document.getElementById('cameraModal').classList.contains('active')) {
                     closeCameraModal();
                 } else if (document.getElementById('topicModal').classList.contains('active')) {
                     closeTopicModal();

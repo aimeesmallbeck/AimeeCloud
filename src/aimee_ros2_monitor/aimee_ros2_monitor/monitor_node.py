@@ -32,12 +32,13 @@ from std_msgs.msg import String, Bool
 from geometry_msgs.msg import Twist
 
 try:
-    from aimee_msgs.msg import TrackingCommand
+    from aimee_msgs.msg import TrackingCommand, Transcription
     from aimee_msgs.srv import CaptureSnapshot
     AIMEE_MSGS_AVAILABLE = True
 except ImportError:
     AIMEE_MSGS_AVAILABLE = False
     CaptureSnapshot = None
+    Transcription = None
 
 try:
     from rosidl_runtime_py.utilities import get_message
@@ -547,19 +548,67 @@ def camera_control():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+# Lemonfox voice list (matching tts_engines.py)
+LEMONFOX_VOICES = [
+    "sarah", "jessica", "liam", "echo", "adam",
+    "onyx", "fable", "nova", "shimmer", "alloy"
+]
+
+
+@app.route('/api/tts/voices')
+def tts_voices():
+    """Return available TTS voices."""
+    return jsonify({
+        'voices': LEMONFOX_VOICES,
+        'default': 'sarah'
+    })
+
+
 @app.route('/api/tts/speak', methods=['POST'])
 def tts_speak():
-    """Publish a TTS message for testing."""
+    """Publish a TTS message for testing with optional voice selection."""
     data = request.get_json() or {}
     text = data.get('text', '')
+    voice = data.get('voice', '')
     if not text:
         return jsonify({'success': False, 'error': 'No text provided'}), 400
     if _ros_node is None:
         return jsonify({'success': False, 'error': 'ROS2 node not ready'}), 503
     try:
         msg = String()
-        msg.data = text
+        if voice:
+            msg.data = f"lemonfox|{voice}:{text}"
+        else:
+            msg.data = text
         _ros_node._tts_pub.publish(msg)
+        return jsonify({'success': True, 'text': msg.data})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/stt/submit', methods=['POST'])
+def stt_submit():
+    """Simulate an STT transcription by publishing to /voice/transcription."""
+    data = request.get_json() or {}
+    text = data.get('text', '')
+    if not text:
+        return jsonify({'success': False, 'error': 'No text provided'}), 400
+    if _ros_node is None:
+        return jsonify({'success': False, 'error': 'ROS2 node not ready'}), 503
+    if _ros_node._stt_pub is None:
+        return jsonify({'success': False, 'error': 'Transcription publisher not available'}), 503
+    try:
+        msg = Transcription()
+        msg.text = text
+        msg.confidence = 1.0
+        msg.source = 'monitor_test'
+        msg.is_command = True
+        msg.is_partial = False
+        msg.wake_word_detected = False
+        msg.wake_word = ""
+        msg.timestamp = _ros_node.get_clock().now().to_msg()
+        msg.session_id = "monitor"
+        _ros_node._stt_pub.publish(msg)
         return jsonify({'success': True, 'text': text})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1020,6 +1069,20 @@ def core_status():
     })
 
 
+@app.route('/api/session/clear', methods=['POST'])
+def clear_session():
+    """Clear the current AimeeCloud session so the next request starts fresh."""
+    if _ros_node is None:
+        return jsonify({'success': False, 'error': 'ROS2 node not ready'}), 503
+    try:
+        msg = Bool()
+        msg.data = True
+        _ros_node._clear_session_pub.publish(msg)
+        return jsonify({'success': True, 'message': 'Session clear requested'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 # ==================== Helper Functions ====================
 
 def _refresh_nodes(native_api=None):
@@ -1112,10 +1175,12 @@ class MonitorNode(Node):
             )
         )
         
-        # Publishers for camera control, TTS testing, and cloud snapshot upload
+        # Publishers for camera control, TTS testing, STT simulation, and cloud snapshot upload
         self._ptz_pub = self.create_publisher(Twist, '/camera/cmd_ptz', 10)
         self._tts_pub = self.create_publisher(String, '/tts/speak', 10)
+        self._stt_pub = self.create_publisher(Transcription, '/voice/transcription', 10) if Transcription else None
         self._cloud_snapshot_pub = self.create_publisher(String, '/cloud/snapshot_manual_upload', 10)
+        self._clear_session_pub = self.create_publisher(Bool, '/cloud/clear_session', 10)
         if AIMEE_MSGS_AVAILABLE:
             self._tracking_pub = self.create_publisher(TrackingCommand, '/camera/tracking', 10)
             self._snapshot_cli = self.create_client(CaptureSnapshot, '/camera/capture_snapshot')
@@ -1134,7 +1199,7 @@ class MonitorNode(Node):
         
         # Pipeline subscriptions
         self._voice_sub = self.create_subscription(
-            String, '/voice/transcription',
+            (Transcription if Transcription else String), '/voice/transcription',
             self._on_voice_transcription,
             QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
         )
@@ -1203,9 +1268,10 @@ class MonitorNode(Node):
         self._refresh_topics()
         self.destroy_timer(self._initial_refresh_timer)
     
-    def _on_voice_transcription(self, msg: String):
+    def _on_voice_transcription(self, msg):
         global _pipeline_state
-        _pipeline_state['voice'] = {'text': msg.data, 'timestamp': time.time(), 'is_partial': False}
+        text = getattr(msg, 'text', getattr(msg, 'data', ''))
+        _pipeline_state['voice'] = {'text': text, 'timestamp': time.time(), 'is_partial': False}
     
     def _on_intent_classified(self, msg):
         global _pipeline_state

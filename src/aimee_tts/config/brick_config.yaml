@@ -9,8 +9,8 @@ category: audio
 
 variables:
   - name: DEFAULT_ENGINE
-    description: Default TTS engine (kokoro, gtts, auto)
-    default: "gtts"
+    description: Default TTS engine (lemonfox, kokoro, gtts, auto)
+    default: "lemonfox"
     type: string
 
   - name: FALLBACK_ENGINE
@@ -24,8 +24,8 @@ variables:
     type: boolean
 
   - name: DEFAULT_VOICE
-    description: Default voice for Kokoro (e.g. af_heart, af_bella, am_michael)
-    default: "af_heart"
+    description: Default voice for Lemonfox / Kokoro (e.g. sarah, af_heart)
+    default: "sarah"
     type: string
 
   - name: KOKORO_LANG
@@ -52,6 +52,16 @@ variables:
     description: Slow speech for gTTS
     default: "false"
     type: boolean
+
+  - name: LEMONFOX_API_KEY
+    description: Lemonfox.ai API key for TTS
+    default: ""
+    type: string
+
+  - name: LEMONFOX_API_BASE_URL
+    description: Lemonfox.ai API base URL
+    default: "https://api.lemonfox.ai/v1"
+    type: string
 
   - name: VOLUME
     description: Default volume (0.0-1.0)
@@ -117,17 +127,17 @@ ros2:
 tts:
   # Development / production primary
   development:
-    default_engine: gtts
+    default_engine: lemonfox
     fallback_engine: gtts
     auto_fallback: true
-    default_voice: af_heart
+    default_voice: sarah
 
   # Pre-production (hybrid mode)
   pre_production:
-    default_engine: auto  # Uses gtts when online, kokoro when offline
+    default_engine: auto  # Uses lemonfox when online, gtts/kokoro when offline
     fallback_engine: gtts
     auto_fallback: true
-    default_voice: af_heart
+    default_voice: sarah
 
   # Production (local primary, cloud fallback)
   production:

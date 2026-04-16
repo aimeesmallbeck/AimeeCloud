@@ -11,6 +11,7 @@ Supports:
 - gTTS (Google Text-to-Speech) — cloud fallback
 """
 
+import json
 import logging
 import os
 import subprocess
@@ -238,20 +239,88 @@ class GTTSEngine(BaseTTSEngine):
             return TTSResult(success=False, error_message=f"gTTS failed: {e}")
 
 
+class LemonfoxEngine(BaseTTSEngine):
+    """Lemonfox.ai TTS engine (OpenAI-compatible API)."""
+
+    name = "lemonfox"
+    voices = [
+        "sarah", "jessica", "liam", "echo", "adam",
+        "onyx", "fable", "nova", "shimmer", "alloy"
+    ]
+
+    def __init__(self, api_key: str = "", api_base_url: str = "https://api.lemonfox.ai/v1"):
+        self.api_key = api_key or os.environ.get("LEMONFOX_API_KEY", "")
+        self.api_base_url = api_base_url.rstrip("/")
+        self.available = bool(self.api_key)
+        if self.available:
+            logger.info("Lemonfox TTS engine initialized")
+        else:
+            logger.warning("Lemonfox TTS engine initialized without API key")
+
+    def generate(self, text: str, voice: Optional[str] = None, speed: float = 1.0, lang: str = "en") -> TTSResult:
+        if not self.available:
+            return TTSResult(success=False, error_message="Lemonfox API key not available")
+
+        voice_id = voice or "sarah"
+        url = f"{self.api_base_url}/audio/speech"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": "tts-1",
+            "input": text,
+            "voice": voice_id,
+            "response_format": "wav",
+        }
+
+        try:
+            req = request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST",
+            )
+
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                wav_path = tmp.name
+
+            with request.urlopen(req, timeout=30) as resp:
+                with open(wav_path, "wb") as f:
+                    f.write(resp.read())
+
+            audio_path = wav_path
+
+            word_count = len(text.split())
+            duration = word_count * 0.15 / speed
+
+            return TTSResult(
+                success=True,
+                audio_path=audio_path,
+                engine_used="lemonfox",
+                duration_seconds=duration,
+            )
+        except Exception as e:
+            logger.error(f"Lemonfox generation failed: {e}")
+            return TTSResult(success=False, error_message=f"Lemonfox failed: {e}")
+
+
 class TTSEngineManager:
     """Manages TTS engines and fallback logic."""
 
     def __init__(
         self,
-        default_engine: str = "kokoro",
+        default_engine: str = "lemonfox",
         fallback_engine: str = "gtts",
         auto_fallback: bool = True,
-        default_voice: str = "af_heart",
+        default_voice: str = "sarah",
         kokoro_lang: str = "en-us",
         kokoro_speed: float = 1.0,
         gtts_lang: str = "en",
         gtts_tld: str = "com",
         gtts_slow: bool = False,
+        lemonfox_api_key: str = "",
+        lemonfox_api_base_url: str = "https://api.lemonfox.ai/v1",
     ):
         self.default_engine = default_engine
         self.fallback_engine = fallback_engine
@@ -266,9 +335,25 @@ class TTSEngineManager:
             gtts_lang=gtts_lang,
             gtts_tld=gtts_tld,
             gtts_slow=gtts_slow,
+            lemonfox_api_key=lemonfox_api_key,
+            lemonfox_api_base_url=lemonfox_api_base_url,
         )
 
     def _init_engines(self, **kwargs):
+        # Lemonfox primary
+        try:
+            engine = LemonfoxEngine(
+                api_key=kwargs.get("lemonfox_api_key", ""),
+                api_base_url=kwargs.get("lemonfox_api_base_url", "https://api.lemonfox.ai/v1"),
+            )
+            if engine.available:
+                self._engines["lemonfox"] = engine
+                logger.info("Lemonfox TTS engine available")
+            else:
+                logger.warning("Lemonfox TTS engine not available (no API key)")
+        except Exception as e:
+            logger.warning(f"Lemonfox TTS not available: {e}")
+
         # Kokoro: prefer pykokoro, then official kokoro
         try:
             engine = PyKokoroEngine(
@@ -316,7 +401,9 @@ class TTSEngineManager:
             return preferred
 
         if self.default_engine == "auto":
-            if self._is_online() and "gtts" in self._engines:
+            if self._is_online() and "lemonfox" in self._engines:
+                return "lemonfox"
+            if "gtts" in self._engines:
                 return "gtts"
             if "kokoro" in self._engines:
                 return "kokoro"
@@ -326,7 +413,7 @@ class TTSEngineManager:
             return self.default_engine
 
         if self.auto_fallback:
-            for fallback in [self.fallback_engine, "kokoro", "gtts"]:
+            for fallback in [self.fallback_engine, "lemonfox", "kokoro", "gtts"]:
                 if fallback in self._engines:
                     logger.info(f"Falling back to {fallback}")
                     return fallback

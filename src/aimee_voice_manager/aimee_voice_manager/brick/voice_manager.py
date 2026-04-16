@@ -45,6 +45,7 @@ class VoiceManagerBrick:
         whisper_enabled: bool = True,
         whisper_api_key: str = "",
         whisper_api_base_url: str = "https://api.openai.com/v1/audio/transcriptions",
+        default_voice: str = "sarah",
     ):
         self.model_path = model_path or "/home/arduino/vosk-models/vosk-model-small-en-us-0.15"
         self.engine_type = engine
@@ -58,6 +59,7 @@ class VoiceManagerBrick:
         self.whisper_enabled = whisper_enabled
         self._whisper_api_key = whisper_api_key
         self._whisper_api_base_url = whisper_api_base_url
+        self.default_voice = default_voice
         self._online = False
         self._online_lock = threading.Lock()
 

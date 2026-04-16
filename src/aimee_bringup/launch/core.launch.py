@@ -65,6 +65,7 @@ def generate_launch_description():
             'whisper_enabled': True,
             'whisper_api_base_url': 'https://api.lemonfox.ai/v1/audio/transcriptions',
             'whisper_api_key': 'znbgizLXwKc0LM51TcSmJs2myBGt53WY',
+            'default_voice': 'sarah',
         }]
     )
     
@@ -75,10 +76,12 @@ def generate_launch_description():
         name='tts',
         output='screen',
         parameters=[{
-            'default_engine': 'gtts',
+            'default_engine': 'lemonfox',
             'fallback_engine': 'gtts',
             'auto_fallback': True,
-            'default_voice': 'af_heart',
+            'default_voice': 'sarah',
+            'lemonfox_api_key': 'znbgizLXwKc0LM51TcSmJs2myBGt53WY',
+            'lemonfox_api_base_url': 'https://api.lemonfox.ai/v1',
             'volume': 1.0,
         }]
     )
