@@ -38,18 +38,19 @@ from typing import List, Optional, Dict
 class KeyboardTeleopNode(Node):
     """Keyboard teleoperation for RoArm-M3."""
 
-    # Default joint limits for RoArm-M3 (degrees)
+    # Default joint limits for RoArm-M3 (degrees, firmware-native)
     JOINT_LIMITS = {
         'joint1': (-180, 180),  # Base rotation
         'joint2': (-90, 90),    # Shoulder
-        'joint3': (-150, 0),    # Elbow
+        'joint3': (0, 170),     # Elbow: 0=up, 90=forward, 170=max
         'joint4': (-90, 90),    # Wrist 1
-        'joint5': (-90, 90),    # Wrist 2
-        'gripper': (0, 90),     # Gripper
+        'joint5': (-180, 180),  # Wrist 2 (roll)
+        'gripper': (0, 180),    # Gripper: 0=open, 180=closed
     }
 
-    # Default home position
-    HOME_POSITION = [0.0, 0.0, -90.0, 0.0, 0.0, 0.0]
+    # Default home position (degrees, firmware-native)
+    # elbow=90° = horizontal forward (safe working position)
+    HOME_POSITION = [0.0, 0.0, 90.0, 0.0, 0.0, 0.0]
 
     def __init__(self):
         super().__init__('teleop_keyboard')

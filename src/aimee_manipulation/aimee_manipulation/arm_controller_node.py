@@ -24,18 +24,19 @@ import time
 import json
 
 
-# RoArm-M3 joint limits (degrees)
+# RoArm-M3 joint limits (degrees, firmware-native coordinates)
 JOINT_LIMITS = {
-    'base': (-90, 90),
+    'base': (-180, 180),
     'shoulder': (-90, 90),
-    'elbow': (-150, 0),
+    'elbow': (0, 170),      # 0=up, 90=forward, 170=max (180 hits base)
     'wrist1': (-90, 90),
-    'wrist2': (-90, 90),
-    'gripper': (0, 90),
+    'wrist2': (-180, 180),  # roll
+    'gripper': (0, 180),    # 0=open, 180=closed
 }
 
 # Default joint positions (home)
-HOME_POSITION = [0, 0, -90, 0, 0, 0]  # base, shoulder, elbow, wrist1, wrist2, gripper
+# elbow=90° = horizontal forward (safe working position)
+HOME_POSITION = [0, 0, 90, 0, 0, 0]  # base, shoulder, elbow, wrist1, wrist2, gripper
 
 
 class SimulatedArmController(Node):

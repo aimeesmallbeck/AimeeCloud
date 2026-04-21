@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'arm_controller_node = aimee_manipulation.arm_controller_node:main',
             'pick_place_server = aimee_manipulation.pick_place_server:main',
+            'test_pick_place_client = aimee_manipulation.test_pick_place_client:main',
         ],
     },
 )

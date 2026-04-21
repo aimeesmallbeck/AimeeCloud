@@ -6,35 +6,39 @@ robot:
   dof: 6  # 5 arm + 1 gripper
 
 # Joint configuration
+# NOTE: All angles are in degrees. The driver publishes/subscribes in radians.
+# Coordinate frame is FIRMWARE-NATIVE (not SDK-transformed):
+#   elbow: 0=straight up, 90=horizontal forward, 180=straight down
+#   gripper: 0=fully open, 180=fully closed (firmware clamps effective min ~63°)
 joints:
   - name: "joint1"
     type: "revolute"
-    limits: { min: -180.0, max: 180.0 }  # degrees
+    limits: { min: -180.0, max: 180.0 }  # base: full rotation
     initial: 0.0
     
   - name: "joint2"
     type: "revolute"
-    limits: { min: -90.0, max: 90.0 }
+    limits: { min: -90.0, max: 90.0 }    # shoulder: empirically ±90° (SDK claims ±109°)
     initial: 0.0
     
   - name: "joint3"
     type: "revolute"
-    limits: { min: -150.0, max: 0.0 }
-    initial: -90.0
+    limits: { min: 0.0, max: 170.0 }     # elbow: 0=up, 90=forward, 170=max (180 hits base)
+    initial: 90.0                        # horizontal forward (matches web UI init)
     
   - name: "joint4"
     type: "revolute"
-    limits: { min: -90.0, max: 90.0 }
+    limits: { min: -90.0, max: 90.0 }    # wrist: empirically ±90° (SDK claims ±109°)
     initial: 0.0
     
   - name: "joint5"
     type: "revolute"
-    limits: { min: -90.0, max: 90.0 }
+    limits: { min: -180.0, max: 180.0 }  # roll: full rotation
     initial: 0.0
     
   - name: "gripper"
     type: "revolute"
-    limits: { min: 0.0, max: 90.0 }
+    limits: { min: 0.0, max: 180.0 }     # 0=open, 180=closed. FW effective min ~63°.
     initial: 0.0
 
 # Communication
@@ -45,7 +49,7 @@ communication:
   wifi:
     ssid: "RoArm-M3"
     password: "12345678"
-    ip: "192.168.4.1"
+    ip: "192.168.1.57"
 
 # JSON Protocol
 protocol:
