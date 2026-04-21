@@ -25,6 +25,7 @@ import queue
 import subprocess
 import threading
 import time
+import wave
 from typing import Optional
 
 import pygame
@@ -159,12 +160,27 @@ class TTSNode(Node):
 
     def _init_pygame(self):
         try:
+            if pygame.mixer.get_init() is not None:
+                pygame.mixer.quit()
             pygame.mixer.init(frequency=24000, size=-16, channels=1, buffer=512)
             self._pygame_initialized = True
             self.get_logger().info("Pygame mixer initialized at 24kHz")
         except Exception as e:
             self.get_logger().warning(f"Failed to initialize pygame: {e}")
             self._pygame_initialized = False
+
+    def _ensure_pygame(self) -> bool:
+        """Reinitialize pygame mixer if it has died."""
+        if not self._use_pygame:
+            return False
+        try:
+            if pygame.mixer.get_init() is None:
+                self.get_logger().warning("Pygame mixer died; reinitializing...")
+                self._init_pygame()
+        except Exception as e:
+            self.get_logger().warning(f"Pygame health check failed: {e}")
+            self._pygame_initialized = False
+        return self._pygame_initialized
 
     @staticmethod
     def _parse_speak_text(text: str) -> tuple[Optional[str], Optional[str], str]:
@@ -243,24 +259,49 @@ class TTSNode(Node):
     def _play_audio(self, audio_path: str):
         self._is_speaking = True
         try:
-            if self._pygame_initialized:
+            # Estimate max wait time from WAV duration to avoid pygame get_busy() stalls
+            max_wait = 30.0
+            try:
+                with wave.open(audio_path, 'rb') as wf:
+                    frames = wf.getnframes()
+                    rate = wf.getframerate()
+                    if rate > 0:
+                        max_wait = max(10.0, (frames / rate) + 5.0)
+            except Exception:
+                pass
+
+            if self._ensure_pygame():
                 pygame.mixer.music.load(audio_path)
                 pygame.mixer.music.set_volume(self._volume)
                 pygame.mixer.music.play()
+                start_time = time.time()
                 while pygame.mixer.music.get_busy():
                     if self._preempt_event.is_set():
                         pygame.mixer.music.stop()
                         self._preempt_event.clear()
                         self.get_logger().info("Speech preempted")
                         break
+                    if time.time() - start_time > max_wait:
+                        self.get_logger().warning(
+                            f"Pygame playback stalled (exceeded {max_wait:.1f}s); forcing stop"
+                        )
+                        pygame.mixer.music.stop()
+                        # Reinit mixer to recover from bad state
+                        self._init_pygame()
+                        break
                     time.sleep(0.05)
+                # Unload music to free SDL resources
+                try:
+                    if hasattr(pygame.mixer.music, 'unload'):
+                        pygame.mixer.music.unload()
+                except Exception:
+                    pass
             else:
                 self._play_aplay(audio_path)
         except Exception as e:
             self.get_logger().error(f"Playback failed: {e}")
             # Fallback to aplay
-            if self._pygame_initialized:
-                self._play_aplay(audio_path)
+            self._play_aplay(audio_path)
         finally:
             self._is_speaking = False
 
@@ -310,7 +351,11 @@ class TTSNode(Node):
     def _publish_status(self):
         if not self.context or not self.context.ok():
             return
-        health = self._manager.health_status()
+        try:
+            health = self._manager.health_status()
+        except Exception as e:
+            self.get_logger().warning(f"Health status failed: {e}")
+            health = {}
         issues = []
         healthy = True
 
@@ -318,8 +363,12 @@ class TTSNode(Node):
             issues.append("No TTS engines available")
             healthy = False
 
-        if self._use_pygame and self._pygame_initialized and pygame.mixer.get_init() is None:
-            issues.append("Pygame mixer died")
+        try:
+            if self._use_pygame and self._pygame_initialized and pygame.mixer.get_init() is None:
+                issues.append("Pygame mixer died")
+                healthy = False
+        except Exception:
+            issues.append("Pygame mixer check failed")
             healthy = False
 
         # Publish speaking state

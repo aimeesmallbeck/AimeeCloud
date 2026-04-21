@@ -57,6 +57,8 @@ class AimeeCloudClientNode(Node):
             ('reconnect_interval_sec', 5.0),
             ('ping_interval_sec', 60.0),
             ('session_file', '/home/arduino/.config/aimee_session.json'),
+            ('snapshot_resolution', '640x480'),
+            ('snapshot_quality', 85),
         ])
 
         self._device_id = self.get_parameter('device_id').value
@@ -70,10 +72,15 @@ class AimeeCloudClientNode(Node):
         self._reconnect_interval_sec = self.get_parameter('reconnect_interval_sec').value
         self._ping_interval_sec = self.get_parameter('ping_interval_sec').value
         self._session_file = self.get_parameter('session_file').value
+        self._snapshot_resolution = self.get_parameter('snapshot_resolution').value
+        self._snapshot_quality = self.get_parameter('snapshot_quality').value
 
+        # TODO: Make capabilities dynamic based on active ROS2 nodes
+        # e.g., scan node graph for /ugv02_controller -> add "motors",
+        #       /arm_controller -> add "arm", /obsbot_camera + /camera -> add "snapshot", etc.
         self._capabilities = {
-            "input": ["voice", "text"],
-            "output": ["tts", "display", "motors", "led"]
+            "input": ["voice"],
+            "output": ["tts", "snapshot"]
         }
 
         # State
@@ -120,6 +127,7 @@ class AimeeCloudClientNode(Node):
         # Timers for reconnect and ping
         self._reconnect_timer = self.create_timer(self._reconnect_interval_sec, self._reconnect_tick)
         self._ping_timer = self.create_timer(self._ping_interval_sec, self._ping_tick)
+        self._connected_pub_timer = self.create_timer(5.0, self._publish_connected_status)
 
         # Initialize MQTT client
         if mqtt is None:
@@ -284,18 +292,25 @@ class AimeeCloudClientNode(Node):
         voice = payload.get("voice", {})
         voice_segments = payload.get("voice_segments", [])
 
+        text = payload.get("tts", "") or payload.get("text", "")
+        commands = payload.get("commands", [])
+
         if sub_type == "chat_response":
             self._speak_response(tts, voice, voice_segments)
+            for cmd in commands:
+                self._execute_command(cmd)
         elif sub_type == "game_update":
             self._speak_response(tts, voice, voice_segments)
-            self.get_logger().info(f"Game update received")
+            for cmd in commands:
+                self._execute_command(cmd)
+            self.get_logger().info(f"Game update received with {len(commands)} commands")
         elif sub_type == "robot_command":
             intent = payload.get("intent", "")
             command = payload.get("command", {})
             self._on_robot_command(intent, command, tts, voice, voice_segments)
+            for cmd in commands:
+                self._execute_command(cmd)
         elif sub_type == "aimee_agent":
-            text = payload.get("tts", "") or payload.get("text", "")
-            commands = payload.get("commands", [])
             self._speak_response(text, voice, voice_segments)
             for cmd in commands:
                 self._execute_command(cmd)
@@ -311,6 +326,8 @@ class AimeeCloudClientNode(Node):
             else:
                 if tts:
                     self._speak_response(tts, voice, voice_segments)
+                for cmd in commands:
+                    self._execute_command(cmd)
                 self.get_logger().error(f"Cloud error: {error_code}")
 
     def _handle_status_message(self, payload: dict):
@@ -372,6 +389,12 @@ class AimeeCloudClientNode(Node):
         }
         self._mqtt_client.publish(topic, json.dumps(payload), qos=1)
         self.get_logger().info(f"Published connect (session: {self._session_id or 'new'})")
+
+    def _publish_connected_status(self):
+        """Periodically publish /cloud/connected so late-starting nodes know the state."""
+        with self._state_lock:
+            is_connected = self._connected
+        self._connected_pub.publish(Bool(data=is_connected))
 
     def _publish_system_ack(self, msg_id: str):
         if not self._mqtt_client:
@@ -543,8 +566,8 @@ class AimeeCloudClientNode(Node):
         """Handle snapshot_request from AimeeCloud."""
         session_id = payload.get("session_id", "")
         request_id = payload.get("request_id", "")
-        resolution = payload.get("resolution", "")
-        quality = payload.get("quality", 95)
+        resolution = payload.get("resolution") or self._snapshot_resolution
+        quality = payload.get("quality", self._snapshot_quality)
 
         self.get_logger().info(
             f"Snapshot request received: {request_id} ({resolution}, q={quality})"
@@ -569,6 +592,7 @@ class AimeeCloudClientNode(Node):
             req = CaptureSnapshot.Request()
             req.resolution = resolution
             req.quality = quality
+            self.get_logger().info(f"Calling snapshot service with resolution={resolution}, quality={quality}")
 
             future = self._snapshot_cli.call_async(req)
             # Wait for response with timeout
@@ -772,6 +796,9 @@ class AimeeCloudClientNode(Node):
             self.get_logger().warning("Failed to stop usb_camera; attempting snapshot anyway")
         try:
             req = CaptureSnapshot.Request()
+            req.resolution = self._snapshot_resolution
+            req.quality = self._snapshot_quality
+            self.get_logger().info(f"Calling snapshot service with resolution={self._snapshot_resolution}, quality={self._snapshot_quality}")
             future = self._snapshot_cli.call_async(req)
             timeout_at = time.time() + 12.0
             while not future.done() and time.time() < timeout_at:
@@ -841,6 +868,8 @@ class AimeeCloudClientNode(Node):
             self._reconnect_timer.cancel()
         if self._ping_timer:
             self._ping_timer.cancel()
+        if getattr(self, '_connected_pub_timer', None):
+            self._connected_pub_timer.cancel()
 
         if self._mqtt_client:
             try:

@@ -118,8 +118,10 @@ def generate_launch_description():
         name='aimee_cloud_client',
         output='screen',
         parameters=[{
-            'endpoint': 'http://209.38.147.67:8089',
+            'endpoint': os.getenv('AIMEE_CLOUD_ENDPOINT', 'https://aimeecloud.com'),
             'reconnect_interval': 5.0,
+            'snapshot_resolution': '640x480',
+            'snapshot_quality': 85,
         }],
         condition=IfCondition(use_cloud)
     )

@@ -74,7 +74,7 @@ class ObsbotNode(Node):
             ('enabled', True),
             ('debug', False),
             ('video_device', '/dev/video2'),
-            ('snapshot_default_resolution', '1920x1080'),
+            ('snapshot_default_resolution', '640x480'),
         ])
         
         # Get parameters
@@ -440,6 +440,9 @@ class ObsbotNode(Node):
             '3840x2160': '3840x2160',
             '720p': '1280x720',
             '1280x720': '1280x720',
+            '480p': '640x480',
+            '640x480': '640x480',
+            'vga': '640x480',
         }
         video_size = size_map.get(resolution, self._snapshot_default_resolution)
         

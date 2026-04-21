@@ -16,6 +16,7 @@ Then open browser to: http://localhost:8081
 import json
 import logging
 import os
+import requests
 import subprocess
 import threading
 import time
@@ -148,7 +149,16 @@ NODE_DEFINITIONS = {
         'ros_name': '/voice_manager',
         'package': 'aimee_voice_manager',
         'executable': 'voice_manager_node',
-        'args': [],
+        'args': [
+            '--ros-args',
+            '-p', 'audio_device:=default',
+            '-p', 'model_path:=/home/arduino/vosk-models/vosk-model-small-en-us-0.15',
+            '-p', 'energy_threshold:=45.0',
+            '-p', 'min_command_length:=0.3',
+            '-p', 'whisper_enabled:=true',
+            '-p', f'whisper_api_key:={os.getenv(\"LEMONFOX_API_KEY\", \"\")}',
+            '-p', 'whisper_api_base_url:=https://api.lemonfox.ai/v1/audio/transcriptions',
+        ],
         'category': 'audio',
         'icon': '🎤'
     },
@@ -175,7 +185,16 @@ NODE_DEFINITIONS = {
         'ros_name': '/tts',
         'package': 'aimee_tts',
         'executable': 'tts_node',
-        'args': [],
+        'args': [
+            '--ros-args',
+            '-p', 'default_engine:=lemonfox',
+            '-p', 'fallback_engine:=gtts',
+            '-p', 'auto_fallback:=true',
+            '-p', 'default_voice:=sarah',
+            '-p', f'lemonfox_api_key:={os.getenv(\"LEMONFOX_API_KEY\", \"\")}',
+            '-p', 'lemonfox_api_base_url:=https://api.lemonfox.ai/v1',
+            '-p', 'volume:=1.0',
+        ],
         'category': 'audio',
         'icon': '🔊'
     },
@@ -193,7 +212,12 @@ NODE_DEFINITIONS = {
         'ros_name': '/aimee_cloud_client',
         'package': 'aimee_cloud_bridge',
         'executable': 'cloud_bridge_node',
-        'args': [],
+        'args': [
+            '--ros-args',
+            '-r', '__node:=aimee_cloud_client',
+            '-p', 'snapshot_resolution:=640x480',
+            '-p', 'snapshot_quality:=85',
+        ],
         'category': 'ai',
         'icon': '☁️'
     },
@@ -612,6 +636,46 @@ def stt_submit():
         return jsonify({'success': True, 'text': text})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# Local LLM server URLs to try (matching aimee_llm_server and chatbot-local-llm configs)
+_LLM_SERVER_URLS = [
+    "http://127.0.0.1:8080",
+    "http://172.17.0.1:8080",
+    "http://172.25.0.1:8080",
+    "http://localhost:8080",
+]
+
+
+@app.route('/api/llm/generate', methods=['POST'])
+def llm_generate():
+    """Generate text using the local LLM server (direct HTTP API test)."""
+    data = request.get_json() or {}
+    prompt = data.get('prompt', '')
+    if not prompt:
+        return jsonify({'success': False, 'error': 'No prompt provided'}), 400
+
+    payload = {
+        "messages": [
+            {"role": "system", "content": "You are AIMEE, a helpful robot assistant. Be concise and direct."},
+            {"role": "user", "content": prompt}
+        ],
+        "max_tokens": data.get('max_tokens', 150),
+        "temperature": data.get('temperature', 0.7),
+        "stream": False
+    }
+
+    for url in _LLM_SERVER_URLS:
+        try:
+            resp = requests.post(f"{url}/v1/chat/completions", json=payload, timeout=30)
+            if resp.status_code == 200:
+                result = resp.json()
+                content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+                return jsonify({'success': True, 'response': content})
+        except Exception:
+            continue
+
+    return jsonify({'success': False, 'error': 'LLM server not available'}), 503
 
 
 def _stop_usb_camera():

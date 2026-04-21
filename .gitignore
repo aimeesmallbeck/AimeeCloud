@@ -22,6 +22,10 @@ core.*
 *.swo
 *~
 
+# Environment / Secrets
+.env
+.env.local
+
 # OS
 .DS_Store
 Thumbs.db
@@ -42,3 +46,11 @@ libdev_*/linux/
 libdev_*/macos/
 libdev_*/windows/
 obsbot_helper/obsbot_ctrl
+
+# Large binary models and runtime libraries
+lib/
+models/
+vosk-models/
+
+# Temporary agent scripts
+scripts/rosagent_*.py

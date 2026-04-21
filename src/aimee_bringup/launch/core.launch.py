@@ -6,7 +6,7 @@ Launches essential infrastructure nodes
 
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable, ExecuteProcess
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch.conditions import IfCondition
@@ -45,6 +45,39 @@ def generate_launch_description():
         'ROS_DOMAIN_ID',
         '42'  # Unique domain for Aimee robots
     )
+    set_pacific_tz = SetEnvironmentVariable(
+        'TZ',
+        'America/Los_Angeles'
+    )
+    
+    # Ensure container timezone is Pacific (container has no persistent RTC)
+    set_container_timezone = ExecuteProcess(
+        cmd=[
+            'bash', '-c',
+            'rm -f /etc/localtime && ln -s /usr/share/zoneinfo/America/Los_Angeles /etc/localtime && echo America/Los_Angeles > /etc/timezone'
+        ],
+        name='set_pacific_timezone',
+        output='log'
+    )
+    
+    # === Vision Pipeline Nodes ===
+    
+    # USB Camera Node (OBSBOT video streaming)
+    usb_camera_node = Node(
+        package='usb_cam',
+        executable='usb_cam_node_exe',
+        name='usb_camera',
+        output='screen',
+        parameters=[{
+            'video_device': '/dev/video2',
+            'image_width': 1280,
+            'image_height': 720,
+            'pixel_format': 'mjpeg2rgb',
+            'io_method': 'mmap',
+            'camera_name': 'usb_camera',
+        }],
+        remappings=[('image_raw', '/camera/image_raw')]
+    )
     
     # === Voice Pipeline Nodes ===
     
@@ -58,13 +91,13 @@ def generate_launch_description():
             'engine': 'vosk',
             'model_path': '/home/arduino/vosk-models/vosk-model-small-en-us-0.15',
             'sample_rate': 16000,
-            'audio_device': 'plughw:2,0',
+            'audio_device': 'default',
             'publish_partials': True,
-            'energy_threshold': 80.0,
+            'energy_threshold': 45.0,
             'enabled': True,
             'whisper_enabled': True,
             'whisper_api_base_url': 'https://api.lemonfox.ai/v1/audio/transcriptions',
-            'whisper_api_key': 'znbgizLXwKc0LM51TcSmJs2myBGt53WY',
+            'whisper_api_key': os.getenv('LEMONFOX_API_KEY', ''),
             'default_voice': 'sarah',
         }]
     )
@@ -80,7 +113,7 @@ def generate_launch_description():
             'fallback_engine': 'gtts',
             'auto_fallback': True,
             'default_voice': 'sarah',
-            'lemonfox_api_key': 'znbgizLXwKc0LM51TcSmJs2myBGt53WY',
+            'lemonfox_api_key': os.getenv('LEMONFOX_API_KEY', ''),
             'lemonfox_api_base_url': 'https://api.lemonfox.ai/v1',
             'volume': 1.0,
         }]
@@ -96,6 +129,16 @@ def generate_launch_description():
     
     # === Intelligence Nodes ===
     
+    # Local LLM Backend (llama.cpp server)
+    llm_backend = ExecuteProcess(
+        cmd=[
+            'bash', '-c',
+            'export LD_LIBRARY_PATH=/workspace/lib:$LD_LIBRARY_PATH && /workspace/lib/llama-server --host 127.0.0.1 --port 8080 -m /workspace/models/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf --ctx-size 2048'
+        ],
+        name='llm_backend',
+        output='screen',
+    )
+    
     # LLM Server Node (Action Server)
     llm_server_node = Node(
         package='aimee_llm_server',
@@ -104,7 +147,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'backend': 'llama_cpp_server',
-            'server_url': 'http://172.17.0.1:8080',
+            'server_url': 'http://127.0.0.1:8080',
             'default_max_tokens': 150,
             'default_temperature': 0.7,
         }]
@@ -156,6 +199,11 @@ def generate_launch_description():
         
         # Environment
         set_ros_domain_id,
+        set_pacific_tz,
+        set_container_timezone,
+        
+        # Vision Pipeline
+        usb_camera_node,
         
         # Voice Pipeline
         voice_manager_node,
@@ -165,6 +213,7 @@ def generate_launch_description():
         monitor_node,
         
         # Intelligence
+        llm_backend,
         llm_server_node,
         intent_router_node,
         skill_manager_node,

@@ -163,7 +163,7 @@ logger = logging.getLogger(__name__)
 start_camera_subscriber()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'aimee-robot-dashboard'
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'aimee-robot-dashboard-dev-only')
 
 # ==================== Audio Setup (Initialize ONCE) ====================
 # Set ALSA environment variables BEFORE importing pygame

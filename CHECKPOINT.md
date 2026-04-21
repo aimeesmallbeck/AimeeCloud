@@ -362,7 +362,12 @@
 3. **Remaining Optimizations**
    - Further reduce monitor camera-stream CPU (e.g., lower-resolution direct V4L2 read or reduce republish frequency)
 
-4. **Brick-to-Standard-ROS2 Migration (Remaining Nodes)**
+4. **Dynamic AimeeCloud Capabilities**
+   - After hardware arrives, scan active ROS2 nodes to determine capabilities dynamically
+   - e.g., `/ugv02_controller` present → add `"motors"`; `/arm_controller` present → add `"arm"`; camera nodes present → keep `"snapshot"`
+   - This avoids hardcoding capabilities in `cloud_bridge_node.py`
+
+5. **Brick-to-Standard-ROS2 Migration (Remaining Nodes)**
    - Cloud Bridge (already migrated to AimeeCloud ACC) ✅
    - Voice Manager (Priority 1)
 

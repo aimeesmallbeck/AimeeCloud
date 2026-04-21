@@ -382,6 +382,22 @@
                 </div>
             </div>
 
+            <!-- Local LLM Test -->
+            <div class="panel collapsible" style="flex: 0 0 auto; min-height: 80px;">
+                <div class="panel-header" onclick="togglePanel(this)">
+                    <span>🧠 Local LLM Test</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="panel-content" style="padding: 0.75rem;">
+                    <div class="tts-row" style="margin-bottom: 0.5rem;">
+                        <input type="text" id="llmInput" placeholder="Enter your prompt..." onkeydown="if(event.key==='Enter') testLLM()">
+                        <button onclick="testLLM()">Send</button>
+                    </div>
+                    <textarea id="llmOutput" readonly placeholder="LLM response will appear here..." style="width:100%; min-height:80px; background:var(--bg-dark); color:var(--text); border:1px solid var(--bg-card); border-radius:4px; padding:0.5rem; font-size:0.85rem; font-family:monospace; resize:vertical;"></textarea>
+                    <div id="llmMessage" class="tts-message"></div>
+                </div>
+            </div>
+
             <!-- Cloud Session -->
             <div class="panel collapsible" style="flex: 0 0 auto; min-height: 80px;">
                 <div class="panel-header" onclick="togglePanel(this)">
@@ -1339,6 +1355,41 @@
                     msg.textContent = 'Sent transcription: ' + truncate(text, 40);
                     msg.style.color = '#28a745';
                     input.value = '';
+                } else {
+                    msg.textContent = data.error || 'Failed';
+                    msg.style.color = 'var(--error)';
+                }
+            } catch (err) {
+                msg.textContent = 'Error: ' + err.message;
+                msg.style.color = 'var(--error)';
+            }
+        }
+
+        // ==================== Local LLM Test ====================
+        async function testLLM() {
+            const input = document.getElementById('llmInput');
+            const output = document.getElementById('llmOutput');
+            const msg = document.getElementById('llmMessage');
+            const prompt = input.value.trim();
+            if (!prompt) {
+                msg.textContent = 'Please enter a prompt';
+                msg.style.color = 'var(--warn)';
+                return;
+            }
+            msg.textContent = 'Generating...';
+            msg.style.color = 'var(--text-muted)';
+            output.value = '';
+            try {
+                const response = await fetch('/api/llm/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    output.value = data.response;
+                    msg.textContent = 'Done';
+                    msg.style.color = '#28a745';
                 } else {
                     msg.textContent = data.error || 'Failed';
                     msg.style.color = 'var(--error)';

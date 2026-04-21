@@ -12,7 +12,7 @@ Supports streaming partial results on /voice/partial.
 """
 
 import array
-import difflib
+import collections
 import io
 import json
 import logging
@@ -67,10 +67,10 @@ class VoiceManagerNode(Node):
             ('engine', 'vosk'),
             ('model_path', '/home/arduino/vosk-models/vosk-model-small-en-us-0.15'),
             ('sample_rate', 16000),
-            ('audio_device', 'plughw:2,0'),
+            ('audio_device', 'default'),
             ('command_timeout', 10.0),
-            ('min_command_length', 0.5),
-            ('energy_threshold', 80.0),
+            ('min_command_length', 0.3),
+            ('energy_threshold', 45.0),
             ('enabled', True),
             ('publish_partials', True),
             ('debug', False),
@@ -155,7 +155,7 @@ class VoiceManagerNode(Node):
         self._online = False
         self._online_lock = threading.Lock()
 
-        self.garbage_words: Set[str] = {"huh", "who", "um", "mm", "mhm", "uh", "eh", "hm", "hmm"}
+        self.garbage_words: Set[str] = {"huh", "who", "um", "mm", "mhm", "uh", "eh", "hm", "hmm", "e", "a", "i", "o", "u"}
 
         self._tts_active = False
         self._tts_text_history: List[str] = []
@@ -165,6 +165,7 @@ class VoiceManagerNode(Node):
         self._tts_mute_until = 0.0
 
         self._last_successful_transcription_time = 0.0
+        self._energy_window = collections.deque(maxlen=3)
 
         self.get_logger().info(
             f"VoiceManagerNode initialized:\n"
@@ -265,7 +266,9 @@ class VoiceManagerNode(Node):
         """Start the arecord → Vosk listen loop in this thread."""
         if self._listening:
             return
-        self._ensure_usb_camera_running()
+        # OBSBOT Tiny 2 Lite mic only works when video stream is active
+        if 'plughw:2,0' in self._audio_device:
+            self._ensure_usb_camera_running()
         self._kill_orphaned_arecord(self._audio_device)
         self._listening = True
         self.get_logger().info("Continuous listening started")
@@ -370,6 +373,8 @@ class VoiceManagerNode(Node):
         warned_no_data = False
         warned_silence = False
         warned_vosk_stuck = False
+        warned_data_stall = False
+        last_data_time = time.time()
         zero_energy_streak = 0
         stdout_fd = proc.stdout.fileno()
 
@@ -415,11 +420,9 @@ class VoiceManagerNode(Node):
                     time.sleep(0.01)
                     continue
 
-                utterance_buffer.extend(data)
                 total_bytes += len(data)
-                bytes_since_vosk += len(data)
+                last_data_time = time.time()
                 elapsed = time.time() - loop_start
-
                 energy = self._audio_energy(data)
 
                 if elapsed > 5.0 and not warned_no_data and total_bytes == 0:
@@ -431,6 +434,19 @@ class VoiceManagerNode(Node):
                         False, "audio_stall",
                         "Microphone detected but producing no audio data. Try power-cycling the USB device."
                     )
+
+                # Detect arecord alive but not producing data (e.g. USB reconnect)
+                stall_elapsed = time.time() - last_data_time
+                if not warned_data_stall and total_bytes > 0 and stall_elapsed > 15.0:
+                    warned_data_stall = True
+                    self.get_logger().error(
+                        f"Audio capture data stall: no audio for {stall_elapsed:.0f}s. Restarting..."
+                    )
+                    self._report_health(
+                        False, "data_stall",
+                        "Audio stream stalled mid-session. Likely USB device reconnect. Restarting listen loop."
+                    )
+                    break
 
                 if energy == 0.0:
                     zero_energy_streak += 1
@@ -447,6 +463,22 @@ class VoiceManagerNode(Node):
                 else:
                     zero_energy_streak = 0
 
+                # Hard gate: discard audio while TTS is active
+                if self._tts_active:
+                    utterance_buffer.clear()
+                    utterance_has_energy = False
+                    self._energy_window.clear()
+                    continue
+
+                # Post-TTS grace period
+                if time.time() < self._tts_mute_until:
+                    continue
+
+                bytes_since_vosk += len(data)
+                utterance_buffer.extend(data)
+                self._energy_window.append(energy)
+                smoothed_energy = sum(self._energy_window) / len(self._energy_window)
+
                 if elapsed > 30.0 and not warned_vosk_stuck and bytes_since_vosk > 480000:
                     warned_vosk_stuck = True
                     self.get_logger().warning(
@@ -462,7 +494,7 @@ class VoiceManagerNode(Node):
                     self._report_health(True, "", "Audio capture is healthy")
 
                 effective_threshold = self._effective_energy_threshold()
-                if energy >= effective_threshold:
+                if smoothed_energy >= effective_threshold:
                     utterance_has_energy = True
 
                 if recognizer.AcceptWaveform(data):
@@ -476,7 +508,7 @@ class VoiceManagerNode(Node):
                     with self._online_lock:
                         should_use_whisper = self._online and self._whisper_enabled and self._whisper_api_key
 
-                    if should_use_whisper and utterance_has_energy and len(utterance_buffer) > 0:
+                    if should_use_whisper and self._engine == 'whisper_api' and utterance_has_energy and len(utterance_buffer) > 0:
                         whisper_text = self._transcribe_whisper_api(bytes(utterance_buffer))
                         if whisper_text:
                             final_text = whisper_text
@@ -512,7 +544,7 @@ class VoiceManagerNode(Node):
                         partial_result = TranscriptionResult(
                             text=partial_text,
                             confidence=0.5,
-                            is_command=True,
+                            is_command=False,
                             engine=self._engine,
                             wake_word="",
                             session_id=""
@@ -548,7 +580,11 @@ class VoiceManagerNode(Node):
 
     def _is_garbage(self, text: str) -> bool:
         """Check if transcription is just noise garbage."""
-        clean = text.lower().strip().rstrip('.').rstrip('?').rstrip('!')
+        clean = text.lower().strip().rstrip('.?!')
+        if not clean or len(clean) < 2:
+            return True
+        if re.match(r'^(.)\1+$', clean):
+            return True
         return clean in self.garbage_words
 
     def _effective_energy_threshold(self) -> float:
@@ -589,6 +625,26 @@ class VoiceManagerNode(Node):
         clean = clean.replace("amy", "aimee")
         return clean
 
+    @staticmethod
+    def _levenshtein_ratio(s1: str, s2: str) -> float:
+        """Return similarity ratio (0.0-1.0) using Levenshtein distance."""
+        m, n = len(s1), len(s2)
+        if m == 0 and n == 0:
+            return 1.0
+        if m == 0 or n == 0:
+            return 0.0
+        previous = list(range(n + 1))
+        for i in range(m):
+            current = [i + 1]
+            for j in range(n):
+                insertions = previous[j + 1] + 1
+                deletions = current[j] + 1
+                substitutions = previous[j] + (s1[i] != s2[j])
+                current.append(min(insertions, deletions, substitutions))
+            previous = current
+        distance = previous[-1]
+        return 1.0 - (distance / max(m, n))
+
     def _is_tts_echo(self, text: str) -> bool:
         """Check if transcription is the robot hearing its own TTS."""
         clean = self._normalize_for_echo(text)
@@ -602,7 +658,7 @@ class VoiceManagerNode(Node):
 
         with self._tts_history_lock:
             for tts_text in self._tts_text_history:
-                ratio = difflib.SequenceMatcher(None, clean, tts_text).ratio()
+                ratio = self._levenshtein_ratio(clean, tts_text)
                 if ratio >= self._tts_similarity_threshold:
                     self.get_logger().info(f"Dropped TTS echo (similarity {ratio:.2f}): {text}")
                     return True
@@ -669,6 +725,8 @@ class VoiceManagerNode(Node):
 
     def _on_online_changed(self, msg: Bool):
         with self._online_lock:
+            if self._online == msg.data:
+                return
             self._online = msg.data
         self.get_logger().info(
             f"Online state changed: {msg.data} "

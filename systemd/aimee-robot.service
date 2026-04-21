@@ -1,44 +1,31 @@
-# Aimee Robot Systemd Service
-# 
-# Installation:
-#   sudo cp aimee-robot.service /etc/systemd/system/
-#   sudo systemctl daemon-reload
-#   sudo systemctl enable aimee-robot
-#   sudo systemctl start aimee-robot
-#
-# Logs:
-#   sudo journalctl -u aimee-robot -f
-
 [Unit]
-Description=Aimee Robot Core Service
-After=network.target sound.target
-Wants=network.target
+Description=Aimee Robot Core Service (Docker)
+Documentation=https://github.com/aimeesmallbeck/Aimee-Project
+After=docker.service network.target sound.target
+Wants=docker.service network.target
 
 [Service]
 Type=simple
 User=arduino
 Group=arduino
-
-# Working directory
 WorkingDirectory=/home/arduino/aimee-robot-ws
 
 # Environment
-Environment="AIMEE_ROBOT_WS=/home/arduino/aimee-robot-ws"
-Environment="AIMEE_ROBOT_NAME=ron"
+Environment="HOME=/home/arduino"
+Environment="USER=arduino"
 Environment="ROS_DOMAIN_ID=42"
-Environment="RMW_IMPLEMENTATION=rmw_fastrtps_cpp"
-Environment="FASTRTPS_DEFAULT_PROFILES_FILE=/home/arduino/aimee-robot-ws/fastdds_shm.xml"
 
-# Source ROS2 and start robot
-ExecStart=/bin/bash -c '
-    source /opt/ros/humble/setup.bash &&
-    source /home/arduino/aimee-robot-ws/install/setup.bash &&
-    ros2 launch aimee_bringup robot.launch.py robot:=ron
-'
+# Ensure docker group permissions are available
+SupplementaryGroups=docker
+
+# Start the robot via docker compose
+ExecStartPre=-/usr/bin/docker compose down
+ExecStart=/usr/bin/docker compose up
+ExecStop=/usr/bin/docker compose down
 
 # Restart policy
 Restart=on-failure
-RestartSec=5
+RestartSec=10
 StartLimitInterval=60
 StartLimitBurst=3
 
@@ -49,11 +36,6 @@ KillSignal=SIGINT
 # Resource limits (for 4GB RAM constraint)
 LimitAS=3G
 LimitRSS=2G
-
-# Security
-NoNewPrivileges=false
-ProtectSystem=false
-ProtectHome=false
 
 [Install]
 WantedBy=multi-user.target

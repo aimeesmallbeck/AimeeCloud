@@ -1017,6 +1017,7 @@ The old `aimee_test_dashboard` (direct hardware tester) has been retired. All co
 - [ ] Error handling & recovery
 - [ ] Documentation
 - [ ] Deployment scripts
+- [ ] Dynamic AimeeCloud capabilities based on active ROS2 nodes (post-hardware arrival)
 
 ---
 
