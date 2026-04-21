@@ -12,7 +12,6 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/config', [
             'config/roarm_m3_config.yaml',
-            'config/lerobot_config.toml',
         ]),
         ('share/' + package_name + '/launch', [
             'launch/teleop.launch.py',
@@ -35,6 +34,8 @@ setup(
             'teleop_gamepad = aimee_lerobot_bridge.teleop_gamepad:main',
             'bag_to_dataset = aimee_lerobot_bridge.bag_converter:main',
             'replay_episode = aimee_lerobot_bridge.replay_node:main',
+            'roarm_m3_http_driver = aimee_lerobot_bridge.roarm_m3_http_driver:main',
+            'test_arm_basic = aimee_lerobot_bridge.test_arm_basic:main',
         ],
     },
 )

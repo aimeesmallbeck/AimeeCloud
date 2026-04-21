@@ -61,7 +61,7 @@ class PolicyControllerNode(Node):
             ('ensemble_alpha', 0.1),
             ('camera_topics', ['/camera/image_raw']),
             ('joint_state_topic', '/joint_states'),
-            ('action_topic', '/arm/command'),
+            ('action_topic', '/arm/joint_trajectory'),
             ('gripper_topic', '/arm/gripper/command'),
             (' warmup_steps', 2),
         ])

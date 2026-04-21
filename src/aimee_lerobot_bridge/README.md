@@ -195,6 +195,59 @@ ros2 launch aimee_lerobot_bridge policy_inference.launch.py \
 ros2 service call /start_inference std_srvs/srv/Trigger
 ```
 
+## RoArm-M3 Hardware Integration
+
+The `roarm_m3_http_driver.py` node connects directly to the RoArm-M3-Pro via HTTP WiFi API.
+
+### Verified Joint Limits (Empirical Testing)
+
+These limits were determined by physically testing the arm at `192.168.1.57`:
+
+| Joint | ROS Name | Min | Max | Home | Notes |
+|-------|----------|-----|-----|------|-------|
+| Base | `joint1` | -180° | +180° | 0° | Full rotation |
+| Shoulder | `joint2` | -90° | +90° | 0° | SDK claims ±109°, HW is ±90° |
+| Elbow | `joint3` | 0° | **170°** | **90°** | 180° hits the base |
+| Wrist | `joint4` | -90° | +90° | 0° | SDK claims ±109°, HW is ±90° |
+| Roll | `joint5` | -180° | +180° | 0° | Full rotation |
+| Gripper | `gripper` | 0° | 180° | 0° | Effective range ~64°–178° |
+
+### Coordinate Frame (Firmware-Native)
+
+The driver uses **firmware-native coordinates** (not the Waveshare SDK's π-transformed frame):
+
+- **Elbow**: `0° = straight up`, `90° = horizontal forward`, `170° = max down`
+- **Gripper**: `0° = fully open`, `180° = fully closed`
+  - Firmware clamps commands below ~64° to ~64° (physical open limit)
+  - Commands above ~178° clamp to ~178° (physical closed limit)
+
+### HTTP API Commands
+
+| Type | Code | Description |
+|------|------|-------------|
+| `T:100` | Home | Return to home position |
+| `T:102` | Joint control | All joints in radians: `base, shoulder, elbow, wrist, roll, hand` |
+| `T:105` | Feedback | Returns joint positions, torques, and Cartesian pose |
+| `T:106` | Gripper control | Dedicated gripper command with `cmd` field |
+
+### Running the Driver
+
+```bash
+# Inside the ROS2 container
+docker exec -it aimee-robot bash
+source /ros_entrypoint.sh && source /workspace/install/setup.bash
+
+# Start the driver
+ros2 run aimee_lerobot_bridge roarm_m3_http_driver \
+    --ros-args -p arm_ip:=192.168.1.57 -p poll_rate:=5.0
+
+# Test movement via topic
+ros2 topic pub /arm/joint_trajectory trajectory_msgs/JointTrajectory "{
+  joint_names: ['joint1','joint2','joint3','joint4','joint5','gripper'],
+  points: [{positions: [0.0,0.0,1.57,0.0,0.0,3.14], time_from_start: {sec:1}}]
+}" --once
+```
+
 ## Configuration
 
 See `config/roarm_m3_config.yaml` for robot-specific settings:

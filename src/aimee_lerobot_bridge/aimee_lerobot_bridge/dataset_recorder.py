@@ -61,7 +61,7 @@ class DatasetRecorderNode(Node):
                 '/arm/joint_states',
             ]),
             ('action_topics', [
-                '/arm/command',
+                '/arm/joint_trajectory',
                 '/cmd_vel',
             ]),
             ('camera_topics', [

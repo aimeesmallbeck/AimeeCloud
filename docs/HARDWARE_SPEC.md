@@ -55,7 +55,18 @@ The AIMEE robot runs on the **Arduino UNO Q**, a single-board computer optimized
 
 #### Ron (Robot 1)
 - **Base**: UGV02 tracked mobile robot
-- **Arm**: RoArm-M3 5-DOF manipulator
+- **Arm**: RoArm-M3-Pro 5-DOF manipulator + gripper (6 DOF total)
+  - Connection: WiFi HTTP API at `192.168.1.57`
+  - Driver: `aimee_lerobot_bridge/roarm_m3_http_driver.py`
+  - Verified joint limits (empirical, firmware-native coordinates):
+    | Joint | Range | Home | Note |
+    |-------|-------|------|------|
+    | Base (joint1) | -180° to +180° | 0° | Full rotation |
+    | Shoulder (joint2) | -90° to +90° | 0° | SDK claims ±109°, actual ±90° |
+    | Elbow (joint3) | **0° to 170°** | **90°** | 180° hits base |
+    | Wrist (joint4) | -90° to +90° | 0° | SDK claims ±109°, actual ±90° |
+    | Roll (joint5) | -180° to +180° | 0° | Full rotation |
+    | Gripper | 0° to 180° | 0° | Effective ~64°–178° |
 - **Camera**: OBSBOT Tiny 2 (USB, with RNDIS at 192.168.5.1)
 
 #### Wren (Robot 2)
