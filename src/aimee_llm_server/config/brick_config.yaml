@@ -1,0 +1,106 @@
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+#
+# SPDX-License-Identifier: MPL-2.0
+
+id: arduino:llm_server
+name: LLM Server
+description: "LLM Action Server with streaming and preemption support. Provides non-blocking LLM inference for the AIMEE robot."
+category: general
+
+variables:
+  - name: BACKEND
+    description: LLM backend type (llama_cpp_server, llama_cpp_direct)
+    default: "llama_cpp_server"
+    type: string
+    
+  - name: SERVER_URL
+    description: URL for llama.cpp server API
+    default: "http://localhost:8080"
+    type: string
+    
+  - name: MODEL_PATH
+    description: Path to GGUF model file (for direct backend)
+    default: ""
+    type: string
+    
+  - name: DEFAULT_MAX_TOKENS
+    description: Default maximum tokens to generate
+    default: "150"
+    type: integer
+    
+  - name: DEFAULT_TEMPERATURE
+    description: Default sampling temperature (0.0-1.0)
+    default: "0.7"
+    type: float
+    
+  - name: TIMEOUT_SECONDS
+    description: Request timeout in seconds
+    default: "60.0"
+    type: float
+    
+  - name: MAX_CONTEXT_LENGTH
+    description: Maximum context window size
+    default: "2048"
+    type: integer
+    
+  - name: DEBUG
+    description: Enable debug logging
+    default: "false"
+    type: boolean
+
+ros2:
+  action_servers:
+    - action: /llm/generate
+      type: aimee_msgs/action/LLMGenerate
+      description: "LLM generation with streaming and preemption"
+      
+  parameters:
+    - name: default_max_tokens
+      type: int
+      default: 150
+      description: "Default maximum tokens"
+      
+    - name: default_temperature
+      type: double
+      default: 0.7
+      description: "Default sampling temperature"
+      
+    - name: backend
+      type: string
+      default: "llama_cpp_server"
+      description: "LLM backend type"
+
+# LLM configuration
+llm:
+  default_system_prompt: |
+    You are AIMEE, a helpful robot assistant for Arduino. 
+    Be concise, direct, and helpful in your responses.
+    Keep answers brief to minimize TTS latency.
+    
+  context_management:
+    max_session_history: 10  # Number of exchanges to remember
+    session_timeout: 300     # Session timeout in seconds
+    
+  performance:
+    target_latency_ms: 500   # Target first-token latency
+    max_generation_time: 30  # Max generation time in seconds
+
+# Available models (in ~/models/)
+models:
+  - name: smollm2-135m
+    path: /home/arduino/models/SmolLM2-135M.Q4_K_M.gguf
+    size: "135M"
+    ram_mb: 200
+    description: "Fastest, lowest quality"
+    
+  - name: qwen2.5-0.5b
+    path: /home/arduino/models/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf
+    size: "0.5B"
+    ram_mb: 400
+    description: "Good balance for Arduino UNO Q"
+    
+  - name: tinyllama-1.1b
+    path: /home/arduino/models/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
+    size: "1.1B"
+    ram_mb: 700
+    description: "Higher quality, more RAM usage"

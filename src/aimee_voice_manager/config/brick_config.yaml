@@ -1,0 +1,121 @@
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+#
+# SPDX-License-Identifier: MPL-2.0
+
+id: arduino:voice_manager
+name: Voice Manager
+description: "Voice Manager for STT (Vosk/Whisper), triggered by wake word detection. Captures audio and performs speech-to-text."
+category: audio
+
+variables:
+  - name: ENGINE
+    description: STT engine to use (vosk or whisper)
+    default: "vosk"
+    type: string
+    
+  - name: MODEL_PATH
+    description: Path to STT model (empty for default)
+    default: ""
+    type: string
+    
+  - name: RECORD_DURATION
+    description: Default recording duration in seconds
+    default: "5.0"
+    type: float
+    
+  - name: SAMPLE_RATE
+    description: Audio sample rate in Hz
+    default: "16000"
+    type: integer
+    
+  - name: AUDIO_DEVICE
+    description: ALSA audio device
+    default: "default"
+    type: string
+    
+  - name: COMMAND_TIMEOUT
+    description: Maximum time to wait for command
+    default: "10.0"
+    type: float
+    
+  - name: MIN_COMMAND_LENGTH
+    description: Minimum command duration in seconds
+    default: "0.5"
+    type: float
+    
+  - name: PUBLISH_PARTIALS
+    description: Publish partial transcription results
+    default: "true"
+    type: boolean
+    
+  - name: DEBUG
+    description: Enable debug logging
+    default: "false"
+    type: boolean
+
+ros2:
+  publishers:
+    - topic: /voice/transcription
+      type: aimee_msgs/msg/Transcription
+      description: "Final transcription results"
+      qos: reliable
+      
+    - topic: /voice/partial
+      type: aimee_msgs/msg/Transcription
+      description: "Partial transcription results (streaming)"
+      qos: sensor_data
+      
+    - topic: /voice/status
+      type: std_msgs/msg/String
+      description: "Voice manager status updates"
+      qos: reliable
+      
+  subscribers:
+    - topic: /wake_word/detected
+      type: aimee_msgs/msg/WakeWordDetection
+      description: "Wake word detection trigger"
+      
+    - topic: /voice/control
+      type: std_msgs/msg/String
+      description: "Control commands: start, stop, status"
+      
+  parameters:
+    - name: enabled
+      type: bool
+      default: true
+      description: "Enable/disable voice manager"
+      
+    - name: publish_partials
+      type: bool
+      default: true
+      description: "Publish partial results"
+      
+    - name: record_duration
+      type: double
+      default: 5.0
+      description: "Recording duration in seconds"
+      
+    # FUTURE ENHANCEMENT: Conversational Mode Parameters
+    # - name: conversational_mode
+    #   type: bool
+    #   default: true
+    #   description: "Enable conversational mode (no wake word needed for follow-ups)"
+    # - name: conversational_timeout
+    #   type: double
+    #   default: 30.0
+    #   description: "Seconds to remain in conversational mode"
+    # - name: max_follow_up_commands
+    #   type: int
+    #   default: 5
+    #   description: "Maximum follow-up commands before requiring wake word again"
+
+# Model configuration
+models:
+  vosk:
+    default_path: /home/arduino/vosk-models/vosk-model-small-en-us-0.15
+    sample_rate: 16000
+    language: en-US
+    
+  whisper:
+    default_size: base  # tiny, base, small, medium, large
+    language: en

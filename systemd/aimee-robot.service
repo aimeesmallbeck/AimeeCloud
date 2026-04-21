@@ -1,0 +1,41 @@
+[Unit]
+Description=Aimee Robot Core Service (Docker)
+Documentation=https://github.com/aimeesmallbeck/Aimee-Project
+After=docker.service network.target sound.target
+Wants=docker.service network.target
+
+[Service]
+Type=simple
+User=arduino
+Group=arduino
+WorkingDirectory=/home/arduino/aimee-robot-ws
+
+# Environment
+Environment="HOME=/home/arduino"
+Environment="USER=arduino"
+Environment="ROS_DOMAIN_ID=42"
+
+# Ensure docker group permissions are available
+SupplementaryGroups=docker
+
+# Start the robot via docker compose
+ExecStartPre=-/usr/bin/docker compose down
+ExecStart=/usr/bin/docker compose up
+ExecStop=/usr/bin/docker compose down
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Graceful shutdown
+TimeoutStopSec=30
+KillSignal=SIGINT
+
+# Resource limits (for 4GB RAM constraint)
+LimitAS=3G
+LimitRSS=2G
+
+[Install]
+WantedBy=multi-user.target

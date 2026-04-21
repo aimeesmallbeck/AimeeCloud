@@ -1,0 +1,66 @@
+services:
+  aimee-robot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aimee-robot:latest
+    container_name: aimee-robot
+    hostname: aimee-robot
+    
+    # Run in privileged mode for hardware access (cameras, serial, GPIO)
+    privileged: true
+    
+    # Use host networking for ROS2 multicast/DDS and local services
+    network_mode: host
+    
+    # Restart on failure unless explicitly stopped
+    restart: unless-stopped
+    
+    env_file:
+      - .env
+    
+    environment:
+      - TZ=America/Los_Angeles
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - FASTRTPS_DEFAULT_PROFILES_FILE=/workspace/${FASTRTPS_PROFILE:-fastdds_shm.xml}
+      - AIMEE_ROBOT_WS=/workspace
+      - LEMONFOX_API_KEY=${LEMONFOX_API_KEY:-}
+      - AIMEE_CLOUD_ENDPOINT=${AIMEE_CLOUD_ENDPOINT:-https://aimeecloud.com}
+    
+    volumes:
+      # Workspace source code
+      - .:/workspace:rw
+      
+      # Vosk models (can be large; optionally external mount)
+      - ./vosk-models:/home/arduino/vosk-models:rw
+      
+      # Device access
+      - /dev:/dev:rw
+      
+      # ALSA audio configuration
+      - ~/.asoundrc:/root/.asoundrc:ro
+      
+      # Session persistence
+      - ~/.config:/home/arduino/.config:rw
+    
+    # Optional: limit resources for the 4GB UNO Q
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+        reservations:
+          memory: 512M
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "bash", "-c", "source /opt/ros/humble/setup.bash && ros2 node list >/dev/null 2>&1 || true"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # Default: drop to an interactive bash shell.
+    # For production, override with: docker compose run --rm aimee-robot ros2 launch aimee_bringup core.launch.py
+    stdin_open: true
+    tty: true

@@ -1,0 +1,13 @@
+cloud_bridge:
+  ros__parameters:
+    device_id: "arduino-uno-q-001"
+    broker_host: "aimeecloud.com"
+    broker_port: 443
+    use_websocket: true
+    websocket_path: "/aimeecloud-mqtt"
+    user_name: "Scott"
+    user_location: "home"
+    user_language: "en-US"
+    reconnect_interval_sec: 5.0
+    ping_interval_sec: 60.0
+    session_file: "/home/arduino/.config/aimee_session.json"

@@ -1,0 +1,115 @@
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+#
+# SPDX-License-Identifier: MPL-2.0
+
+id: arduino:skill_manager
+name: Skill Manager
+description: "Skill Manager and execution engine for AIMEE robot. Executes skills with safety checks and feedback."
+category: general
+
+variables:
+  - name: DEFAULT_TIMEOUT
+    description: Default skill execution timeout in seconds
+    default: "30.0"
+    type: float
+    
+  - name: ENABLE_SAFETY_CHECKS
+    description: Enable safety validation before skill execution
+    default: "true"
+    type: boolean
+    
+  - name: DEBUG
+    description: Enable debug logging
+    default: "false"
+    type: boolean
+
+ros2:
+  action_servers:
+    - action: /skill/execute
+      type: aimee_msgs/action/ExecuteSkill
+      description: "Execute a skill with feedback"
+      
+  publishers:
+    - topic: /skill/status
+      type: std_msgs/msg/String
+      description: "Skill execution status"
+      qos: reliable
+      
+    - topic: /tts/speak
+      type: std_msgs/msg/String
+      description: "Skill response for TTS"
+      qos: reliable
+      
+  subscribers:
+    - topic: /intent/classified
+      type: aimee_msgs/msg/Intent
+      description: "Classified intents for skill execution"
+      
+    - topic: /robot/state
+      type: aimee_msgs/msg/RobotState
+      description: "Current robot state for skill context"
+      
+  parameters:
+    - name: default_timeout
+      type: double
+      default: 30.0
+      description: "Default execution timeout"
+      
+    - name: enable_safety_checks
+      type: bool
+      default: true
+      description: "Enable safety validation"
+
+# Built-in skills
+skills:
+  movement:
+    description: "Control robot movement (forward, backward, turn, stop)"
+    actions:
+      - move_forward
+      - move_backward
+      - turn_left
+      - turn_right
+      - stop
+    
+  arm_control:
+    description: "Control robotic arm (move, gripper, wave)"
+    actions:
+      - wave
+      - open_gripper
+      - close_gripper
+      - raise
+      - lower
+    
+  camera:
+    description: "Control camera and vision (track, look, follow)"
+    actions:
+      - track_face
+      - follow
+      - look_at_me
+      - stop_tracking
+    
+  greeting:
+    description: "Respond to greetings"
+    actions:
+      - greet
+
+# Safety configuration
+safety:
+  # Maximum speeds
+  max_linear_speed: 0.5    # m/s
+  max_angular_speed: 1.0   # rad/s
+  
+  # Workspace boundaries (for arm)
+  workspace_bounds:
+    x_min: -0.5
+    x_max: 0.5
+    y_min: -0.5
+    y_max: 0.5
+    z_min: 0.0
+    z_max: 0.5
+  
+  # Emergency stop conditions
+  emergency_stop_on:
+    - low_battery: 10.0     # Battery percentage
+    - obstacle_detected: true
+    - user_interrupt: true

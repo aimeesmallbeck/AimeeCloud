@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+#
+# SPDX-License-Identifier: MPL-2.0
+
+id: arduino:{BRICK_NAME}
+name: {BRICK_DISPLAY_NAME}
+description: "{BRICK_DESCRIPTION}"
+category: {BRICK_CATEGORY}
+
+variables:
+  - name: PARAM1
+    description: Description of parameter 1
+    default: "default_value"
+    type: string
+    
+  - name: PARAM2
+    description: Description of parameter 2
+    default: "42"
+    type: integer
+    
+  - name: DEBUG
+    description: Enable debug mode
+    default: "false"
+    type: boolean

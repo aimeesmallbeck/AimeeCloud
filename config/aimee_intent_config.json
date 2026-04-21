@@ -1,0 +1,197 @@
+{
+  "intents": {
+    "weather": {
+      "words": [
+        "weather",
+        "temperature",
+        "forecast"
+      ],
+      "confidence": 0.7
+    },
+    "news": {
+      "words": [
+        "news",
+        "headlines"
+      ],
+      "confidence": 0.7
+    },
+    "story": {
+      "words": [
+        "story",
+        "stories"
+      ],
+      "phrases": [
+        "bedtime story"
+      ],
+      "confidence": 0.7
+    },
+    "game": {
+      "words": [
+        "game"
+      ],
+      "phrases": [
+        "play a game"
+      ],
+      "confidence": 0.7
+    },
+    "help": {
+      "words": [
+        "help"
+      ],
+      "confidence": 0.7
+    },
+    "status": {
+      "words": [
+        "status",
+        "battery"
+      ],
+      "phrases": [
+        "how are you"
+      ],
+      "confidence": 0.7
+    },
+    "chat": {
+      "words": [
+        "hello",
+        "hi",
+        "hey",
+        "joke",
+        "jokes"
+      ],
+      "phrases": [
+        "good morning",
+        "good afternoon",
+        "good evening"
+      ],
+      "question_words": [
+        "what",
+        "when",
+        "where",
+        "why",
+        "who",
+        "how",
+        "is",
+        "are",
+        "can",
+        "could",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "should",
+        "have",
+        "has",
+        "was",
+        "were"
+      ],
+      "confidence": 0.6
+    },
+    "robot_forward": {
+      "phrases": [
+        "move forward"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "movement"
+    },
+    "robot_backward": {
+      "phrases": [
+        "move backward"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "movement"
+    },
+    "robot_left": {
+      "phrases": [
+        "move left"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "movement"
+    },
+    "robot_right": {
+      "phrases": [
+        "move right"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "movement"
+    },
+    "robot_stop": {
+      "phrases": [
+        "move stop"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "movement"
+    },
+    "arm_wave": {
+      "phrases": [
+        "wave arm"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "arm_control"
+    },
+    "arm_raise": {
+      "phrases": [
+        "raise arm"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "arm_control"
+    },
+    "arm_lower": {
+      "phrases": [
+        "lower arm"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "arm_control"
+    },
+    "gripper_open": {
+      "phrases": [
+        "open gripper"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "arm_control"
+    },
+    "gripper_close": {
+      "phrases": [
+        "close gripper"
+      ],
+      "exact": true,
+      "confidence": 0.7,
+      "skill_name": "arm_control"
+    }
+  },
+  "noise_words": [
+    "ah",
+    "ahh",
+    "eh",
+    "er",
+    "ha",
+    "hello",
+    "hey",
+    "hm",
+    "hmm",
+    "huh",
+    "huhuh",
+    "mhm",
+    "mm",
+    "mmm",
+    "oh",
+    "uh",
+    "uhh",
+    "uhuh",
+    "um"
+  ],
+  "local_only_skill_names": [
+    "movement",
+    "arm_control",
+    "camera"
+  ]
+}

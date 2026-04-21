@@ -1,0 +1,45 @@
+# Pick and place action
+# Goal: Pick up an object and optionally place it somewhere
+# Feedback: Current phase and progress
+# Result: Success/failure with details
+
+# Goal
+string object_class           # "ball", "cup", etc.
+string object_color           # "red", "blue", etc. (optional)
+string object_id              # Specific object (optional, will search if empty)
+
+geometry_msgs/Pose place_pose # Where to place object (optional)
+bool enable_place             # If false, just pick up and hold
+
+string preferred_grasp        # "top_down", "side", "auto"
+float32 grasp_force           # 0-100, default 50
+
+# For voice commands like "pick up the red ball"
+string natural_language_request  # Original request text
+
+---
+# Result
+bool success
+string message                # Success or error description
+
+string grasped_object_id      # Which object was picked
+float32 grasp_quality         # How good was the grasp (0.0-1.0)
+
+float32 execution_time        # Total time in seconds
+int32 retry_count             # How many attempts
+
+string failure_reason         # If failed, why
+string failure_phase          # "detection", "planning", "approach", "grasp", "lift"
+
+---
+# Feedback
+string current_phase          # "searching", "approaching", "grasping", "lifting", "placing"
+int32 phase_progress          # 0-100 percent
+
+ObjectDetection detected_object    # Current target
+GraspPose planned_grasp            # Current grasp plan
+
+ArmCommand current_command         # Current arm command being executed
+
+float32 distance_to_object    # Current distance to target (meters)
+string status_message         # Human-readable status

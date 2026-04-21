@@ -1,0 +1,147 @@
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+#
+# SPDX-License-Identifier: MPL-2.0
+
+id: arduino:tts
+name: Text-to-Speech
+description: "Text-to-Speech with Kokoro (primary, offline) and gTTS (cloud fallback). Standard ROS2 node."
+category: audio
+
+variables:
+  - name: DEFAULT_ENGINE
+    description: Default TTS engine (lemonfox, kokoro, gtts, auto)
+    default: "lemonfox"
+    type: string
+
+  - name: FALLBACK_ENGINE
+    description: Fallback engine when primary fails
+    default: "gtts"
+    type: string
+
+  - name: AUTO_FALLBACK
+    description: Automatically fallback to local TTS when offline
+    default: "true"
+    type: boolean
+
+  - name: DEFAULT_VOICE
+    description: Default voice for Lemonfox / Kokoro (e.g. sarah, af_heart)
+    default: "sarah"
+    type: string
+
+  - name: KOKORO_LANG
+    description: Language code for Kokoro (en-us, en-gb, etc.)
+    default: "en-us"
+    type: string
+
+  - name: KOKORO_SPEED
+    description: Speech speed multiplier for Kokoro
+    default: "1.0"
+    type: float
+
+  - name: GTTS_LANG
+    description: Language for gTTS (e.g., en, es, fr)
+    default: "en"
+    type: string
+
+  - name: GTTS_TLD
+    description: Top-level domain for gTTS accent (com, co.uk, com.au, etc.)
+    default: "com"
+    type: string
+
+  - name: GTTS_SLOW
+    description: Slow speech for gTTS
+    default: "false"
+    type: boolean
+
+  - name: LEMONFOX_API_KEY
+    description: Lemonfox.ai API key for TTS
+    default: ""
+    type: string
+
+  - name: LEMONFOX_API_BASE_URL
+    description: Lemonfox.ai API base URL
+    default: "https://api.lemonfox.ai/v1"
+    type: string
+
+  - name: VOLUME
+    description: Default volume (0.0-1.0)
+    default: "1.0"
+    type: float
+
+  - name: SPEED
+    description: Default speed multiplier
+    default: "1.0"
+    type: float
+
+  - name: USE_PYGAME
+    description: Use pygame for audio playback
+    default: "true"
+    type: boolean
+
+  - name: DEBUG
+    description: Enable debug logging
+    default: "false"
+    type: boolean
+
+ros2:
+  publishers:
+    - topic: /tts/status
+      type: std_msgs/msg/String
+      description: "TTS status information"
+      qos: reliable
+
+    - topic: /tts/is_speaking
+      type: std_msgs/msg/Bool
+      description: "True when currently speaking"
+      qos: reliable
+
+  subscribers:
+    - topic: /tts/speak
+      type: std_msgs/msg/String
+      description: "Text to speak (format: [engine|voice:]text)"
+
+    - topic: /tts/control
+      type: std_msgs/msg/String
+      description: "Control commands: stop, preempt, status"
+
+    - topic: /tts/volume
+      type: std_msgs/msg/Float32
+      description: "Volume control (0.0-1.0)"
+
+    - topic: /tts/voice
+      type: std_msgs/msg/String
+      description: "Dynamic voice selection"
+
+  parameters:
+    - name: volume
+      type: double
+      default: 1.0
+      description: "Current volume level"
+
+    - name: speed
+      type: double
+      default: 1.0
+      description: "Current speed multiplier"
+
+# TTS Configuration
+tts:
+  # Development / production primary
+  development:
+    default_engine: lemonfox
+    fallback_engine: gtts
+    auto_fallback: true
+    default_voice: sarah
+
+  # Pre-production (hybrid mode)
+  pre_production:
+    default_engine: auto  # Uses lemonfox when online, gtts/kokoro when offline
+    fallback_engine: gtts
+    auto_fallback: true
+    default_voice: sarah
+
+  # Production (local primary, cloud fallback)
+  production:
+    default_engine: kokoro
+    fallback_engine: gtts
+    auto_fallback: true
+    default_voice: af_heart
