@@ -1,0 +1,17 @@
+# Ron — Arduino UNO Q #1 (Full robot: UGV02 base + RoArm-M3 + OBSBOT)
+
+robot_name: "ron"
+
+hardware:
+  base: "ugv02"
+  arm: "roarm_m3"
+  camera: "obsbot"
+
+software:
+  monitor: true
+  voice: true
+  tts: true
+  llm: true
+  intent: true
+  skills: true
+  cloud: true

@@ -12,7 +12,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_DIR="$(dirname "$SCRIPT_DIR")"
 REPO_URL="https://github.com/aimeesmallbeck/AimeeCloud.git"
-MODELS_SOURCE=""  # Set this to rsync from board #1, e.g. "arduino@10.0.0.156:/home/arduino/aimee-robot-ws/models"
+# Set these to rsync large/binary files from your first board (Ron)
+MODELS_SOURCE=""   # e.g. "arduino@10.0.0.156:/home/arduino/aimee-robot-ws/models"
+VOSK_SOURCE=""     # e.g. "arduino@10.0.0.156:/home/arduino/aimee-robot-ws/vosk-models"
+CONFIG_SOURCE=""   # e.g. "arduino@10.0.0.156:/home/arduino/aimee-robot-ws/config"
 
 # Colors
 RED='\033[0;31m'
@@ -85,14 +88,32 @@ ctl.!default {
 EOF
 fi
 
-# ─────────────────────────────── Step 5: Model Sync (Optional) ───────────────────────────────
+# ─────────────────────────────── Step 5: Asset Sync (Optional) ───────────────────────────────
+# Large binary assets (models, configs) are NOT in git. Sync them from board #1.
+
 if [ -n "$MODELS_SOURCE" ]; then
-    log_info "Syncing models from source board..."
-    mkdir -p models vosk-models
-    rsync -avz --progress "$MODELS_SOURCE/" models/ || log_warn "Model sync failed. You can run sync-models.sh later."
+    log_info "Syncing ML models from source board..."
+    mkdir -p models
+    rsync -avz --progress "$MODELS_SOURCE/" models/ || log_warn "Model sync failed."
 else
-    log_warn "No MODELS_SOURCE set. Skipping model sync."
-    log_warn "After bootstrap, run: bash deploy/sync-models.sh <source-board-ip>"
+    log_warn "No MODELS_SOURCE set. Skipping ML model sync."
+fi
+
+if [ -n "$VOSK_SOURCE" ]; then
+    log_info "Syncing Vosk speech models from source board..."
+    mkdir -p vosk-models
+    rsync -avz --progress "$VOSK_SOURCE/" vosk-models/ || log_warn "Vosk model sync failed."
+else
+    log_warn "No VOSK_SOURCE set. Skipping Vosk model sync."
+fi
+
+if [ -n "$CONFIG_SOURCE" ]; then
+    log_info "Syncing robot configs from source board..."
+    mkdir -p config
+    rsync -avz --progress "$CONFIG_SOURCE/" config/ || log_warn "Config sync failed."
+else
+    log_warn "No CONFIG_SOURCE set. Skipping config sync."
+    log_warn "Tip: Copy config/robots/<hostname>.yaml from Ron and set ROBOT_CONFIG in .env"
 fi
 
 # ─────────────────────────────── Step 6: Build Docker Image ───────────────────────────────
@@ -122,10 +143,12 @@ log_info "Aimee Robot Bootstrap Complete!"
 log_info "========================================"
 echo ""
 echo "Next steps:"
-echo "  1. Edit ~/aimee-robot-ws/.env with your API keys"
-echo "  2. If you skipped model sync, run: bash deploy/sync-models.sh <source-ip>"
+echo "  1. Edit ~/aimee-robot-ws/.env with your API keys and robot name"
+echo "  2. Create robot config: cp src/aimee_bringup/config/robots/default.yaml config/robots/$(hostname).yaml"
+echo "     (or sync from Ron:   rsync -avz arduino@ron-ip:~/aimee-robot-ws/config/ config/)"
 echo "  3. Start the robot:     docker compose up -d"
 echo "  4. View logs:           docker compose logs -f"
 echo "  5. Open monitor:        http://$(hostname -I | awk '{print $1}'):8081"
-echo "  6. Auto-start on boot:  sudo systemctl start aimee-robot"
+echo "  6. Launch manually:     docker compose exec aimee-robot bash -c 'source install/setup.bash && ros2 launch aimee_bringup robot.launch.py'"
+echo "  7. Auto-start on boot:  sudo systemctl start aimee-robot"
 echo ""

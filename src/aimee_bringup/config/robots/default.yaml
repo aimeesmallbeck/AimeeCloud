@@ -1,0 +1,23 @@
+# Aimee Robot Configuration Template
+# Copy this file and customize for each robot in your fleet.
+# The launch system reads this to determine which hardware to enable.
+
+robot_name: "aimee"
+
+# Hardware configuration — what physical devices are connected to this board.
+# Set any item to "none" if the hardware is not present.
+hardware:
+  base: "ugv02"        # Mobile base options: ugv02, none
+  arm: "roarm_m3"      # Arm options: roarm_m3, none
+  camera: "obsbot"     # Camera options: obsbot, none
+
+# Software modules — which software stacks to enable.
+# These are consistent across all robots (voice, LLM, cloud, etc.).
+software:
+  monitor: true        # ROS2 web dashboard (always recommended)
+  voice: true          # Wake-word + voice manager (STT)
+  tts: true            # Text-to-speech
+  llm: true            # Local LLM backend
+  intent: true         # Intent classification router
+  skills: true         # Skill/action manager
+  cloud: true          # AimeeCloud MQTT bridge
