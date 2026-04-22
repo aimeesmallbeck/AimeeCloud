@@ -3,6 +3,7 @@
 #include <thread>
 #include <codecvt>
 #include <cstring>
+#include <algorithm>
 
 #include <dev/devs.hpp>
 
