@@ -96,6 +96,7 @@ def generate_launch_description():
     base_type = hw.get('base', 'none')
     arm_type = hw.get('arm', 'none')
     camera_type = hw.get('camera', 'none')
+    lidar_type = hw.get('lidar', 'none')
 
     # ─── Launch Arguments (allow CLI overrides of software toggles) ───
     use_cloud_arg = DeclareLaunchArgument(
@@ -143,6 +144,11 @@ def generate_launch_description():
         default_value=str(arm_type != 'none').lower(),
         description='Enable arm/manipulation nodes'
     )
+    use_base_arg = DeclareLaunchArgument(
+        'use_base',
+        default_value=str(base_type != 'none').lower(),
+        description='Enable mobile base controller'
+    )
 
     # Get launch configurations
     use_cloud = LaunchConfiguration('use_cloud')
@@ -154,6 +160,7 @@ def generate_launch_description():
     use_skills = LaunchConfiguration('use_skills')
     use_vision = LaunchConfiguration('use_vision')
     use_arm = LaunchConfiguration('use_arm')
+    use_base = LaunchConfiguration('use_base')
 
     # ─── Include core launch (intelligence stack) ───
     workspace = os.getenv('AIMEE_ROBOT_WS', '/workspace')
@@ -188,7 +195,7 @@ def generate_launch_description():
             'max_speed': base_params.get('max_speed', 0.5),
             'publish_tf': base_params.get('publish_tf', True),
         }],
-        # Added to LaunchDescription dynamically based on hardware config
+        condition=IfCondition(use_base),
     )
 
     # ─── Hardware: Arm ───
@@ -227,6 +234,37 @@ def generate_launch_description():
         condition=IfCondition(use_vision)
     )
 
+    # ─── Hardware: Lidar ───
+    lidar_params = hw.get('lidar_params', {})
+    lidar_node = Node(
+        package='ldlidar_stl_ros2',
+        executable='ldlidar_stl_ros2_node',
+        name='ldlidar',
+        output='screen',
+        parameters=[{
+            'product_name': 'LDLiDAR_LD19',
+            'topic_name': 'scan',
+            'frame_id': lidar_params.get('frame_id', 'base_laser'),
+            'port_name': lidar_params.get('serial_port', '/dev/ttyUSB0'),
+            'port_baudrate': lidar_params.get('baud_rate', 230400),
+            'laser_scan_dir': True,
+            'enable_angle_crop_func': False,
+            'angle_crop_min': 135.0,
+            'angle_crop_max': 225.0,
+        }],
+    )
+
+    lidar_tf_node = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_link_to_base_laser',
+        arguments=[
+            '0', '0', str(lidar_params.get('height', 0.18)),
+            '0', '0', '0',
+            'base_link', lidar_params.get('frame_id', 'base_laser')
+        ]
+    )
+
     # Build launch description dynamically based on hardware config
     ld = LaunchDescription([
         LogInfo(msg=[
@@ -234,7 +272,8 @@ def generate_launch_description():
             " | robot: ", robot_name,
             " | base: ", base_type,
             " | arm: ", arm_type,
-            " | camera: ", camera_type
+            " | camera: ", camera_type,
+            " | lidar: ", lidar_type
         ]),
         use_cloud_arg,
         use_voice_arg,
@@ -260,5 +299,10 @@ def generate_launch_description():
     # Add vision pipeline if camera is configured
     if camera_type == 'obsbot':
         ld.add_action(vision_launch)
+
+    # Add lidar if configured
+    if lidar_type == 'ld19':
+        ld.add_action(lidar_node)
+        ld.add_action(lidar_tf_node)
 
     return ld

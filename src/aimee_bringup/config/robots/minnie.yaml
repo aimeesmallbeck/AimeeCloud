@@ -12,6 +12,12 @@ hardware:
     max_speed: 0.5
   arm: "none"
   camera: "obsbot"
+  lidar: "ld19"
+  lidar_params:
+    serial_port: "/dev/ttyUSB0"
+    baud_rate: 230400
+    frame_id: "base_laser"
+    height: 0.18
 
 software:
   monitor: true
