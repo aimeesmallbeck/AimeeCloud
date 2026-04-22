@@ -11,3 +11,5 @@ cloud_bridge:
     reconnect_interval_sec: 5.0
     ping_interval_sec: 60.0
     session_file: "/home/arduino/.config/aimee_session.json"
+    api_key: "ac_free_943d96db38ee49aa"
+    tts_mode: "client"

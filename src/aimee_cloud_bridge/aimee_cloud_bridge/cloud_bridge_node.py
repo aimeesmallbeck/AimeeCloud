@@ -59,6 +59,8 @@ class AimeeCloudClientNode(Node):
             ('session_file', '/home/arduino/.config/aimee_session.json'),
             ('snapshot_resolution', '640x480'),
             ('snapshot_quality', 85),
+            ('api_key', os.getenv('AIMEECLOUD_API_KEY', 'ac_free_943d96db38ee49aa')),
+            ('tts_mode', 'client'),
         ])
 
         self._device_id = self.get_parameter('device_id').value
@@ -74,6 +76,9 @@ class AimeeCloudClientNode(Node):
         self._session_file = self.get_parameter('session_file').value
         self._snapshot_resolution = self.get_parameter('snapshot_resolution').value
         self._snapshot_quality = self.get_parameter('snapshot_quality').value
+        self._api_key = self.get_parameter('api_key').value
+        self._tts_mode = self.get_parameter('tts_mode').value
+        self._tier = None
 
         # TODO: Make capabilities dynamic based on active ROS2 nodes
         # e.g., scan node graph for /ugv02_controller -> add "motors",
@@ -101,11 +106,13 @@ class AimeeCloudClientNode(Node):
 
         # Publishers
         self._tts_pub = self.create_publisher(String, '/tts/speak', reliable_qos)
+        self._tts_audio_pub = self.create_publisher(String, '/tts/audio', reliable_qos)
         self._session_id_pub = self.create_publisher(String, '/cloud/session_id', reliable_qos)
         self._connected_pub = self.create_publisher(Bool, '/cloud/connected', reliable_qos)
         self._cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', reliable_qos)
         self._arm_cmd_pub = self.create_publisher(ArmCommand, '/arm/command', reliable_qos)
         self._game_cmd_pub = self.create_publisher(CloudIntent, '/game/command', reliable_qos)
+        self._expression_pub = self.create_publisher(String, '/expression/command', reliable_qos)
 
         # Subscribers
         self.create_subscription(Intent, '/intent/classified', self._on_intent, 10)
@@ -273,10 +280,28 @@ class AimeeCloudClientNode(Node):
         msg_type = payload.get("type")
 
         if msg_type == "session_init":
+            status = payload.get("status", "connected")
+            if status == "rejected":
+                error = payload.get("error", "UNKNOWN")
+                detail = payload.get("error_detail", "")
+                self.get_logger().error(f"Session rejected: {error} - {detail}")
+                self._clear_session()
+                if error == "INVALID_API_KEY":
+                    self.get_logger().error("API key is invalid. Check AIMEECLOUD_API_KEY env var.")
+                return
             session_id = payload.get("session_id")
             if session_id:
                 self._save_session(session_id)
-                self.get_logger().info(f"Session initialized: {session_id}")
+                self._tier = payload.get("tier")
+                expires_in = payload.get("expires_in")
+                ttl = payload.get("ttl")
+                self.get_logger().info(
+                    f"Session initialized: {session_id} (tier={self._tier}, "
+                    f"expires_in={expires_in}, ttl={ttl})"
+                )
+                # Execute any commands sent during session init
+                for cmd in payload.get("commands", []):
+                    self._execute_command(cmd)
             return
 
         if msg_type == "snapshot_request":
@@ -295,23 +320,25 @@ class AimeeCloudClientNode(Node):
         text = payload.get("tts", "") or payload.get("text", "")
         commands = payload.get("commands", [])
 
+        tts_audio = payload.get("tts_audio")
+
         if sub_type == "chat_response":
-            self._speak_response(tts, voice, voice_segments)
+            self._speak_response(tts, voice, voice_segments, tts_audio)
             for cmd in commands:
                 self._execute_command(cmd)
         elif sub_type == "game_update":
-            self._speak_response(tts, voice, voice_segments)
+            self._speak_response(tts, voice, voice_segments, tts_audio)
             for cmd in commands:
                 self._execute_command(cmd)
             self.get_logger().info(f"Game update received with {len(commands)} commands")
         elif sub_type == "robot_command":
             intent = payload.get("intent", "")
             command = payload.get("command", {})
-            self._on_robot_command(intent, command, tts, voice, voice_segments)
+            self._on_robot_command(intent, command, tts, voice, voice_segments, tts_audio)
             for cmd in commands:
                 self._execute_command(cmd)
         elif sub_type == "aimee_agent":
-            self._speak_response(text, voice, voice_segments)
+            self._speak_response(text, voice, voice_segments, tts_audio)
             for cmd in commands:
                 self._execute_command(cmd)
             self.get_logger().info(f"AimeeAgent response handled with {len(commands)} commands")
@@ -323,9 +350,24 @@ class AimeeCloudClientNode(Node):
                 self.get_logger().warning("Session not found, clearing and reconnecting")
                 self._clear_session()
                 self._publish_connect()
+            elif error_code == "INVALID_API_KEY":
+                self.get_logger().error("Cloud error: INVALID_API_KEY - check API key configuration")
+                self._clear_session()
+            elif error_code == "TIER_LIMIT_EXCEEDED":
+                self.get_logger().warning("Cloud error: TIER_LIMIT_EXCEEDED - consider upgrading tier")
+                if tts:
+                    self._speak_response(tts, voice, voice_segments, payload.get("tts_audio"))
+                for cmd in commands:
+                    self._execute_command(cmd)
+            elif error_code == "RATE_LIMIT_EXCEEDED":
+                self.get_logger().warning("Cloud error: RATE_LIMIT_EXCEEDED - throttling requests")
+                if tts:
+                    self._speak_response(tts, voice, voice_segments, payload.get("tts_audio"))
+                for cmd in commands:
+                    self._execute_command(cmd)
             else:
                 if tts:
-                    self._speak_response(tts, voice, voice_segments)
+                    self._speak_response(tts, voice, voice_segments, payload.get("tts_audio"))
                 for cmd in commands:
                     self._execute_command(cmd)
                 self.get_logger().error(f"Cloud error: {error_code}")
@@ -377,6 +419,7 @@ class AimeeCloudClientNode(Node):
         topic = f"aimeecloud/device/{self._device_id}/connect"
         payload = {
             "type": "connect",
+            "api_key": self._api_key,
             "device_id": self._device_id,
             "user_profile": {
                 "name": self._user_name,
@@ -384,6 +427,7 @@ class AimeeCloudClientNode(Node):
                 "language": self._user_language
             },
             "capabilities": self._capabilities,
+            "tts_mode": self._tts_mode,
             "request_session_id": self._session_id,
             "timestamp": self._iso_timestamp()
         }
@@ -508,8 +552,24 @@ class AimeeCloudClientNode(Node):
     def _on_cloud_raw_text(self, msg: String):
         self.send_agent_request(msg.data)
 
-    def _speak_response(self, text: str, voice: dict = None, voice_segments: list = None):
-        """Publish TTS text, optionally with voice metadata from AimeeCloud."""
+    def _speak_response(self, text: str, voice: dict = None, voice_segments: list = None, tts_audio: dict = None):
+        """Publish TTS text, optionally with voice metadata or base64 audio from AimeeCloud."""
+        # Server-side TTS audio fallback chain
+        if tts_audio:
+            audio_b64 = tts_audio.get("audio_base64", "")
+            audio_format = tts_audio.get("format", "mp3")
+            if audio_b64:
+                payload = json.dumps({
+                    "format": audio_format,
+                    "audio_base64": audio_b64,
+                    "provider": tts_audio.get("provider", ""),
+                    "voice_id": tts_audio.get("voice_id", "")
+                })
+                self._tts_audio_pub.publish(String(data=payload))
+                self.get_logger().info(f"Cloud TTS audio: {len(audio_b64)} base64 chars ({audio_format})")
+                # If we have server audio, prefer it; but still speak text if present
+                # (some implementations may overlay or queue both)
+
         if voice_segments:
             for segment in voice_segments:
                 seg_text = segment.get("text", "")
@@ -698,7 +758,7 @@ class AimeeCloudClientNode(Node):
             self.get_logger().error(f"Failed to start usb_camera: {e}")
             return False
 
-    def _on_robot_command(self, intent: str, command: dict, text: str, voice: dict = None, voice_segments: list = None):
+    def _on_robot_command(self, intent: str, command: dict, text: str, voice: dict = None, voice_segments: list = None, tts_audio: dict = None):
         motor = command.get("motor")
         arm = command.get("arm")
         gripper = command.get("gripper")
@@ -734,7 +794,7 @@ class AimeeCloudClientNode(Node):
             self._arm_cmd_pub.publish(arm_msg)
 
         if text:
-            self._speak_response(text, voice, voice_segments)
+            self._speak_response(text, voice, voice_segments, tts_audio)
 
         self.get_logger().info(f"Robot command executed: {intent}")
 
@@ -776,6 +836,8 @@ class AimeeCloudClientNode(Node):
             self._execute_snapshot_command(cmd)
         elif cmd_type == "game_move":
             self._execute_game_move_command(cmd)
+        elif cmd_type == "expression":
+            self._execute_expression_command(cmd)
         else:
             self.get_logger().warning(f"Unknown AimeeAgent command type: {cmd_type}")
 
@@ -835,6 +897,17 @@ class AimeeCloudClientNode(Node):
         self._game_cmd_pub.publish(cloud_intent)
         self.get_logger().info(f"AimeeAgent game move dispatched: {game} {move}")
 
+    def _execute_expression_command(self, cmd: dict):
+        """Dispatch an expression command to the local expression handler."""
+        payload = json.dumps({
+            "name": cmd.get("name", ""),
+            "duration_ms": cmd.get("duration_ms", 0),
+            "priority": cmd.get("priority", "normal"),
+            "params": cmd.get("params", {})
+        })
+        self._expression_pub.publish(String(data=payload))
+        self.get_logger().info(f"AimeeAgent expression dispatched: {cmd.get('name', '')}")
+
     # ─────────────────────────────── Timers ───────────────────────────────
 
     def _reconnect_tick(self):
@@ -873,7 +946,8 @@ class AimeeCloudClientNode(Node):
 
         if self._mqtt_client:
             try:
-                topic = f"aimeecloud/device/{self._device_id}/connect"
+                # Per v1.4, explicit disconnect goes to .../in
+                topic = f"aimeecloud/device/{self._device_id}/in"
                 payload = {
                     "type": "disconnect",
                     "device_id": self._device_id,
