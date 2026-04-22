@@ -62,7 +62,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # ─────────────────────────────── Python Dependencies ───────────────────────────────
 # Upgrade pip first: older system pip doesn't support --break-system-packages
-RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip3 install --no-cache-dir --upgrade pip "setuptools<80" wheel
 RUN pip3 install --no-cache-dir --break-system-packages \
     aiohttp==3.13.5 \
     flask \
