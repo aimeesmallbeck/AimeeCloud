@@ -52,9 +52,12 @@ if (APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g -stdlib=libc++")
 elseif (UNIX)
     target_compile_definitions(${OBSBOT_Target} PRIVATE UNICODE _UNICODE)
-    target_link_directories(${OBSBOT_Target} PRIVATE "${SDK_LINK_PATH}")
-    target_link_libraries(${OBSBOT_Target} PRIVATE dev)
+    target_link_libraries(${OBSBOT_Target} PRIVATE "${SDK_LINK_PATH}/libdev.so")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wall -g")
+    set_target_properties(${OBSBOT_Target} PROPERTIES
+        BUILD_RPATH "${SDK_LINK_PATH}"
+        INSTALL_RPATH "${SDK_LINK_PATH}"
+    )
 else ()
     target_compile_definitions(${OBSBOT_Target} PRIVATE UNICODE _UNICODE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
     target_link_options(${OBSBOT_Target} PRIVATE "LINKER:/SAFESEH:NO")
