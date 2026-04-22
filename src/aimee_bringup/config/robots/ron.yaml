@@ -4,6 +4,12 @@ robot_name: "ron"
 
 hardware:
   base: "ugv02"
+  base_params:
+    serial_port: "/dev/ttyACM0"
+    baud_rate: 115200
+    wheel_separation: 0.23
+    wheel_radius: 0.04
+    max_speed: 0.5
   arm: "roarm_m3"
   camera: "obsbot"
 

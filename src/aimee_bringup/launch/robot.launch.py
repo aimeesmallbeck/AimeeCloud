@@ -52,16 +52,16 @@ def load_robot_config():
 
         if not config_path:
             # Fallback: look for a config matching hostname
-        hostname = os.uname().nodename
-        host_config = os.path.join(
-            workspace, 'src', 'aimee_bringup', 'config', 'robots', f'{hostname}.yaml'
-        )
-        if os.path.exists(host_config):
-            config_path = host_config
-        else:
-            config_path = os.path.join(
-                workspace, 'src', 'aimee_bringup', 'config', 'robots', 'default.yaml'
+            hostname = os.uname().nodename
+            host_config = os.path.join(
+                workspace, 'src', 'aimee_bringup', 'config', 'robots', f'{hostname}.yaml'
             )
+            if os.path.exists(host_config):
+                config_path = host_config
+            else:
+                config_path = os.path.join(
+                    workspace, 'src', 'aimee_bringup', 'config', 'robots', 'default.yaml'
+                )
 
     if not os.path.exists(config_path):
         raise FileNotFoundError(
@@ -174,15 +174,19 @@ def generate_launch_description():
     )
 
     # ─── Hardware: Mobile Base ───
+    base_params = hw.get('base_params', {})
     ugv02_controller_node = Node(
         package='aimee_ugv02_controller',
         executable='ugv02_controller_node',
         name='ugv02_controller',
         output='screen',
         parameters=[{
-            'serial_port': '/dev/ttyACM0',
-            'baud_rate': 115200,
-            'publish_tf': True,
+            'serial_port': base_params.get('serial_port', '/dev/ttyACM0'),
+            'baud_rate': base_params.get('baud_rate', 115200),
+            'wheel_separation': base_params.get('wheel_separation', 0.23),
+            'wheel_radius': base_params.get('wheel_radius', 0.04),
+            'max_speed': base_params.get('max_speed', 0.5),
+            'publish_tf': base_params.get('publish_tf', True),
         }],
         # Added to LaunchDescription dynamically based on hardware config
     )
@@ -244,8 +248,8 @@ def generate_launch_description():
         core_launch,
     ])
 
-    # Add base controller if configured
-    if base_type == 'ugv02':
+    # Add base controller if configured (ugv02 and wave_rover share the same protocol)
+    if base_type in ('ugv02', 'wave_rover'):
         ld.add_action(ugv02_controller_node)
 
     # Add arm nodes if configured
