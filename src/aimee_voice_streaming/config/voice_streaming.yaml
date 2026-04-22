@@ -1,0 +1,26 @@
+voice_streaming:
+  ros__parameters:
+    gateway_url: "wss://aimeecloud.com/ws/v1"
+    api_key: ""                       # Falls back to AIMEECLOUD_API_KEY env var
+    device_id: "arduino-uno-q-001"
+    reconnect_interval_sec: 5.0
+
+    # Audio I/O
+    sample_rate_in: 16000
+    sample_rate_out: 24000
+    channels_in: 1
+    channels_out: 1
+    frame_duration_ms: 20
+    audio_device_index: -1            # -1 = default device
+
+    # VAD (webrtcvad)
+    # Mode: 0=normal, 1=low_bitrate, 2=aggressive, 3=very_aggressive
+    vad_mode: 2
+    vad_silence_duration_ms: 500
+    vad_padding_duration_ms: 300
+
+    # Behavior
+    auto_start: true
+    conversation_timeout_sec: 60.0
+    enable_barge_in: false            # Phase 1: disabled (mute mic during playback)
+    max_utterance_sec: 30.0

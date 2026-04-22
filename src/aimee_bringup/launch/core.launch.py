@@ -13,6 +13,7 @@ from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable, Execut
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch.conditions import IfCondition
+from launch.substitutions import PythonExpression
 
 
 def generate_launch_description():
@@ -49,6 +50,12 @@ def generate_launch_description():
         'use_voice',
         default_value='true',
         description='Enable voice manager (STT) node'
+    )
+
+    voice_pipeline_arg = DeclareLaunchArgument(
+        'voice_pipeline',
+        default_value='legacy',
+        description='Voice pipeline mode: legacy (Vosk/text) or streaming (native audio)'
     )
 
     use_tts_arg = DeclareLaunchArgument(
@@ -129,6 +136,7 @@ def generate_launch_description():
     )
 
     # ─── Voice Pipeline ───
+    # Legacy text-based voice manager (Vosk STT → MQTT text)
     voice_manager_node = Node(
         package='aimee_voice_manager',
         executable='voice_manager_node',
@@ -147,7 +155,24 @@ def generate_launch_description():
             'whisper_api_key': os.getenv('LEMONFOX_API_KEY', ''),
             'default_voice': 'sarah',
         }],
-        condition=IfCondition(use_voice)
+        condition=IfCondition(
+            PythonExpression(["'", use_voice, "' == 'true' and '", voice_pipeline, "' == 'legacy'"])
+        )
+    )
+
+    # Native audio streaming voice pipeline (WebSocket audio ↔ Gemini Live)
+    voice_streaming_node = Node(
+        package='aimee_voice_streaming',
+        executable='voice_streaming_node',
+        name='voice_streaming',
+        output='screen',
+        parameters=[os.path.join(
+            os.getenv('AIMEE_ROBOT_WS', '/workspace'),
+            'src/aimee_voice_streaming/config/voice_streaming.yaml'
+        )],
+        condition=IfCondition(
+            PythonExpression(["'", use_voice, "' == 'true' and '", voice_pipeline, "' == 'streaming'"])
+        )
     )
 
     tts_node = Node(
@@ -248,6 +273,7 @@ def generate_launch_description():
         use_sim_time_arg,
         use_usb_cam_arg,
         use_voice_arg,
+        voice_pipeline_arg,
         use_tts_arg,
         use_monitor_arg,
         use_llm_arg,
@@ -258,6 +284,7 @@ def generate_launch_description():
         set_pacific_tz,
         usb_camera_node,
         voice_manager_node,
+        voice_streaming_node,
         tts_node,
         monitor_node,
         llm_backend,

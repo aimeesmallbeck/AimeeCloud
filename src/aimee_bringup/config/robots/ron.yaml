@@ -10,6 +10,7 @@ hardware:
 software:
   monitor: true
   voice: true
+  voice_pipeline: legacy
   tts: true
   llm: true
   intent: true

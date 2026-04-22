@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Audio / Video
     alsa-utils \
     libportaudio2 \
+    portaudio19-dev \
+    libopus-dev \
     libv4l-dev \
     v4l-utils \
     ffmpeg \
@@ -78,7 +80,10 @@ RUN pip3 install --no-cache-dir --break-system-packages \
     python-osc \
     pillow \
     pyserial \
-    pyyaml
+    pyyaml \
+    websockets \
+    sounddevice \
+    webrtcvad
 
 # ─────────────────────────────── Initialize rosdep ───────────────────────────────
 RUN rosdep init 2>/dev/null || true && rosdep update

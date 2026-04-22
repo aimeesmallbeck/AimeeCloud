@@ -16,6 +16,7 @@ hardware:
 software:
   monitor: true        # ROS2 web dashboard (always recommended)
   voice: true          # Wake-word + voice manager (STT)
+  voice_pipeline: legacy  # "legacy" (Vosk/text) or "streaming" (native audio)
   tts: true            # Text-to-speech
   llm: true            # Local LLM backend
   intent: true         # Intent classification router

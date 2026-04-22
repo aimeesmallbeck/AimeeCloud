@@ -52,16 +52,16 @@ def load_robot_config():
 
         if not config_path:
             # Fallback: look for a config matching hostname
-        hostname = os.uname().nodename
-        host_config = os.path.join(
-            workspace, 'src', 'aimee_bringup', 'config', 'robots', f'{hostname}.yaml'
-        )
-        if os.path.exists(host_config):
-            config_path = host_config
-        else:
-            config_path = os.path.join(
-                workspace, 'src', 'aimee_bringup', 'config', 'robots', 'default.yaml'
+            hostname = os.uname().nodename
+            host_config = os.path.join(
+                workspace, 'src', 'aimee_bringup', 'config', 'robots', f'{hostname}.yaml'
             )
+            if os.path.exists(host_config):
+                config_path = host_config
+            else:
+                config_path = os.path.join(
+                    workspace, 'src', 'aimee_bringup', 'config', 'robots', 'default.yaml'
+                )
 
     if not os.path.exists(config_path):
         raise FileNotFoundError(
@@ -108,6 +108,11 @@ def generate_launch_description():
         default_value=str(sw.get('voice', True)).lower(),
         description='Enable voice manager (STT)'
     )
+    voice_pipeline_arg = DeclareLaunchArgument(
+        'voice_pipeline',
+        default_value=sw.get('voice_pipeline', 'legacy'),
+        description='Voice pipeline: legacy (text) or streaming (native audio)'
+    )
     use_tts_arg = DeclareLaunchArgument(
         'use_tts',
         default_value=str(sw.get('tts', True)).lower(),
@@ -147,6 +152,7 @@ def generate_launch_description():
     # Get launch configurations
     use_cloud = LaunchConfiguration('use_cloud')
     use_voice = LaunchConfiguration('use_voice')
+    voice_pipeline = LaunchConfiguration('voice_pipeline')
     use_tts = LaunchConfiguration('use_tts')
     use_monitor = LaunchConfiguration('use_monitor')
     use_llm = LaunchConfiguration('use_llm')
@@ -165,6 +171,7 @@ def generate_launch_description():
             'robot_name': robot_name,
             'use_cloud': use_cloud,
             'use_voice': use_voice,
+            'voice_pipeline': voice_pipeline,
             'use_tts': use_tts,
             'use_monitor': use_monitor,
             'use_llm': use_llm,
@@ -234,6 +241,7 @@ def generate_launch_description():
         ]),
         use_cloud_arg,
         use_voice_arg,
+        voice_pipeline_arg,
         use_tts_arg,
         use_monitor_arg,
         use_llm_arg,
