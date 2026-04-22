@@ -41,6 +41,69 @@ aimee-robot-ws/
 └── README.md                 # This file
 ```
 
+## ROS2 Packages
+
+Each package below can be used standalone or as part of the full robot stack. All nodes are written in Python (rclpy) unless noted.
+
+### Voice & Audio
+
+| Package | Node(s) | Description |
+|---------|---------|-------------|
+| `aimee_wake_word_ei` | `wake_word_ei_node` | Edge Impulse keyword spotting — publishes `/wake_word/detected` |
+| `aimee_voice_manager` | `voice_manager_node` | STT pipeline (Vosk local + Whisper/Lemonfox cloud fallback) — publishes `/voice/transcription` |
+| `aimee_tts` | `tts_node` | Text-to-Speech with Lemonfox (primary), Kokoro, and gTTS (fallback) — subscribes `/tts/speak` |
+
+### Intelligence & Cloud
+
+| Package | Node(s) | Description |
+|---------|---------|-------------|
+| `aimee_intent_router` | `intent_router_node` | Classifies voice intents and routes to local skills or AimeeCloud — publishes `/intent/classified` |
+| `aimee_skill_manager` | `skill_manager_node` | Skill execution engine — action server `/skill/execute` |
+| `aimee_llm_server` | `llm_server_node` | Non-blocking LLM action server with streaming + preemption — action server `/llm/generate` |
+| `aimee_cloud_bridge` | `cloud_bridge_node` | MQTT bridge to AimeeCloud — handles AimeeAgent protocol, voice metadata, and local command execution |
+
+### Vision
+
+| Package | Node(s) | Description |
+|---------|---------|-------------|
+| `aimee_vision_obsbot` | `obsbot_node`, `obsbot_keepalive_node` | OBSBOT Tiny 2 PTZ/tracking control via OSC SDK — subscribes `/camera/*` topics |
+| `aimee_vision_pipeline` | `color_detector_node`, `object_tracker_node` | Color-based object detection and multi-object tracking — publishes `/vision/detections` |
+| `aimee_perception` | `pose_estimator_node`, `grasp_planner_node` | 3D pose estimation and grasp strategy planning |
+
+### Hardware Control
+
+| Package | Node(s) | Description |
+|---------|---------|-------------|
+| `aimee_ugv02_controller` | `ugv02_controller_node`, `ugv02_teleop_node` | Waveshare UGV02 base control via JSON serial protocol — subscribes `/cmd_vel` |
+| `aimee_lerobot_bridge` | `roarm_m3_http_driver` | RoArm-M3 arm control via HTTP/JSON — subscribes `/arm/command` |
+| `aimee_manipulation` | `arm_controller_node`, `pick_place_server` | Arm control and PickPlace action server — action server `/manipulation/pick_place` |
+
+### Utilities
+
+| Package | Node(s) | Description |
+|---------|---------|-------------|
+| `aimee_ros2_monitor` | `monitor_node` | Web dashboard (port 8081) — node status, logs, camera stream, topic Hz |
+| `aimee_test_dashboard` | `dashboard_node` | Hardware test dashboard with simulation mode |
+| `aimee_bringup` | — | Launch files and robot profiles — entry point for `core.launch.py` |
+| `aimee_msgs` | — | Custom ROS2 messages, services, and actions used across all packages |
+| `aimee_brick_template` | — | Template/boilerplate for creating new Arduino bricks |
+
+### Using Individual Packages
+
+You don't need the full robot to use a single node. For example, to run just the TTS node:
+
+```bash
+ros2 run aimee_tts tts_node --ros-args -p default_engine:="lemonfox" -p lemonfox_api_key:="YOUR_KEY"
+```
+
+Or to use just the OBSBOT camera control:
+
+```bash
+ros2 run aimee_vision_obsbot obsbot_node --ros-args -p host:="192.168.5.1"
+```
+
+Each package has its own `README.md` in `src/<package>/` with topic interfaces and parameter docs.
+
 ## New Board Setup (Bootstrap)
 
 For a fresh Arduino UNO Q, run the bootstrap script:
