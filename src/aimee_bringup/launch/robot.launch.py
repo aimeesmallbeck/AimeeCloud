@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
 Robot-specific launch file for Aimee Robot
-Launches hardware-specific nodes based on robot type
+Launches hardware-specific nodes based on robot type.
+Includes core.launch.py for the intelligence/voice/cloud stack.
 """
 
 import os
 from launch import LaunchDescription
 from launch.actions import (
-    DeclareLaunchArgument, 
+    DeclareLaunchArgument,
     IncludeLaunchDescription,
-    SetEnvironmentVariable
+    SetEnvironmentVariable,
+    LogInfo,
 )
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -24,140 +26,114 @@ def generate_launch_description():
         default_value='ron',
         description='Robot to launch (ron or wren)'
     )
-    
+
     use_cloud_arg = DeclareLaunchArgument(
         'use_cloud',
         default_value='true',
         description='Enable AimeeCloud connection'
     )
-    
+
     use_vision_arg = DeclareLaunchArgument(
         'use_vision',
         default_value='true',
         description='Enable vision/camera nodes'
     )
-    
+
+    use_arm_arg = DeclareLaunchArgument(
+        'use_arm',
+        default_value='true',
+        description='Enable arm/manipulation nodes (Ron only)'
+    )
+
     # Get launch configurations
     robot = LaunchConfiguration('robot')
     use_cloud = LaunchConfiguration('use_cloud')
     use_vision = LaunchConfiguration('use_vision')
-    
+    use_arm = LaunchConfiguration('use_arm')
+
     # Check robot type
     is_ron = PythonExpression(["'", robot, "' == 'ron'"])
     is_wren = PythonExpression(["'", robot, "' == 'wren'"])
-    
-    # Include core launch
+
+    # ─── Include core launch (intelligence stack) ───
     core_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(
-                os.getenv('AIMEE_ROBOT_WS', '~/aimee-robot-ws'),
+                os.getenv('AIMEE_ROBOT_WS', '/workspace'),
                 'src/aimee_bringup/launch/core.launch.py'
             )
         ]),
         launch_arguments={
             'robot_name': robot,
+            'use_cloud': use_cloud,
         }.items()
     )
-    
-    # Ron-specific nodes (UGV02 + RoArm-M3)
+
+    # ─── Ron-specific: UGV02 base controller ───
     ugv02_controller_node = Node(
-        package='aimee_motion',
-        executable='ugv02_controller',
+        package='aimee_ugv02_controller',
+        executable='ugv02_controller_node',
         name='ugv02_controller',
         output='screen',
         parameters=[{
             'serial_port': '/dev/ttyACM0',
             'baud_rate': 115200,
+            'publish_tf': True,
         }],
         condition=IfCondition(is_ron)
     )
-    
-    roarm_controller_node = Node(
-        package='aimee_arm',
-        executable='roarm_controller',
-        name='roarm_controller',
+
+    # ─── Ron-specific: Arm controller ───
+    # NOTE: aimee_manipulation contains arm_controller_node and pick_place_server.
+    # If you need a dedicated RoArm-M3 HTTP driver, aimee_lerobot_bridge has
+    # roarm_m3_http_driver as well.
+    arm_controller_node = Node(
+        package='aimee_manipulation',
+        executable='arm_controller_node',
+        name='arm_controller',
         output='screen',
         parameters=[{
-            'serial_port': '/dev/ttyUSB0',
-            'baud_rate': 115200,
+            'simulation_mode': False,
+            'arm_type': 'roarm_m3',
         }],
-        condition=IfCondition(is_ron)
+        condition=IfCondition(PythonExpression(["'", use_arm, "' == 'true' and '", robot, "' == 'ron'"]))
     )
-    
-    # Wren-specific nodes (Wave Rover)
-    wave_rover_controller_node = Node(
-        package='aimee_motion',
-        executable='wave_rover_controller',
-        name='wave_rover_controller',
+
+    pick_place_server = Node(
+        package='aimee_manipulation',
+        executable='pick_place_server',
+        name='pick_place_server',
         output='screen',
         parameters=[{
-            'serial_port': '/dev/ttyACM0',
-            'baud_rate': 115200,
+            'default_timeout': 30.0,
         }],
-        condition=IfCondition(is_wren)
+        condition=IfCondition(PythonExpression(["'", use_arm, "' == 'true' and '", robot, "' == 'ron'"]))
     )
-    
-    # Vision Manager (OBSBOT)
-    vision_manager_node = Node(
-        package='aimee_vision',
-        executable='vision_manager',
-        name='vision_manager',
-        output='screen',
-        parameters=[{
-            'obsbot_host': '192.168.5.1',
-            'obsbot_port': 16284,
-            'enable_tracking': True,
-        }],
+
+    # ─── Wren-specific: Wave Rover controller ───
+    # TODO: Add wave_rover_controller_node when aimee_wave_rover package is available.
+    # For now, Wren launches only the core stack.
+
+    # ─── Vision Pipeline ───
+    vision_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(
+                os.getenv('AIMEE_ROBOT_WS', '/workspace'),
+                'src/aimee_bringup/launch/vision_pipeline.launch.py'
+            )
+        ]),
         condition=IfCondition(use_vision)
     )
-    
-    # AimeeCloud Client (ACC)
-    aimee_cloud_client_node = Node(
-        package='aimee_cloud_bridge',
-        executable='cloud_bridge_node',
-        name='aimee_cloud_client',
-        output='screen',
-        parameters=[{
-            'endpoint': os.getenv('AIMEE_CLOUD_ENDPOINT', 'https://aimeecloud.com'),
-            'reconnect_interval': 5.0,
-            'snapshot_resolution': '640x480',
-            'snapshot_quality': 85,
-        }],
-        condition=IfCondition(use_cloud)
-    )
-    
-    # State Manager (aggregates robot state)
-    state_manager_node = Node(
-        package='aimee_bringup',
-        executable='state_manager',
-        name='state_manager',
-        output='screen',
-        parameters=[{
-            'robot_name': robot,
-            'publish_rate': 10.0,  # Hz
-        }]
-    )
-    
+
     return LaunchDescription([
-        # Arguments
+        LogInfo(msg=["Starting Aimee robot.launch.py for robot: ", robot]),
         robot_arg,
         use_cloud_arg,
         use_vision_arg,
-        
-        # Core
+        use_arm_arg,
         core_launch,
-        
-        # Hardware Controllers
         ugv02_controller_node,
-        roarm_controller_node,
-        wave_rover_controller_node,
-        
-        # Vision
-        vision_manager_node,
-        
-        # Cloud
-        aimee_cloud_client_node,
-        
-        # State
-        state_manager_node,
+        arm_controller_node,
+        pick_place_server,
+        vision_launch,
     ])

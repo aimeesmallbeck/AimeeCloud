@@ -185,6 +185,7 @@ class VoiceManagerNode(Node):
 
     def _init_and_listen(self):
         """Background thread: initialize Vosk and run listen loop with auto-restart."""
+        restart_count = 0
         while not self._shutdown_event.is_set():
             try:
                 if not self._initialized:
@@ -199,6 +200,7 @@ class VoiceManagerNode(Node):
                     # Just wait until enabled or shutdown
                     while not self._enabled and not self._shutdown_event.is_set():
                         time.sleep(0.5)
+                restart_count = 0  # reset on healthy iteration
             except Exception as e:
                 self.get_logger().error(f"Listen thread error: {e}")
                 self._report_health(False, "listen_thread_error", str(e))
@@ -206,10 +208,14 @@ class VoiceManagerNode(Node):
             if self._shutdown_event.is_set():
                 break
 
-            # Auto-restart delay
-            self.get_logger().warning("Listen loop stopped; restarting in 2s...")
+            restart_count += 1
+            # Back off up to 30s so a missing mic/model doesn't spam logs
+            delay = min(2.0 * restart_count, 30.0)
+            self.get_logger().warning(
+                f"Listen loop stopped; restarting in {delay:.0f}s... (attempt {restart_count})"
+            )
             self._listening = False
-            time.sleep(2.0)
+            time.sleep(delay)
 
     def _ensure_usb_camera_running(self):
         """Start usb_camera node if not already running (required for OBSBOT mic)."""

@@ -1,68 +1,116 @@
 #!/usr/bin/env python3
 """
 Core launch file for Aimee Robot
-Launches essential infrastructure nodes
+Launches essential infrastructure nodes.
+
+All major subsystems can be toggled off for debugging:
+  ros2 launch aimee_bringup core.launch.py use_voice:=false use_llm:=false
 """
 
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable, ExecuteProcess
+from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable, ExecuteProcess, LogInfo
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch.conditions import IfCondition
 
 
 def generate_launch_description():
-    # Launch arguments
+    # ─── Launch Arguments ───
     robot_name_arg = DeclareLaunchArgument(
         'robot_name',
         default_value='ron',
         description='Robot name (ron or wren)'
     )
-    
+
     config_path_arg = DeclareLaunchArgument(
         'config_path',
         default_value=os.path.join(
-            os.getenv('AIMEE_ROBOT_WS', '~/aimee-robot-ws'),
+            os.getenv('AIMEE_ROBOT_WS', '/workspace'),
             'config'
         ),
         description='Path to configuration files'
     )
-    
+
     use_sim_time_arg = DeclareLaunchArgument(
         'use_sim_time',
         default_value='false',
         description='Use simulation time'
     )
-    
+
+    # Component toggles for debugging on resource-constrained targets
+    use_usb_cam_arg = DeclareLaunchArgument(
+        'use_usb_cam',
+        default_value='false',
+        description='Enable USB camera node (requires /dev/video2)'
+    )
+
+    use_voice_arg = DeclareLaunchArgument(
+        'use_voice',
+        default_value='true',
+        description='Enable voice manager (STT) node'
+    )
+
+    use_tts_arg = DeclareLaunchArgument(
+        'use_tts',
+        default_value='true',
+        description='Enable TTS node'
+    )
+
+    use_monitor_arg = DeclareLaunchArgument(
+        'use_monitor',
+        default_value='true',
+        description='Enable ROS2 monitor web dashboard'
+    )
+
+    use_llm_arg = DeclareLaunchArgument(
+        'use_llm',
+        default_value='true',
+        description='Enable local LLM backend + server'
+    )
+
+    use_intent_arg = DeclareLaunchArgument(
+        'use_intent',
+        default_value='true',
+        description='Enable intent router'
+    )
+
+    use_skills_arg = DeclareLaunchArgument(
+        'use_skills',
+        default_value='true',
+        description='Enable skill manager'
+    )
+
+    use_cloud_arg = DeclareLaunchArgument(
+        'use_cloud',
+        default_value='true',
+        description='Enable AimeeCloud bridge'
+    )
+
     # Get launch configurations
     robot_name = LaunchConfiguration('robot_name')
     config_path = LaunchConfiguration('config_path')
     use_sim_time = LaunchConfiguration('use_sim_time')
-    
-    # Set environment variables
+    use_usb_cam = LaunchConfiguration('use_usb_cam')
+    use_voice = LaunchConfiguration('use_voice')
+    use_tts = LaunchConfiguration('use_tts')
+    use_monitor = LaunchConfiguration('use_monitor')
+    use_llm = LaunchConfiguration('use_llm')
+    use_intent = LaunchConfiguration('use_intent')
+    use_skills = LaunchConfiguration('use_skills')
+    use_cloud = LaunchConfiguration('use_cloud')
+
+    # ─── Environment ───
     set_ros_domain_id = SetEnvironmentVariable(
         'ROS_DOMAIN_ID',
-        '42'  # Unique domain for Aimee robots
+        '42'
     )
     set_pacific_tz = SetEnvironmentVariable(
         'TZ',
         'America/Los_Angeles'
     )
-    
-    # Ensure container timezone is Pacific (container has no persistent RTC)
-    set_container_timezone = ExecuteProcess(
-        cmd=[
-            'bash', '-c',
-            'rm -f /etc/localtime && ln -s /usr/share/zoneinfo/America/Los_Angeles /etc/localtime && echo America/Los_Angeles > /etc/timezone'
-        ],
-        name='set_pacific_timezone',
-        output='log'
-    )
-    
-    # === Vision Pipeline Nodes ===
-    
-    # USB Camera Node (OBSBOT video streaming)
+
+    # ─── Optional USB Camera Node ───
     usb_camera_node = Node(
         package='usb_cam',
         executable='usb_cam_node_exe',
@@ -76,12 +124,11 @@ def generate_launch_description():
             'io_method': 'mmap',
             'camera_name': 'usb_camera',
         }],
-        remappings=[('image_raw', '/camera/image_raw')]
+        remappings=[('image_raw', '/camera/image_raw')],
+        condition=IfCondition(use_usb_cam)
     )
-    
-    # === Voice Pipeline Nodes ===
-    
-    # Voice Manager Node (Continuous STT - no wake word)
+
+    # ─── Voice Pipeline ───
     voice_manager_node = Node(
         package='aimee_voice_manager',
         executable='voice_manager_node',
@@ -99,10 +146,10 @@ def generate_launch_description():
             'whisper_api_base_url': 'https://api.lemonfox.ai/v1/audio/transcriptions',
             'whisper_api_key': os.getenv('LEMONFOX_API_KEY', ''),
             'default_voice': 'sarah',
-        }]
+        }],
+        condition=IfCondition(use_voice)
     )
-    
-    # TTS Node
+
     tts_node = Node(
         package='aimee_tts',
         executable='tts_node',
@@ -116,20 +163,20 @@ def generate_launch_description():
             'lemonfox_api_key': os.getenv('LEMONFOX_API_KEY', ''),
             'lemonfox_api_base_url': 'https://api.lemonfox.ai/v1',
             'volume': 1.0,
-        }]
+        }],
+        condition=IfCondition(use_tts)
     )
-    
-    # ROS2 Monitor Node (Web Dashboard)
+
+    # ─── Monitor Dashboard ───
     monitor_node = Node(
         package='aimee_ros2_monitor',
         executable='monitor_node',
         name='ros2_monitor',
         output='screen',
+        condition=IfCondition(use_monitor)
     )
-    
-    # === Intelligence Nodes ===
-    
-    # Local LLM Backend (llama.cpp server)
+
+    # ─── Local LLM Backend (llama.cpp server) ───
     llm_backend = ExecuteProcess(
         cmd=[
             'bash', '-c',
@@ -137,9 +184,9 @@ def generate_launch_description():
         ],
         name='llm_backend',
         output='screen',
+        condition=IfCondition(use_llm)
     )
-    
-    # LLM Server Node (Action Server)
+
     llm_server_node = Node(
         package='aimee_llm_server',
         executable='llm_server_node',
@@ -150,10 +197,11 @@ def generate_launch_description():
             'server_url': 'http://127.0.0.1:8080',
             'default_max_tokens': 150,
             'default_temperature': 0.7,
-        }]
+        }],
+        condition=IfCondition(use_llm)
     )
-    
-    # Intent Router Node
+
+    # ─── Intent & Skills ───
     intent_router_node = Node(
         package='aimee_intent_router',
         executable='intent_router_node',
@@ -164,10 +212,10 @@ def generate_launch_description():
             'enable_conversation_mode': True,
             'fallback_to_chat': True,
             'intent_config_path': '/workspace/config/aimee_intent_config.json',
-        }]
+        }],
+        condition=IfCondition(use_intent)
     )
-    
-    # Skill Manager Node
+
     skill_manager_node = Node(
         package='aimee_skill_manager',
         executable='skill_manager_node',
@@ -176,43 +224,42 @@ def generate_launch_description():
         parameters=[{
             'default_timeout': 30.0,
             'enable_safety_checks': True,
-        }]
+        }],
+        condition=IfCondition(use_skills)
     )
-    
-    # AimeeCloud Client (ACC) Node
+
+    # ─── AimeeCloud Bridge ───
     aimee_cloud_client_node = Node(
         package='aimee_cloud_bridge',
         executable='cloud_bridge_node',
         name='aimee_cloud_client',
         output='screen',
         parameters=[os.path.join(
-            os.getenv('AIMEE_ROBOT_WS', '/home/arduino/aimee-robot-ws'),
+            os.getenv('AIMEE_ROBOT_WS', '/workspace'),
             'src/aimee_cloud_bridge/config/cloud_bridge.yaml'
-        )]
+        )],
+        condition=IfCondition(use_cloud)
     )
-    
+
     return LaunchDescription([
-        # Arguments
+        LogInfo(msg=["Starting Aimee core.launch.py"]),
         robot_name_arg,
         config_path_arg,
         use_sim_time_arg,
-        
-        # Environment
+        use_usb_cam_arg,
+        use_voice_arg,
+        use_tts_arg,
+        use_monitor_arg,
+        use_llm_arg,
+        use_intent_arg,
+        use_skills_arg,
+        use_cloud_arg,
         set_ros_domain_id,
         set_pacific_tz,
-        set_container_timezone,
-        
-        # Vision Pipeline
         usb_camera_node,
-        
-        # Voice Pipeline
         voice_manager_node,
         tts_node,
-        
-        # Monitor
         monitor_node,
-        
-        # Intelligence
         llm_backend,
         llm_server_node,
         intent_router_node,
