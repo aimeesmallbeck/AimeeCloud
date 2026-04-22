@@ -73,10 +73,12 @@ RUN pip3 install --no-cache-dir --break-system-packages \
     kokorog2p==0.6.7 \
     paho-mqtt==2.1.0 \
     requests==2.33.1 \
-    numpy==2.2.6 \
+    "numpy<2" \
     opencv-python-headless==4.13.0.92 \
     python-osc \
-    pillow
+    pillow \
+    pyserial \
+    pyyaml
 
 # ─────────────────────────────── Initialize rosdep ───────────────────────────────
 RUN rosdep init 2>/dev/null || true && rosdep update

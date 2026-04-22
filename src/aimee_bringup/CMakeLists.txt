@@ -7,9 +7,10 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 
-# Install launch files
+# Install launch files and robot configs
 install(DIRECTORY
   launch
+  config
   DESTINATION share/${PROJECT_NAME}/
 )
 
