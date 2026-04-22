@@ -11,7 +11,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_DIR="$(dirname "$SCRIPT_DIR")"
-REPO_URL="https://github.com/aimeesmallbeck/Aimee-Project.git"
+REPO_URL="https://github.com/aimeesmallbeck/AimeeCloud.git"
 MODELS_SOURCE=""  # Set this to rsync from board #1, e.g. "arduino@10.0.0.156:/home/arduino/aimee-robot-ws/models"
 
 # Colors
