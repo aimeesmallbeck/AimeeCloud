@@ -2,6 +2,8 @@
 
 ROS2 Humble workspace for the Aimee social assistance robot running on **Arduino UNO Q**.
 
+Request access to AimeeCloud API at http://www.aimeecloud.com
+
 ## Quick Start
 
 ```bash
@@ -175,7 +177,4 @@ lsusb | grep OBSBOT
 
 MPL-2.0
 
-## See Also
 
-- Full Project Plan: `~/Aimee_Project_Plan.md`
-- Quick Reference: `~/Aimee_Project_Plan_Summary.md`
