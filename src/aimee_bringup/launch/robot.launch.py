@@ -41,7 +41,17 @@ def load_robot_config():
     config_path = os.getenv('ROBOT_CONFIG')
 
     if not config_path:
-        # Default: look for a config matching hostname, fallback to default
+        # Prefer AIMEE_ROBOT_NAME env var, then hostname, then default
+        robot_name = os.getenv('AIMEE_ROBOT_NAME')
+        if robot_name:
+            named_config = os.path.join(
+                workspace, 'src', 'aimee_bringup', 'config', 'robots', f'{robot_name}.yaml'
+            )
+            if os.path.exists(named_config):
+                config_path = named_config
+
+        if not config_path:
+            # Fallback: look for a config matching hostname
         hostname = os.uname().nodename
         host_config = os.path.join(
             workspace, 'src', 'aimee_bringup', 'config', 'robots', f'{hostname}.yaml'
@@ -81,6 +91,11 @@ def generate_launch_description():
     robot_name = robot_cfg.get('robot_name', 'aimee')
     hw = robot_cfg.get('hardware', {})
     sw = robot_cfg.get('software', {})
+
+    # Extract hardware types early so launch args can reference them
+    base_type = hw.get('base', 'none')
+    arm_type = hw.get('arm', 'none')
+    camera_type = hw.get('camera', 'none')
 
     # ─── Launch Arguments (allow CLI overrides of software toggles) ───
     use_cloud_arg = DeclareLaunchArgument(
@@ -159,7 +174,6 @@ def generate_launch_description():
     )
 
     # ─── Hardware: Mobile Base ───
-    base_type = hw.get('base', 'none')
     ugv02_controller_node = Node(
         package='aimee_ugv02_controller',
         executable='ugv02_controller_node',
@@ -174,7 +188,6 @@ def generate_launch_description():
     )
 
     # ─── Hardware: Arm ───
-    arm_type = hw.get('arm', 'none')
     arm_controller_node = Node(
         package='aimee_manipulation',
         executable='arm_controller_node',
@@ -199,7 +212,6 @@ def generate_launch_description():
     )
 
     # ─── Hardware: Camera / Vision Pipeline ───
-    camera_type = hw.get('camera', 'none')
     vision_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(workspace, 'src/aimee_bringup/launch/vision_pipeline.launch.py')

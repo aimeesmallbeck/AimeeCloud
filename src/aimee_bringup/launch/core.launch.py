@@ -103,7 +103,7 @@ def generate_launch_description():
     # ─── Environment ───
     set_ros_domain_id = SetEnvironmentVariable(
         'ROS_DOMAIN_ID',
-        '42'
+        os.getenv('ROS_DOMAIN_ID', '42')
     )
     set_pacific_tz = SetEnvironmentVariable(
         'TZ',

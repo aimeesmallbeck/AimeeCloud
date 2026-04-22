@@ -1,0 +1,17 @@
+# Wren — Arduino UNO Q #3 (Wave Rover base + OBSBOT, no arm)
+
+robot_name: "wren"
+
+hardware:
+  base: "wave_rover"
+  arm: "none"
+  camera: "obsbot"
+
+software:
+  monitor: true
+  voice: true
+  tts: true
+  llm: true
+  intent: true
+  skills: true
+  cloud: true
