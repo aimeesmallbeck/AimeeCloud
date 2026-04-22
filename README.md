@@ -355,4 +355,16 @@ docker compose run --rm aimee-robot bash -c "colcon build --symlink-install --pa
 
 ## License
 
+This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).
+
+### Third-Party Software
+
+This repository includes vendored prebuilt libraries that are subject to their own licenses:
+
+- **OBSBOT Device SDK** (`libdev_v2.1.0_8/`): Prebuilt binaries and headers from OBSBOT Technology Co., Ltd. used for camera control via the UVC/USB SDK. TODO: Review and document the exact OBSBOT SDK license terms. See `libdev_v2.1.0_8/LICENSE` (pending) or [OBSBOT Developer Center](https://www.obsbot.com/) for details.
+- **Edge Impulse models** (`.arduino-bricks/ei-models/`): Subject to Edge Impulse licensing terms.
+- **Vosk speech recognition models** (`vosk-models/`): Subject to Vosk/Apache 2.0 licensing terms.
+
+> ⚠️ **TODO:** Audit all third-party dependencies and vendored libraries to ensure proper license attribution and compatibility with MPL-2.0. Track progress in `docs/licensing-audit.md` (to be created).
+
 MPL-2.0
