@@ -42,9 +42,16 @@ Thumbs.db
 *.lib
 *.pdb
 *.exe
-obsbot_helper/obsbot_ctrl
 
-# Exception: OBSBOT SDK prebuilt libraries (vendored, not build artifacts)
+# Exception: Vendored prebuilt binaries (not build artifacts)
+!libdev_*/**/*.so
+!libdev_*/**/*.so.*
+!libdev_*/**/*.dylib
+!libdev_*/**/*.dll
+!libdev_*/**/*.lib
+!libdev_*/**/*.pdb
+!libdev_*/**/*.exe
+!obsbot_helper/obsbot_ctrl
 !libdev_*/**/*.so
 !libdev_*/**/*.so.*
 !libdev_*/**/*.dylib
