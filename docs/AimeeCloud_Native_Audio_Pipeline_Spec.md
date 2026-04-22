@@ -623,6 +623,18 @@ Higher start sensitivity = less false triggers from robot motor noise. Lower end
 
 ---
 
+## 8.5 Snapshot Reliability Improvement
+
+The snapshot pipeline was redesigned to eliminate V4L2 device contention:
+
+**Problem:** `usb_cam` node and `v4l2-ctl`/`ffmpeg` both needed exclusive access to `/dev/video2`. The old fix was `pkill -f usb_cam_node_exe`, wait, capture, restart — race-prone and ~50% reliable.
+
+**Solution:** `obsbot_node` now subscribes to `/camera/image_raw` and maintains a ring buffer of the latest frame. When a snapshot is requested:
+1. **Primary path:** Encode the buffered frame to JPEG via OpenCV (zero V4L2 contention, ~instant).
+2. **Fallback path:** If no buffered frame exists or resolution doesn't match, fall back to `v4l2-ctl`/`ffmpeg`.
+
+**Result:** Snapshots are reliable, fast, and no longer require stopping `usb_cam`.
+
 ## 9. Echo Cancellation (AEC)
 
 This is the hardest hardware problem. The robot speaker bleeds into the microphone.

@@ -641,13 +641,6 @@ class AimeeCloudClientNode(Node):
             )
             return
 
-        # Stop usb_camera to free V4L2 device
-        usb_cam_stopped = self._stop_usb_camera()
-        if not usb_cam_stopped:
-            self.get_logger().warning(
-                "Failed to stop usb_camera; attempting snapshot anyway"
-            )
-
         try:
             req = CaptureSnapshot.Request()
             req.resolution = resolution
@@ -691,11 +684,6 @@ class AimeeCloudClientNode(Node):
                 f"Snapshot error: {e}", ""
             )
 
-        finally:
-            # Always restart usb_camera
-            if usb_cam_stopped:
-                self._start_usb_camera()
-
     def _publish_snapshot_response(self, session_id: str, request_id: str,
                                    success: bool, message: str, image_b64: str):
         if not self._mqtt_client:
@@ -718,45 +706,6 @@ class AimeeCloudClientNode(Node):
         }
         self._mqtt_client.publish(topic, json.dumps(payload), qos=1)
         self.get_logger().info(f"Published snapshot_response: success={success}")
-
-    def _stop_usb_camera(self) -> bool:
-        """Stop usb_camera node to free V4L2 device."""
-        try:
-            result = subprocess.run(
-                ["pkill", "-f", "usb_cam_node_exe"],
-                capture_output=True, timeout=5
-            )
-            time.sleep(1.5)
-            self.get_logger().info("Stopped usb_camera node")
-            return True
-        except Exception as e:
-            self.get_logger().warning(f"Failed to stop usb_camera: {e}")
-            return False
-
-    def _start_usb_camera(self) -> bool:
-        """Start usb_camera node via ros2 run in background."""
-        try:
-            env = os.environ.copy()
-            cmd = (
-                "source /opt/ros/humble/setup.bash && "
-                "source /workspace/install/setup.bash && "
-                "ros2 run usb_cam usb_cam_node_exe --ros-args "
-                "-p video_device:=/dev/video2 "
-                "-p image_width:=1280 "
-                "-p image_height:=720 "
-                "-p pixel_format:=mjpeg2rgb "
-                "-p io_method:=mmap"
-            )
-            subprocess.Popen(
-                cmd, shell=True, executable="/bin/bash",
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                env=env, start_new_session=True
-            )
-            self.get_logger().info("Started usb_camera node")
-            return True
-        except Exception as e:
-            self.get_logger().error(f"Failed to start usb_camera: {e}")
-            return False
 
     def _on_robot_command(self, intent: str, command: dict, text: str, voice: dict = None, voice_segments: list = None, tts_audio: dict = None):
         motor = command.get("motor")
@@ -853,9 +802,6 @@ class AimeeCloudClientNode(Node):
         if not self._snapshot_cli or not self._snapshot_cli.wait_for_service(timeout_sec=5.0):
             self.get_logger().warning("Snapshot service not available for AimeeAgent command")
             return
-        usb_cam_stopped = self._stop_usb_camera()
-        if not usb_cam_stopped:
-            self.get_logger().warning("Failed to stop usb_camera; attempting snapshot anyway")
         try:
             req = CaptureSnapshot.Request()
             req.resolution = self._snapshot_resolution
@@ -880,9 +826,6 @@ class AimeeCloudClientNode(Node):
                 self.get_logger().warning(f"AimeeAgent snapshot failed: {result.message}")
         except Exception as e:
             self.get_logger().error(f"AimeeAgent snapshot error: {e}")
-        finally:
-            if usb_cam_stopped:
-                self._start_usb_camera()
 
     def _execute_game_move_command(self, cmd: dict):
         """Dispatch a game_move command to the local game handler."""

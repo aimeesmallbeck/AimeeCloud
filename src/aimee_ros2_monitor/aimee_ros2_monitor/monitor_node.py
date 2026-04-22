@@ -678,62 +678,6 @@ def llm_generate():
     return jsonify({'success': False, 'error': 'LLM server not available'}), 503
 
 
-def _stop_usb_camera():
-    """Stop usb_camera node to free V4L2 device for snapshot."""
-    try:
-        # Target the actual executable path to avoid killing unrelated shells
-        subprocess.run(
-            ['pkill', '-f', '/opt/ros/humble/lib/usb_cam/usb_cam_node_exe'],
-            capture_output=True, timeout=5
-        )
-        # Wait up to 5 seconds for /dev/video2 to be released
-        for _ in range(25):
-            time.sleep(0.2)
-            check = subprocess.run(
-                ['lsof', '/dev/video2'],
-                capture_output=True, timeout=5
-            )
-            if check.returncode != 0:
-                logger.info("Stopped usb_camera for snapshot")
-                return True
-        logger.warning("usb_camera still holding /dev/video2 after 5s")
-        return False
-    except Exception as e:
-        logger.warning(f"Failed to stop usb_camera: {e}")
-        return False
-
-
-def _start_usb_camera():
-    """Start usb_camera node using monitor configuration."""
-    # Avoid spawning duplicate processes
-    check = subprocess.run(['pgrep', '-f', 'usb_cam_node_exe'], capture_output=True, timeout=2)
-    if check.returncode == 0:
-        logger.info("usb_camera already running, skip restart")
-        return True
-    node_def = NODE_DEFINITIONS.get('usb_camera')
-    if not node_def:
-        return False
-    try:
-        cmd_parts = [
-            'source /opt/ros/humble/setup.bash',
-            'source /workspace/install/setup.bash',
-            f'ros2 run {node_def["package"]} {node_def["executable"]}'
-        ]
-        if node_def.get('args'):
-            cmd_parts[-1] += ' ' + ' '.join(node_def['args'])
-        cmd = ' && '.join(cmd_parts)
-        proc = subprocess.Popen(
-            cmd, shell=True, executable='/bin/bash',
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            start_new_session=True, close_fds=True
-        )
-        logger.info(f"Started usb_camera after snapshot (PID: {proc.pid})")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to start usb_camera: {e}")
-        return False
-
-
 @app.route('/api/snapshot', methods=['POST'])
 def take_snapshot():
     """Trigger a camera snapshot and return the image."""
@@ -744,27 +688,7 @@ def take_snapshot():
     resolution = data.get('resolution', '')
     quality = data.get('quality', 95)
     
-    usb_check = subprocess.run(['pgrep', '-f', 'usb_cam_node_exe'], capture_output=True, timeout=2)
-    usb_was_running = usb_check.returncode == 0
-    
-    result = None
-    for attempt in range(2):
-        if usb_was_running:
-            stopped = _stop_usb_camera()
-            if stopped:
-                time.sleep(0.5)  # let V4L2 driver settle
-        try:
-            result = _ros_node.capture_snapshot(resolution=resolution, quality=quality)
-            if result.get('success') or 'busy' not in result.get('message', '').lower():
-                break
-            logger.warning(f"Snapshot busy on attempt {attempt+1}, retrying...")
-            time.sleep(1.5)
-        except Exception as e:
-            result = {'success': False, 'message': str(e)}
-            break
-    
-    if usb_was_running:
-        _start_usb_camera()
+    result = _ros_node.capture_snapshot(resolution=resolution, quality=quality)
     return jsonify(result)
 
 
@@ -778,24 +702,7 @@ def send_snapshot_to_cloud():
     resolution = data.get('resolution', '')
     quality = data.get('quality', 95)
     
-    usb_check = subprocess.run(['pgrep', '-f', 'usb_cam_node_exe'], capture_output=True, timeout=2)
-    usb_was_running = usb_check.returncode == 0
-    
-    result = None
-    for attempt in range(2):
-        if usb_was_running:
-            stopped = _stop_usb_camera()
-            if stopped:
-                time.sleep(0.5)
-        try:
-            result = _ros_node.capture_snapshot(resolution=resolution, quality=quality)
-            if result.get('success') or 'busy' not in result.get('message', '').lower():
-                break
-            logger.warning(f"Snapshot busy on attempt {attempt+1}, retrying...")
-            time.sleep(1.5)
-        except Exception as e:
-            result = {'success': False, 'message': str(e)}
-            break
+    result = _ros_node.capture_snapshot(resolution=resolution, quality=quality)
     
     if result and result.get('success'):
         import json as _json
@@ -807,12 +714,8 @@ def send_snapshot_to_cloud():
         msg = String()
         msg.data = _json.dumps(payload)
         _ros_node._cloud_snapshot_pub.publish(msg)
-        if usb_was_running:
-            _start_usb_camera()
         return jsonify({'success': True, 'message': 'Snapshot sent to AimeeCloud'})
     
-    if usb_was_running:
-        _start_usb_camera()
     return jsonify({'success': False, 'message': result.get('message', 'Snapshot failed')}), 500
 
 
