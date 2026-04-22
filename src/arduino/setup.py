@@ -17,6 +17,6 @@ setup(
     maintainer_email='aimee@example.com',
     description='Arduino brick framework utilities for AIMEE',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={},
 )
