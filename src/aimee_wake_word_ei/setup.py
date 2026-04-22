@@ -25,7 +25,7 @@ setup(
     maintainer_email='software@arduino.cc',
     description='Wake word detection using Edge Impulse keyword spotting model for AIMEE Robot',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'wake_word_ei_node = aimee_wake_word_ei.wake_word_ei_node:main',

@@ -25,7 +25,7 @@ setup(
     maintainer_email='software@arduino.cc',
     description='Skill Manager and execution engine for AIMEE Robot',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'skill_manager_node = aimee_skill_manager.skill_manager_node:main',

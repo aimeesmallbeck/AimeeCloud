@@ -25,7 +25,7 @@ setup(
     maintainer_email='software@arduino.cc',
     description='AimeeCloud MQTT bridge for AIMEE Robot',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'cloud_bridge_node = aimee_cloud_bridge.cloud_bridge_node:main',

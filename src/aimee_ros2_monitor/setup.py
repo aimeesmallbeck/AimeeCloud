@@ -19,7 +19,7 @@ setup(
     maintainer_email='aimee@arduino.cc',
     description='Lightweight ROS2 monitoring dashboard',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'monitor_node = aimee_ros2_monitor.monitor_node:main',

@@ -17,7 +17,7 @@ setup(
     maintainer_email='aimee@example.com',
     description='OBSBOT Tiny 2 camera control via OSC/SDK for Aimee Robot',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'obsbot_node = aimee_vision_obsbot.obsbot_node:main',

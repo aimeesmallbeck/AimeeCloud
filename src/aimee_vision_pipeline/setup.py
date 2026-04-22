@@ -17,7 +17,7 @@ setup(
     maintainer_email='aimee@example.com',
     description='Color-based object detection and tracking for Aimee robot',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'color_detector_node = aimee_vision_pipeline.color_detector_node:main',

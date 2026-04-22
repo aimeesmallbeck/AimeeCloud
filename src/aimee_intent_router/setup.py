@@ -25,7 +25,7 @@ setup(
     maintainer_email='software@arduino.cc',
     description='Intent Router with LLM-based intent classification for AIMEE Robot',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'intent_router_node = aimee_intent_router.intent_router_node:main',

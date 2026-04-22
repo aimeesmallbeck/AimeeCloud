@@ -28,7 +28,7 @@ setup(
     maintainer_email='software@arduino.cc',
     description='Web-based testing dashboard for AIMEE Robot with simulation mode',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'dashboard_node = aimee_test_dashboard.dashboard_node:main',

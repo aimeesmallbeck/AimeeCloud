@@ -25,7 +25,7 @@ setup(
     maintainer_email='software@arduino.cc',
     description='LLM Action Server with streaming and preemption support for AIMEE Robot',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'llm_server_node = aimee_llm_server.llm_server_node:main',

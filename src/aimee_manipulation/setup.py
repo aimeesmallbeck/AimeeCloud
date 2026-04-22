@@ -17,7 +17,7 @@ setup(
     maintainer_email='aimee@example.com',
     description='Arm control and manipulation skills for Aimee robot',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'arm_controller_node = aimee_manipulation.arm_controller_node:main',

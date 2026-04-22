@@ -17,7 +17,7 @@ setup(
     maintainer_email='aimee@example.com',
     description='3D pose estimation and grasp planning for Aimee robot',
     license='MPL-2.0',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'pose_estimator_node = aimee_perception.pose_estimator_node:main',
