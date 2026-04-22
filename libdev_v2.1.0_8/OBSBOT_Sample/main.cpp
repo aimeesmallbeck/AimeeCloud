@@ -2,6 +2,7 @@
 #include <vector>
 #include <thread>
 #include <codecvt>
+#include <cstring>
 
 #include <dev/devs.hpp>
 
