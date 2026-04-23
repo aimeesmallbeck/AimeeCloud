@@ -45,10 +45,11 @@ This project plan outlines a complete rebuild of the Aimee robot system using **
 
 ### Robot Fleet
 
-| Robot | Base | Arm | Main Camera | Secondary Camera |
-|-------|------|-----|-------------|------------------|
-| **Ron** | Waveshare UGV02 | RoArm-M3 | OBSBOT Tiny 2 | OV7670 (arm end) |
-| **Wren** | Waveshare Wave Rover | - | OBSBOT Tiny 2 | - |
+| Robot | Base | Arm | Main Camera | Lidar |
+|-------|------|-----|-------------|-------|
+| **Ron** | Waveshare UGV02 (0.23 m track) | RoArm-M3 | OBSBOT Tiny 2 | — |
+| **Wren** | Waveshare Wave Rover (0.172 m track) | — | OBSBOT Tiny 2 | — |
+| **Minnie** | Waveshare Wave Rover (0.172 m track) | — | OBSBOT Tiny 2 | LD19 |
 
 ---
 
@@ -976,14 +977,26 @@ The old `aimee_test_dashboard` (direct hardware tester) has been retired. All co
 - [x] ROS2 `llm_server_node` (Action Server)
 - [x] ROS2 `skill_manager_node`
 
-### Phase 4: Hardware Control Bricks (Week 5) - CURRENT FOCUS
+### Phase 4: Hardware Control Bricks (Week 5) ✅ COMPLETE
 - [x] `aimee_ugv02_controller` - UGV02 base control with JSON protocol
 - [x] `ugv02_controller_node` - Serial comm, odometry, TF broadcast
 - [x] `ugv02_teleop_node` - Keyboard teleoperation
 - [x] Nav2 configuration for UGV02
+- [x] Multi-base platform support (UGV02 + Wave Rover via parameterized YAML)
 - [ ] Real hardware testing
 - [ ] `brick_roarm_ctrl` - RoArm-M3 control (awaiting hardware)
 - [ ] ROS2 `motion_manager_node`
+
+### Phase 4b: SLAM & Navigation (2026-04-22) ✅ COMPLETE
+- [x] `aimee_description` package — URDF for Minnie (`base_footprint`, `base_link`, `base_laser`, `camera`)
+- [x] `robot_state_publisher` integration in `robot.launch.py`
+- [x] `slam_toolbox` online sync launch (`slam.launch.py`)
+- [x] `nav2_bringup` wrapper launch (`nav2.launch.py`)
+- [x] Combined robot + SLAM + Nav2 launch (`navigation.launch.py`)
+- [x] Nav2 params tuned for Minnie (`robot_radius: 0.15`, `max_vel_x: 0.5`, Humble-compatible)
+- [x] SLAM params tuned for LD19 (`max_laser_range: 12.0`, `min_laser_range: 0.05`)
+- [x] Static TF tree managed via URDF (no duplicate publishers)
+- [x] Config-driven bringup supports `use_lidar` CLI override
 
 ### Phase 5: Cloud Integration (Week 6)
 - [ ] `brick_cloud_bridge` - AimeeCloud communication
@@ -1119,8 +1132,17 @@ source install/setup.bash
 # Launch core system
 ros2 launch aimee_bringup core.launch.py
 
-# Launch specific robot
-ros2 launch aimee_bringup robot.launch.py robot:=ron
+# Launch specific robot (auto-detected from hostname or AIMEE_ROBOT_NAME)
+ros2 launch aimee_bringup robot.launch.py
+
+# Launch robot + SLAM + Nav2
+ros2 launch aimee_bringup navigation.launch.py slam:=True
+
+# Launch with existing map (localization + navigation)
+ros2 launch aimee_bringup navigation.launch.py slam:=False map:=/path/to/map.yaml
+
+# Disable heavy software to save RAM during navigation
+ros2 launch aimee_bringup navigation.launch.py slam:=True use_voice:=false use_llm:=false
 
 # Test voice
 ros2 topic pub /voice/speak std_msgs/String "data: 'Hello, I am Aimee'"
@@ -1230,7 +1252,8 @@ Create a checkpoint/summary system to track daily progress:
 ~/aimee-robot-ws/
 ├── src/
 │   ├── aimee_msgs/                 # ✅ Custom ROS2 message types
-│   ├── aimee_bringup/              # ✅ Launch files & system integration
+│   ├── aimee_description/          # ✅ Robot URDF descriptions
+│   ├── aimee_bringup/              # ✅ Launch files, configs & system integration
 │   ├── aimee_wake_word_ei/         # ✅ Wake word detection
 │   ├── aimee_voice_manager/        # ✅ Voice/STT management
 │   ├── aimee_tts/                  # ✅ Text-to-speech
@@ -1239,14 +1262,12 @@ Create a checkpoint/summary system to track daily progress:
 │   ├── aimee_skill_manager/        # ✅ Skill execution
 │   ├── arduino/                    # ✅ Brick framework utilities
 │   │
-│   ├── aimee_ugv02_controller/     # TODO: Base robot control
-│   ├── aimee_roarm_controller/     # TODO: Arm control
+│   ├── aimee_ugv02_controller/     # ✅ Base robot control (UGV02 + Wave Rover)
 │   ├── aimee_cloud_bridge/         # ✅ AimeeCloud client (ACC)
 │   ├── aimee_vision_obsbot/        # ✅ Camera control
 │   ├── aimee_vision_pipeline/      # ✅ Color detection & tracking
 │   ├── aimee_perception/           # ✅ 3D estimation & grasp planning
 │   ├── aimee_manipulation/         # ✅ Arm control & PickPlace skill
-│   ├── aimee_ugv02_controller/     # ✅ UGV02 rover platform control
 │   ├── aimee_memory/               # TODO: Context persistence
 │   └── aimee_skills/               # TODO: Skill framework
 │       ├── aimee_skill_interface/  # Base skill class
@@ -1290,8 +1311,9 @@ Create a checkpoint/summary system to track daily progress:
 | Intent Router | ✅ Complete | External JSON config, exact-phrase matching, hot-reload |
 | Skill Manager | ✅ Complete | Action server for skill execution |
 | Arduino Utils | ✅ Complete | `@brick` decorator framework |
-| UGV02 Control | ✅ Complete | JSON serial protocol, teleop, Nav2 ready |
+| UGV02 / Wave Rover Control | ✅ Complete | JSON serial protocol, parameterized odometry, multi-base support |
 | RoArm Control | ✅ Complete | Simulated (ready for real arm) |
+| SLAM / Nav2 | ✅ Complete | slam_toolbox + Nav2 Humble, config-driven bringup |
 | Cloud Bridge | ✅ Complete | AimeeCloud MQTT client with AimeeAgent support, session clear + auto-reconnect |
 | Vision/OBSBOT | ✅ Complete | SDK-based camera control |
 | Vision Pipeline | ✅ Complete | Color detection & tracking |
@@ -1303,12 +1325,14 @@ Create a checkpoint/summary system to track daily progress:
 
 ---
 
-*Document Version: 2.7*  
-*Last Updated: April 16, 2026*  
+*Document Version: 2.8*  
+*Last Updated: April 22, 2026*  
 *Vision System: COMPLETE*  
 *ROS2 Monitor: COMPLETE*  
 *Intent Router: COMPLETE (external config + exact-phrase matching + AimeeAgent forwarding)*
 *TTS: COMPLETE (Lemonfox primary + Kokoro/gTTS fallback with voice metadata support)*  
 *Voice Manager: COMPLETE (migrated to standard ROS2 node with auto-recovery)*  
+*SLAM / Nav2: COMPLETE (slam_toolbox + Nav2 Humble, URDF-based TF tree)*  
+*Base Controller: COMPLETE (multi-platform via parameterized YAML)*  
 *Author: AI Assistant*  
-*Status: Phase 4 In Progress - Hardware Control*
+*Status: Phase 4 Complete - Hardware Control + SLAM/Navigation*

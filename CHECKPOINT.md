@@ -1,5 +1,82 @@
 # Aimee Robot - Session Checkpoint
 
+**Date:** 2026-04-22  
+**Session Focus:** SLAM/Nav2 integration for Minnie; multi-base platform architecture; robot description URDF
+
+---
+
+## 🎉 MISSION ACCOMPLISHED!
+
+### What Was Done Today
+
+1. **SLAM & Nav2 Stack Integration**
+   - Created `aimee_description` package with `minnie.urdf` (`base_footprint`, `base_link`, `base_laser`, `camera`)
+   - Created `slam.launch.py` — standalone `slam_toolbox` (online sync) with LD19-tuned params
+   - Created `nav2.launch.py` — Nav2 Humble bringup wrapper with Minnie-specific params
+   - Created `navigation.launch.py` — combined robot bringup + SLAM + Nav2
+   - Nav2 params: `robot_radius: 0.15`, `max_vel_x: 0.5`, `use_sim_time: false`, Humble API compatible
+   - SLAM params: `max_laser_range: 12.0`, `min_laser_range: 0.05`, `minimum_travel_distance: 0.2`
+   - Added `slam_toolbox` params to `nav2_params.yaml` so Nav2's `slam_launch.py` picks them up via `HasNodeParams`
+
+2. **Robot State Publisher & TF Tree**
+   - `robot.launch.py` now auto-discovers `aimee_description/urdf/{robot_name}.urdf`
+   - Launches `robot_state_publisher` when URDF exists
+   - Skips static lidar TF publisher when URDF already defines `base_link → base_laser`
+   - Added `use_lidar` CLI launch arg for symmetry with `use_base`
+
+3. **Multi-Base Platform Architecture**
+   - Verified `ugv02_controller_node` is fully parameterized via `base_params` YAML
+   - Fixed `minnie.yaml`: changed `base: "ugv02"` → `base: "wave_rover"` for clarity
+   - Updated `robot.launch.py` with explicit comments explaining that `ugv02` and `wave_rover` share the same Waveshare JSON protocol node
+   - Added warning log for unknown base types
+   - Updated `default.yaml` template with base type docs and `lidar` section
+
+4. **Launch Fixes**
+   - Fixed `navigation.launch.py`: moved `LogInfo` after `DeclareLaunchArgument`s (was causing `map` not found)
+   - Fixed `robot.launch.py`: added missing `use_base_arg` to LaunchDescription
+   - Fixed `nav2.launch.py`: changed `slam`/`use_composition`/`autostart` defaults from lowercase `true`/`false` to Python literals `True`/`False` (Nav2 `PythonExpression` requirement)
+
+### Running Services
+
+| Service | Container | Status | URL |
+|---------|-----------|--------|-----|
+| **ROS2 Core + Nav2 + SLAM** | `aimee-robot` | 🟢 Running | — |
+| **Monitor** | `aimee-robot` | 🟢 Operational | http://minnie.local:8081 |
+
+### Files Modified
+
+```
+/home/arduino/aimee-robot-ws/
+├── src/aimee_description/                               [NEW - URDF package]
+│   ├── urdf/minnie.urdf
+│   ├── package.xml
+│   └── CMakeLists.txt
+├── src/aimee_bringup/
+│   ├── config/nav2_params.yaml                          [NEW - Nav2 Humble params for Minnie]
+│   ├── config/slam_params.yaml                          [NEW - SLAM Toolbox params for LD19]
+│   ├── launch/slam.launch.py                            [NEW]
+│   ├── launch/nav2.launch.py                            [NEW]
+│   ├── launch/navigation.launch.py                      [NEW]
+│   ├── launch/robot.launch.py                           [UPDATED - URDF support, use_lidar, base platform docs]
+│   ├── config/robots/minnie.yaml                        [UPDATED - base: wave_rover]
+│   ├── config/robots/default.yaml                       [UPDATED - base docs + lidar section]
+│   ├── CMakeLists.txt                                   [UPDATED - install config/]
+│   └── package.xml                                      [UPDATED - nav2, slam, robot_state_publisher deps]
+├── Aimee_Project_Plan.md                                [UPDATED - Phase 4b SLAM/Nav2]
+└── CHECKPOINT.md                                        [THIS FILE - updated]
+```
+
+### Notes
+
+- Nav2 / SLAM are completely decoupled from the base controller. Any platform that publishes `/odom`, subscribes `/cmd_vel`, and broadcasts `odom → base_link` will work without code changes.
+- `color_detector_node` crashes due to NumPy 2.2.6 / `cv_bridge` incompatibility. Fix: `pip install "numpy<2"` in container.
+- Lidar and base currently fight for `/dev/ttyUSB0`. Need udev rules or manual port assignment in `minnie.yaml`.
+- `ros2 node list` is very slow on this board; `ps aux` is faster for health checks.
+
+---
+
+# Aimee Robot - Session Checkpoint
+
 **Date:** 2026-04-13 (Updated 2026-04-16)  
 **Session Focus:** Migrate routing to AimeeAgent; simplify Intent Router; add command execution in ACC
 

@@ -6,10 +6,29 @@ robot_name: "aimee"
 
 # Hardware configuration — what physical devices are connected to this board.
 # Set any item to "none" if the hardware is not present.
+#
+# Base types:
+#   - "ugv02"      : Waveshare UGV02 (track 0.23 m)
+#   - "wave_rover" : Waveshare Wave Rover (track 0.172 m)
+#   - "none"       : No mobile base
+#
+# Both UGV02 and Wave Rover use the same JSON serial protocol, so they share
+# the same controller node (aimee_ugv02_controller). Only the geometry params
+# differ.  Additional motor platforms can be added by extending robot.launch.py.
+#
+# Nav2 / SLAM are completely decoupled from the base controller — they only
+# require /odom, /cmd_vel, and the odom → base_link transform.
 hardware:
-  base: "ugv02"        # Mobile base options: ugv02, none
+  base: "ugv02"
+  base_params:
+    serial_port: "/dev/ttyACM0"
+    baud_rate: 115200
+    wheel_separation: 0.23
+    wheel_radius: 0.04
+    max_speed: 0.5
   arm: "roarm_m3"      # Arm options: roarm_m3, none
   camera: "obsbot"     # Camera options: obsbot, none
+  lidar: "none"        # Lidar options: ld19, none
 
 # Software modules — which software stacks to enable.
 # These are consistent across all robots (voice, LLM, cloud, etc.).

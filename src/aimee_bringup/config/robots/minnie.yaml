@@ -3,7 +3,7 @@
 robot_name: "minnie"
 
 hardware:
-  base: "ugv02"
+  base: "wave_rover"
   base_params:
     serial_port: "/dev/ttyUSB0"
     baud_rate: 115200

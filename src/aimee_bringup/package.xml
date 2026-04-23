@@ -17,6 +17,11 @@
   <exec_depend>aimee_perception</exec_depend>
   <exec_depend>aimee_manipulation</exec_depend>
   <exec_depend>aimee_vision_obsbot</exec_depend>
+  <exec_depend>aimee_description</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>nav2_common</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
