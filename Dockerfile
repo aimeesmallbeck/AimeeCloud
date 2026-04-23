@@ -60,6 +60,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-robot-state-publisher \
     ros-humble-joint-state-publisher \
     ros-humble-xacro \
+    ros-humble-slam-toolbox \
+    ros-humble-nav2-bringup \
+    ros-humble-nav2-common \
+    ros-humble-navigation2 \
     && rm -rf /var/lib/apt/lists/*
 
 # ─────────────────────────────── Python Dependencies ───────────────────────────────
