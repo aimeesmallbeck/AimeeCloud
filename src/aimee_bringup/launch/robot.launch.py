@@ -96,6 +96,27 @@ def generate_launch_description():
     base_type = hw.get('base', 'none')
     arm_type = hw.get('arm', 'none')
     camera_type = hw.get('camera', 'none')
+    lidar_type = hw.get('lidar', 'none')
+
+    # ─── Robot Description (URDF) ───
+    # Look for a URDF named after the robot in aimee_description
+    workspace = os.getenv('AIMEE_ROBOT_WS', '/workspace')
+    urdf_path = os.path.join(
+        workspace, 'src', 'aimee_description', 'urdf', f'{robot_name}.urdf'
+    )
+    has_urdf = os.path.exists(urdf_path)
+    robot_description = ''
+    if has_urdf:
+        with open(urdf_path, 'r') as f:
+            robot_description = f.read()
+
+    robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        output='screen',
+        parameters=[{'robot_description': robot_description}]
+    )
 
     # ─── Launch Arguments (allow CLI overrides of software toggles) ───
     use_cloud_arg = DeclareLaunchArgument(
@@ -148,6 +169,16 @@ def generate_launch_description():
         default_value=str(arm_type != 'none').lower(),
         description='Enable arm/manipulation nodes'
     )
+    use_base_arg = DeclareLaunchArgument(
+        'use_base',
+        default_value=str(base_type != 'none').lower(),
+        description='Enable mobile base controller'
+    )
+    use_lidar_arg = DeclareLaunchArgument(
+        'use_lidar',
+        default_value=str(lidar_type != 'none').lower(),
+        description='Enable lidar'
+    )
 
     # Get launch configurations
     use_cloud = LaunchConfiguration('use_cloud')
@@ -160,9 +191,10 @@ def generate_launch_description():
     use_skills = LaunchConfiguration('use_skills')
     use_vision = LaunchConfiguration('use_vision')
     use_arm = LaunchConfiguration('use_arm')
+    use_base = LaunchConfiguration('use_base')
+    use_lidar = LaunchConfiguration('use_lidar')
 
     # ─── Include core launch (intelligence stack) ───
-    workspace = os.getenv('AIMEE_ROBOT_WS', '/workspace')
     core_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(workspace, 'src/aimee_bringup/launch/core.launch.py')
@@ -181,17 +213,26 @@ def generate_launch_description():
     )
 
     # ─── Hardware: Mobile Base ───
-    ugv02_controller_node = Node(
+    # The aimee_ugv02_controller node handles all Waveshare-protocol bases
+    # (UGV02, Wave Rover, etc.).  Geometry and port are parameterized via
+    # base_params so each robot gets the correct odometry without code changes.
+    # Nav2 / SLAM are decoupled — they only require /odom, /cmd_vel, and
+    # the odom → base_link transform, regardless of which base is underneath.
+    base_params = hw.get('base_params', {})
+    base_controller_node = Node(
         package='aimee_ugv02_controller',
         executable='ugv02_controller_node',
-        name='ugv02_controller',
+        name='base_controller',
         output='screen',
         parameters=[{
-            'serial_port': '/dev/ttyACM0',
-            'baud_rate': 115200,
-            'publish_tf': True,
+            'serial_port': base_params.get('serial_port', '/dev/ttyACM0'),
+            'baud_rate': base_params.get('baud_rate', 115200),
+            'wheel_separation': base_params.get('wheel_separation', 0.23),
+            'wheel_radius': base_params.get('wheel_radius', 0.04),
+            'max_speed': base_params.get('max_speed', 0.5),
+            'publish_tf': base_params.get('publish_tf', True),
         }],
-        # Added to LaunchDescription dynamically based on hardware config
+        condition=IfCondition(use_base),
     )
 
     # ─── Hardware: Arm ───
@@ -230,6 +271,39 @@ def generate_launch_description():
         condition=IfCondition(use_vision)
     )
 
+    # ─── Hardware: Lidar ───
+    lidar_params = hw.get('lidar_params', {})
+    lidar_node = Node(
+        package='ldlidar_stl_ros2',
+        executable='ldlidar_stl_ros2_node',
+        name='ldlidar',
+        output='screen',
+        parameters=[{
+            'product_name': 'LDLiDAR_LD19',
+            'topic_name': 'scan',
+            'frame_id': lidar_params.get('frame_id', 'base_laser'),
+            'port_name': lidar_params.get('serial_port', '/dev/ttyUSB0'),
+            'port_baudrate': lidar_params.get('baud_rate', 230400),
+            'laser_scan_dir': True,
+            'enable_angle_crop_func': False,
+            'angle_crop_min': 135.0,
+            'angle_crop_max': 225.0,
+        }],
+        condition=IfCondition(use_lidar),
+    )
+
+    lidar_tf_node = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_link_to_base_laser',
+        arguments=[
+            '0', '0', str(lidar_params.get('height', 0.18)),
+            '0', '0', '0',
+            'base_link', lidar_params.get('frame_id', 'base_laser')
+        ],
+        condition=IfCondition(use_lidar),
+    )
+
     # Build launch description dynamically based on hardware config
     ld = LaunchDescription([
         LogInfo(msg=[
@@ -237,7 +311,8 @@ def generate_launch_description():
             " | robot: ", robot_name,
             " | base: ", base_type,
             " | arm: ", arm_type,
-            " | camera: ", camera_type
+            " | camera: ", camera_type,
+            " | lidar: ", lidar_type
         ]),
         use_cloud_arg,
         use_voice_arg,
@@ -249,12 +324,21 @@ def generate_launch_description():
         use_skills_arg,
         use_vision_arg,
         use_arm_arg,
+        use_base_arg,
+        use_lidar_arg,
         core_launch,
     ])
 
-    # Add base controller if configured
-    if base_type == 'ugv02':
-        ld.add_action(ugv02_controller_node)
+    # Add base controller for Waveshare-protocol platforms.
+    # To add a completely different motor platform, create a new elif block
+    # here with its own controller node. Nav2 / SLAM will not need changes.
+    if base_type in ('ugv02', 'wave_rover'):
+        ld.add_action(base_controller_node)
+    elif base_type != 'none':
+        ld.add_action(LogInfo(msg=[
+            "WARNING: Unknown base type '", base_type,
+            "' — no base controller launched. Add it to robot.launch.py if needed."
+        ]))
 
     # Add arm nodes if configured
     if arm_type == 'roarm_m3':
@@ -264,5 +348,16 @@ def generate_launch_description():
     # Add vision pipeline if camera is configured
     if camera_type == 'obsbot':
         ld.add_action(vision_launch)
+
+    # Add robot description publisher if URDF exists
+    if has_urdf:
+        ld.add_action(robot_state_publisher_node)
+
+    # Add lidar if configured
+    if lidar_type == 'ld19':
+        ld.add_action(lidar_node)
+        # Only publish static lidar TF if URDF doesn't already define it
+        if not has_urdf:
+            ld.add_action(lidar_tf_node)
 
     return ld

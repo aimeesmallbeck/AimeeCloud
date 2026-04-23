@@ -4,6 +4,12 @@ robot_name: "wren"
 
 hardware:
   base: "wave_rover"
+  base_params:
+    serial_port: "/dev/ttyUSB0"
+    baud_rate: 115200
+    wheel_separation: 0.172
+    wheel_radius: 0.04
+    max_speed: 0.5
   arm: "none"
   camera: "obsbot"
 
