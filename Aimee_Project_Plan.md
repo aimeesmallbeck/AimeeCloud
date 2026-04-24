@@ -40,7 +40,7 @@ This project plan outlines a complete rebuild of the Aimee robot system using **
 | **Arduino Brick Framework** | Modular, hot-pluggable components, standardized interfaces |
 | **Edge Impulse Wake Word** | Custom-trained keyword spotting model |
 | **OSC Protocol (OBSBOT)** | Network-based camera control, no USB drivers needed |
-| **Fast DDS + SHM** | Memory-optimized DDS with Shared Memory transport |
+| **Cyclone DDS** | Stable, lightweight DDS — Nav2-recommended replacement for Fast DDS |
 | **SQLite + ChromaDB** | Structured + semantic memory for user context |
 
 ### Robot Fleet
@@ -87,7 +87,7 @@ This project plan outlines a complete rebuild of the Aimee robot system using **
 │  ║          │                │                │                │          ║ │
 │  ║          └────────────────┴────────────────┴────────────────┘          ║ │
 │  ║                            │                                           ║ │
-│  ║                    ROS2 Topic Bus (Fast DDS)                           ║ │
+│  ║                    ROS2 Topic Bus (Cyclone DDS)                        ║ │
 │  ╚════════════════════════════╧═══════════════════════════════════════════╝ │
 │                                │                                            │
 │  ┌─────────────────────────────┼─────────────────────────────────────────┐  │
@@ -115,55 +115,38 @@ This project plan outlines a complete rebuild of the Aimee robot system using **
 
 Based on Gemini's feedback, the following optimizations are **critical** for production deployment on the UNO Q's 4GB RAM constraint:
 
-### Memory Optimization (4GB Limit)
+### Memory Optimization & DDS Stability (4GB Limit)
 
-**Problem:** ROS2 Humble's default Fast DDS middleware allocates dynamic buffers for every topic, which can quickly exhaust 4GB RAM with camera streams and multiple nodes.
+**Problem:** ROS2 Humble's default Fast DDS middleware has documented stability issues with Nav2: discovery "storms" that spike CPU, service hangs in lifecycle transitions, and SHM segment leaks after crashes. On a 4GB ARM64 board, these issues cause navigation failures and require manual XML tuning.
 
-**Solution:** Configure Fast DDS to use **Shared Memory (SHM)** transport for local node communication.
+**Solution:** Switch to **Cyclone DDS**, the RMW implementation recommended by the Nav2 maintainers for production use.
 
-```xml
-<!-- ~/aimee-robot-ws/fastdds_shm.xml -->
-<?xml version="1.0" encoding="UTF-8" ?>
-<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
-    <transport_descriptors>
-        <transport_descriptor>
-            <transport_id>shm_transport</transport_id>
-            <type>SHM</type>
-            <segment_size>10485760</segment_size>  <!-- 10MB segments -->
-            <segment_count>10</segment_count>
-        </transport_descriptor>
-    </transport_descriptors>
-    
-    <participant profile_name="SHMParticipant" is_default_profile="true">
-        <rtps>
-            <userTransports>
-                <transport_id>shm_transport</transport_id>
-            </userTransports>
-            <useBuiltinTransports>false</useBuiltinTransports>
-            <propertiesPolicy>
-                <properties>
-                    <property>
-                        <name>fastdds.shm.enforce_metatraffic</name>
-                        <value>true</value>
-                    </property>
-                </properties>
-            </propertiesPolicy>
-        </rtps>
-    </participant>
-</profiles>
+**Installation:**
+```bash
+sudo apt install ros-humble-rmw-cyclonedds-cpp
 ```
 
 **Environment Setup:**
 ```bash
-# Add to ~/.bashrc
-export FASTRTPS_DEFAULT_PROFILES_FILE=~/aimee-robot-ws/fastdds_shm.xml
-export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+# Add to ~/.bashrc (or docker-compose.yml)
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ```
 
 **Benefits:**
-- Prevents duplication of large messages (MJPEG streams) in RAM
-- Reduces memory usage by ~40-60% for local node communication
-- Zero-copy message passing between nodes
+- **Plug-and-play Nav2**: No XML tuning or Discovery Server required
+- **Lightweight discovery**: Avoids the multicast "discovery storms" that plague Fast DDS in large node graphs
+- **Reliable services**: Lifecycle transitions and BT Navigator service calls complete without hangs
+- **Lower memory footprint**: Better memory management for large messages (OccupancyGrid, LaserScan) on 4GB RAM
+- **No SHM cleanup issues**: Eliminates shared-memory segment leaks after node crashes
+
+**Comparison:**
+
+| Feature | Fast DDS (Default) | Cyclone DDS (Our Choice) |
+|---|---|---|
+| Out-of-the-box Nav2 | Requires XML tuning or Discovery Server | Works plug-and-play |
+| Discovery | High overhead; prone to "storms" | Lightweight and stable |
+| Service Reliability | Historically prone to hangs in complex BTs | Renowned for reliability |
+| Performance | Better raw throughput | Better stability for complex graphs |
 
 ---
 
@@ -998,6 +981,22 @@ The old `aimee_test_dashboard` (direct hardware tester) has been retired. All co
 - [x] Static TF tree managed via URDF (no duplicate publishers)
 - [x] Config-driven bringup supports `use_lidar` CLI override
 
+### Phase 4c: Integrated Navigation — AimeeNav (2026-04-23) 🔄 IN PROGRESS
+- [x] `aimee_nav` package created — self-contained navigation node
+- [x] Direct LD19 lidar driver (`ld19_driver.py`) — no distributed `ldlidar_stl_ros2` node
+- [x] Direct Wave Rover driver (`wave_rover_driver.py`) — HTTP/serial, in-process odometry
+- [x] Local occupancy grid (`local_grid_map.py`) — 2D grid with Bresenham ray-casting
+- [x] Simple A* planner (`simple_planner.py`) — grid-based path planning
+- [x] Reactive obstacle avoidance (`obstacle_avoidance.py`) — sector analysis + VFF
+- [x] PID heading/velocity controller (`pid_controller.py`)
+- [x] `robot.launch.py` supports `navigation_mode: integrated` vs `distributed`
+- [x] Performance tuning for UNO Q: reduced nav rate, conditional grid updates, decimated publishing
+- [ ] Obstacle avoidance test validated on hardware
+- [ ] Goal-directed navigation test validated on hardware
+- [ ] Action server `navigate_to_pose` (stretch goal)
+
+**Design rationale:** The distributed stack (`ldlidar` → `slam_toolbox` → `nav2` → `base_controller`) works but consumes ~400 MB RAM and suffers from DDS queue overflows on the 4 GB UNO Q. AimeeNav replaces the entire pipeline with a single Python node, targeting ~100 MB RAM and zero inter-node latency for the control loop.
+
 ### Phase 5: Cloud Integration (Week 6)
 - [ ] `brick_cloud_bridge` - AimeeCloud communication
 - [ ] Cloud skill dispatcher
@@ -1314,6 +1313,7 @@ Create a checkpoint/summary system to track daily progress:
 | UGV02 / Wave Rover Control | ✅ Complete | JSON serial protocol, parameterized odometry, multi-base support |
 | RoArm Control | ✅ Complete | Simulated (ready for real arm) |
 | SLAM / Nav2 | ✅ Complete | slam_toolbox + Nav2 Humble, config-driven bringup |
+| AimeeNav (Integrated) | 🔄 In Progress | Single-node navigation to reduce RAM/DDS load on UNO Q |
 | Cloud Bridge | ✅ Complete | AimeeCloud MQTT client with AimeeAgent support, session clear + auto-reconnect |
 | Vision/OBSBOT | ✅ Complete | SDK-based camera control |
 | Vision Pipeline | ✅ Complete | Color detection & tracking |
@@ -1325,14 +1325,15 @@ Create a checkpoint/summary system to track daily progress:
 
 ---
 
-*Document Version: 2.8*  
-*Last Updated: April 22, 2026*  
+*Document Version: 2.9*  
+*Last Updated: April 23, 2026*  
 *Vision System: COMPLETE*  
 *ROS2 Monitor: COMPLETE*  
 *Intent Router: COMPLETE (external config + exact-phrase matching + AimeeAgent forwarding)*
 *TTS: COMPLETE (Lemonfox primary + Kokoro/gTTS fallback with voice metadata support)*  
 *Voice Manager: COMPLETE (migrated to standard ROS2 node with auto-recovery)*  
 *SLAM / Nav2: COMPLETE (slam_toolbox + Nav2 Humble, URDF-based TF tree)*  
+*AimeeNav: IN PROGRESS (integrated single-node navigation, performance-tuned for UNO Q)*  
 *Base Controller: COMPLETE (multi-platform via parameterized YAML)*  
 *Author: AI Assistant*  
 *Status: Phase 4 Complete - Hardware Control + SLAM/Navigation*

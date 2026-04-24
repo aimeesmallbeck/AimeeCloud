@@ -40,3 +40,4 @@ software:
   intent: true         # Intent classification router
   skills: true         # Skill/action manager
   cloud: true          # AimeeCloud MQTT bridge
+  navigation_mode: "distributed"  # "integrated" (AimeeNav) or "distributed" (Nav2+SLAM)

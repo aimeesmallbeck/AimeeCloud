@@ -86,7 +86,8 @@ PYBIND11_MODULE(_core, m) {
         })
         .def("inflated_data", [](const GridMap& self) {
             return self.inflated_data();  // pybind11 converts std::vector<uint8_t> to Python list
-        });
+        })
+        .def("set_data", &GridMap::set_data, py::arg("data"));
 
     // ScanMatcher
     py::class_<ScanMatcher>(m, "ScanMatcher")
@@ -142,6 +143,9 @@ PYBIND11_MODULE(_core, m) {
         .def("optimize", &PoseGraph::optimize, py::arg("iterations") = 10)
         .def("keyframes", [](PoseGraph& self) -> std::vector<Keyframe>& {
             return self.keyframes();
+        }, py::return_value_policy::reference_internal)
+        .def("constraints", [](PoseGraph& self) -> const std::vector<Constraint>& {
+            return self.constraints();
         }, py::return_value_policy::reference_internal);
 
     // GlobalPlanner

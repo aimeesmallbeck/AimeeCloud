@@ -63,6 +63,8 @@ class WaveRoverDriver:
         control_mode: str = 'wheel_speed',
         min_http_interval: float = 0.2,
         cmd_timeout: float = 0.5,
+        accel_limit_linear: float = 0.0,
+        accel_limit_angular: float = 0.0,
     ) -> None:
         self._port = port
         self._baudrate = baudrate
@@ -76,6 +78,8 @@ class WaveRoverDriver:
         self._control_mode = control_mode
         self._min_http_interval = min_http_interval
         self._cmd_timeout = cmd_timeout
+        self._accel_limit_linear = accel_limit_linear
+        self._accel_limit_angular = accel_limit_angular
 
         self._serial: Optional[serial.Serial] = None
         self._serial_lock = threading.Lock()
@@ -186,6 +190,22 @@ class WaveRoverDriver:
         # matching the behaviour of aimee_ugv02_controller.
         # NOTE: angular_scale is applied inside the wheel-speed formula below;
         # do NOT pre-scale here to avoid double-scaling.
+
+        # ─── Velocity smoothing (ramp-rate limiting) ───
+        dt = time.time() - self._last_cmd_time
+        if dt > 0.0 and self._cmd_active:
+            # Cap dt to avoid huge jumps after long pauses
+            dt = min(dt, 0.5)
+            if self._accel_limit_linear > 0.0:
+                delta = linear_x - self._last_linear
+                max_delta = self._accel_limit_linear * dt
+                if abs(delta) > max_delta:
+                    linear_x = self._last_linear + math.copysign(max_delta, delta)
+            if self._accel_limit_angular > 0.0:
+                delta = angular_z - self._last_angular
+                max_delta = self._accel_limit_angular * dt
+                if abs(delta) > max_delta:
+                    angular_z = self._last_angular + math.copysign(max_delta, delta)
 
         self._last_cmd_time = time.time()
         self._last_linear = linear_x

@@ -1,5 +1,341 @@
 # Aimee Robot - Session Checkpoint
 
+**Date:** 2026-04-24
+**Session Focus:** Hardware validation of AimeeNav integrated navigation; fixes for autonomous wandering, motor power, and turning
+
+---
+
+## 🎉 MISSION ACCOMPLISHED!
+
+### What Was Done Today
+
+1. **Lidar Alignment Verified**
+   - Confirmed LD19 notch faces forward (robot's direction of travel)
+   - Front sector (0°) reads ~0.6m, consistent with physical obstacle placement
+   - Updated `AIMEE_NAV_REWRITE_HANDOFF.md` and `CHECKPOINT.md` to reflect fixed alignment
+
+2. **Fixed EKF Covariance Binding Bug**
+   - `covariance()` pybind11 binding returned a 3×3 numpy array, but Python code indexed it as flat
+   - `float(P[0])` on a 3×3 array threw "only length-1 arrays can be converted to Python scalars"
+   - **Fix:** Changed binding shape from `{3, 3}` to `{9}` in `bindings.cpp`
+   - Rebuilt C++ extension successfully on ARM64 UNO Q
+
+3. **Fixed Autonomous Wandering (Critical Safety Bug)**
+   - `enable_reactive: true` caused the robot to drive forward autonomously whenever front was clear — even with no goal set
+   - In a confined space, this created a panic/reverse loop (moving toward walls, then emergency reversing)
+   - **Fix:** Changed `elif self._enable_reactive:` to `elif self._enable_reactive and has_goal:` in `aimee_nav_node.py`
+   - Robot now stays stationary when idle
+
+4. **Fixed YAML Duplicate Keys**
+   - `aimee_nav_params.yaml` had TWO `nav_rate_hz` and TWO `publish_decimation` entries
+   - The "Timing" section at the bottom (`nav_rate_hz: 4.0`, `publish_decimation: 10`) overrode the intended values
+   - **Fix:** Removed the duplicate "Timing" section; kept `nav_rate_hz: 5.0` and `publish_decimation: 50`
+
+5. **Fixed Motor Power (50% → 100%)**
+   - `WaveRoverDriver.send_velocity()` scaled wheel commands to `[-0.5, 0.5]` — only 50% of available motor torque
+   - Robot struggled with hard-floor-to-rug transitions
+   - **Fix:** Changed clamp from `0.5` to `1.0` (Waveshare T=1 protocol supports `[-1.0, 1.0]`)
+
+6. **Fixed Turning (Added `angular_scale: 4.0`)**
+   - `angular_scale` was not defined in `aimee_nav_params.yaml`, defaulting to `1.0`
+   - N20 motors have a deadband; small angular commands produced no actual wheel differential
+   - Robot only went forward/back, never turned
+   - **Fix:** Added `angular_scale: 4.0` to `aimee_nav_params.yaml` (matches `minnie.yaml` base controller setting)
+
+7. **Hardware Validation Results**
+   - Goal: 0.5m forward — robot moved, turned, and progressed to `x=0.467m, y=-0.231m`
+   - Turning is now visible and effective
+   - Full motor power successfully traverses rug transitions
+   - Y-drift is expected (no wheel encoders; dead-reckoning only)
+
+### Current Parameters (`aimee_nav_params.yaml`)
+
+```yaml
+nav_rate_hz: 5.0                 # 200ms period
+publish_decimation: 50           # Viz topics every ~10s
+angular_scale: 4.0               # N20 deadband compensation
+max_speed: 0.5
+safety_distance_m: 0.50
+```
+
+### Files Modified
+
+```
+/home/arduino/aimee-robot-ws/
+├── src/aimee_nav/
+│   ├── aimee_nav/aimee_nav_node.py              [UPDATED - reactive mode requires has_goal]
+│   ├── aimee_nav/wave_rover_driver.py           [UPDATED - full motor power [-1.0, 1.0]]
+│   ├── cpp/src/bindings.cpp                     [UPDATED - covariance flat array shape {9}]
+│   └── config/aimee_nav_params.yaml             [UPDATED - angular_scale, removed dupes]
+├── AIMEE_NAV_REWRITE_HANDOFF.md                 [UPDATED - lidar aligned]
+└── CHECKPOINT.md                                [THIS FILE - updated]
+```
+
+### Known Issues / Next Steps
+
+1. **CPU saturation:** AimeeNav uses ~90% of one core (5Hz loop, ~200ms cycles). Functional but no headroom.
+2. **Odometry drift:** No wheel encoders on Wave Rover; pure dead-reckoning drifts significantly in y-axis.
+3. **Map publishing heavy:** `_publish_map()` serializes 1.6M cells in Python every 50 cycles; future optimization needed.
+4. **IMU fusion pending:** Wave Rover T=1001 IMU yaw available but not yet fused into EKF.
+5. **DWA tuning untested:** First successful movement achieved; weights may need adjustment for different environments.
+6. **Action server:** `navigate_to_pose` implemented but not yet tested with preemption/cancel.
+
+---
+
+# Aimee Robot - Session Checkpoint
+
+**Date:** 2026-04-23 (Late Session)
+**Session Focus:** Create AimeeNav integrated navigation node; diagnose & fix CPU pegging on obstacle avoidance test
+
+---
+
+## 🎉 MISSION ACCOMPLISHED!
+
+### What Was Done Today
+
+1. **Created `aimee_nav` Package — Integrated Navigation Node (AimeeNav)**
+   - New package `src/aimee_nav/` with self-contained navigation node
+   - Directly interfaces with LD19 lidar (`ld19_driver.py`) and Wave Rover (`wave_rover_driver.py`)
+   - Performs local mapping (`local_grid_map.py`), path planning (`simple_planner.py`), and obstacle avoidance (`obstacle_avoidance.py`) all in-process
+   - Publishes `/scan`, `/map`, `/odom`, `/tf`, `/path`, `/cmd_vel` for visualization and interoperability
+   - Designed to replace the distributed stack (`ldlidar` → `slam_toolbox` → `nav2` → `base_controller`) to reduce RAM and DDS overhead on the UNO Q
+
+2. **Diagnosed CPU Pegging During Obstacle Avoidance Test**
+   - **Symptom:** UNO Q became completely unresponsive during `obstacle_test.py`; required hard restart. Two core dumps present (`core.3753` 18:21, `core.15211` 19:09).
+   - **Root cause:** AimeeNav's `_navigation_loop` defaulted to 20 Hz (50 ms period). Each `_nav_cycle()` ran expensive pure-Python Bresenham ray-casting in `update_from_scan()` for ~360 lidar points, plus obstacle inflation. On the UNO Q this took >50 ms, causing the loop to spin continuously with no sleep, pegging CPU at 100%.
+   - **Contributing factors:**
+     - `/map` published at 10 Hz (`publish_decimation: 2`) — serializing a 10,000-cell `OccupancyGrid` in Python is heavy
+     - `obstacle_test.py` bypassed `minnie.yaml` optimized params and used hardcoded defaults
+     - Grid update ran even in pure reactive mode where it is unused (`enable_planning=False`)
+
+3. **Applied Performance Fixes**
+   - Lowered default `nav_rate_hz` from `20.0` → `10.0` (100 ms period, more headroom)
+   - Raised default `publish_decimation` from `2` → `10` (viz topics at ~1 Hz instead of 10 Hz)
+   - **Skipped grid map update when `enable_planning=False`** — the biggest single optimization; reactive obstacle avoidance only needs sector/VFF analysis, not the occupancy grid
+   - Added cycle-overrun warning log in `_navigation_loop` for future diagnosis
+   - Hardened `obstacle_test.py` with `_nav_rate = 5.0` and `_publish_decimation = 100` to minimize load during testing
+   - Updated `aimee_nav_params.yaml` to reflect new defaults
+
+### Files Modified / Created
+
+```
+/home/arduino/aimee-robot-ws/
+├── src/aimee_nav/                                       [NEW - integrated navigation package]
+│   ├── aimee_nav/aimee_nav_node.py                      [UPDATED - performance fixes]
+│   ├── aimee_nav/ld19_driver.py                         [NEW]
+│   ├── aimee_nav/wave_rover_driver.py                   [NEW]
+│   ├── aimee_nav/local_grid_map.py                      [NEW]
+│   ├── aimee_nav/obstacle_avoidance.py                  [NEW]
+│   ├── aimee_nav/simple_planner.py                      [NEW]
+│   ├── aimee_nav/pid_controller.py                      [NEW]
+│   ├── config/aimee_nav_params.yaml                     [UPDATED - conservative defaults]
+│   ├── launch/aimee_nav.launch.py                       [NEW]
+│   ├── package.xml                                      [NEW]
+│   ├── setup.py                                         [NEW]
+│   └── README.md                                        [NEW]
+├── src/aimee_bringup/launch/robot.launch.py             [UPDATED - integrated nav mode support]
+├── src/aimee_bringup/config/robots/minnie.yaml          [UPDATED - navigation_mode: integrated]
+├── obstacle_test.py                                     [UPDATED - safe defaults for UNO Q]
+├── odom_calibration.py                                  [NEW]
+├── goal_movement_test.py                                [NEW]
+└── CHECKPOINT.md                                        [THIS FILE - updated]
+```
+
+### Notes
+
+- **Do not run `obstacle_test.py` while `robot.launch.py` is already active** — this creates duplicate publishers and potential serial port conflicts. Kill existing stacks first (`docker compose restart aimee-robot` or `ros2 node list` to verify).
+- AimeeNav is currently **uncommitted** — `src/aimee_nav/` and test scripts are untracked. Commit once obstacle avoidance is verified.
+- The distributed Nav2 stack is still available; set `navigation_mode: distributed` in `minnie.yaml` to revert.
+
+### Obstacle Avoidance Test Results (2026-04-23)
+
+**Run 1 (before angular_scale fix):** Robot detected obstacle (~0.41 m) but did **not turn** — distances remained static for 15 s. Root cause: `WaveRoverDriver` clamped `angular_z` to `max_speed` (0.15 rad/s) instead of a proper angular limit, and did not apply `angular_scale` (4.0) needed for N20 deadband.
+
+**Run 2 (after angular_scale fix):** Robot **turned and reacted** to the obstacle. Front distance varied between 0.26–0.57 m. However, the reactive logic oscillated: when front briefly cleared (>0.50 m), the robot drove straight forward and immediately re-entered the obstacle. Nav cycle overrun persisted at ~320 ms (HTTP latency blocking the nav loop).
+
+**Fixes applied between runs:**
+- **Background HTTP sender thread** (`WaveRoverDriver`): Nav loop no longer blocked by ESP32 response time. Overrun warnings eliminated.
+- **Persistent turn direction**: Robot now picks left or right and sticks with it until front clears, preventing flip-flopping.
+- **Lower drive threshold**: `drive_dist = safety * 1.2` (was 1.5) — robot drives forward sooner after turning away.
+
+**Run 3 (open space):** Robot moved forward steadily for 15 s. Front stayed at ~1.5–1.7 m (clear), while `fr` dropped to ~0.52 m (wall on one side). **User observed robot hit a wall directly in front.**
+
+**Critical discovery — Lidar orientation:** The LD19 lidar notch was pointing **to the right** (90° offset), meaning the "front" sector was actually looking at the robot's left side. This explains why the robot drove forward into walls while the front sensor reading stayed clear. ~~**Action: physically rotate the lidar so the notch faces forward (robot's direction of travel).**~~ ✅ **COMPLETED** — Lidar notch now faces forward. Verified aligned with robot's direction of travel.
+
+**Next steps:**
+1. ~~Power down and rotate LD19 so notch points forward (0° aligned with robot front).~~ ✅ Done
+2. Re-test obstacle avoidance with correctly aligned lidar.
+3. Once verified, commit `aimee_nav` package to git.
+
+---
+
+# Aimee Robot - Session Checkpoint
+
+**Date:** 2026-04-23
+**Session Focus:** Fix ESP32 HTTP timeout via rate limiting (RoArm pattern); execute SLAM square test
+
+---
+
+## 🎉 MISSION ACCOMPLISHED!
+
+### What Was Done Today
+
+1. **Diagnosed ESP32 HTTP Command Timeouts**
+   - The vexown/wave_rover_driver ESP32 firmware only accepts movement commands via HTTP GET (`/js?json=...`)
+   - Serial `/dev/ttyUSB0` is used exclusively for T=1001 continuous feedback (odometry/IMU/battery)
+   - The base controller's 10 Hz heartbeat (`heartbeat_interval: 0.1`) overwhelmed the ESP32 web server
+   - Result: `<urlopen error timed out>` on nearly every HTTP request
+
+2. **Applied RoArm-M3 HTTP Driver Rate-Limiting Pattern**
+   - Studied `aimee_lerobot_bridge/roarm_m3_http_driver.py` which solved the exact same problem
+   - Key techniques adapted:
+     - `threading.Lock()` around all HTTP sends
+     - `Connection: close` header (ESP32 crashes on keep-alive)
+     - `min_http_interval = 0.2` (max 5 Hz) — drop requests that arrive too fast
+     - Heartbeat self-suppression: skip heartbeat if a command was recently sent via HTTP
+   - Changed default `heartbeat_interval` from `0.1` → `0.5` (2 Hz)
+   - Increased HTTP timeout from `0.5` → `1.0` seconds
+
+3. **Fixed Launch File Bug: `http_ip` Not Forwarded**
+   - `robot.launch.py` was NOT passing `http_ip` from `base_params` to the controller node
+   - This meant HTTP mode silently failed when launched via `robot.launch.py`
+   - Added both `http_ip` and `heartbeat_interval` forwarding
+
+4. **Built and Tested**
+   - `colcon build --packages-select aimee_ugv02_controller aimee_bringup --symlink-install` succeeded
+   - Killed stale base controller from previous session (PID 8146 was still running)
+   - Launched minimal stack: `robot.launch.py` with all software toggles off (voice/vision/LLM/monitor/skills/intent/cloud/tts)
+   - Launched SLAM: `slam.launch.py`
+   - Verified nodes: `/base_controller`, `/ldlidar`, `/slam_toolbox` all healthy
+
+5. **Square Test Executed**
+   - Ran `square_test.py` (open-loop: forward 1s @ 0.3 m/s, turn ~90° right @ 1.0 rad/s × 4 sides)
+   - **Robot moved and turned successfully** — no HTTP timeouts
+   - SLAM processed scans without errors (no "queue is full" warnings)
+   - Turn accuracy was approximate; square was not geometrically perfect, but a good baseline
+   - Watchdog fired briefly between sides due to 0.5s pause in test script (non-critical)
+
+### Files Modified
+
+```
+/home/arduino/aimee-robot-ws/
+├── src/aimee_ugv02_controller/aimee_ugv02_controller/ugv02_controller_node.py
+│   [UPDATED - HTTP rate limiting, Connection: close, 2 Hz heartbeat default]
+├── src/aimee_bringup/launch/robot.launch.py
+│   [UPDATED - forward http_ip and heartbeat_interval from base_params]
+├── src/aimee_bringup/config/robots/minnie.yaml
+│   [UPDATED - added heartbeat_interval: 0.5]
+└── CHECKPOINT.md
+    [THIS FILE - updated]
+```
+
+### Running Services (at end of session)
+
+| Service | Container | Status |
+|---------|-----------|--------|
+| **ROS2 Base Controller** | `aimee-robot` | 🟢 Running (PID 9941) |
+| **LD19 Lidar** | `aimee-robot` | 🟢 Running (PID 9945) |
+| **SLAM Toolbox** | `aimee-robot` | 🟢 Running (PID 10061) |
+
+### Current Parameters (minnie.yaml)
+
+```yaml
+base: "wave_rover"
+base_params:
+  serial_port: "/dev/ttyUSB0"
+  baud_rate: 115200
+  wheel_separation: 0.172
+  wheel_radius: 0.04
+  max_speed: 0.5
+  control_mode: "wheel_speed"
+  http_ip: "192.168.1.56"
+  angular_scale: 4.0            # overcome N20 motor deadband
+  heartbeat_interval: 0.5       # max 2 Hz heartbeat
+```
+
+### Known Issues / Next Steps
+
+1. **Odometry drift:** T=1001 feedback reports L=0, R=0 (no encoders). Controller integrates commanded velocities for `/odom`. Heading from onboard IMU (`y` field) is available but not yet fused into odometry.
+2. **Turn accuracy:** Open-loop square test turns were approximate. For precise navigation, need either:
+   - IMU yaw feedback fused into odometry (available from T=1001 `y` field)
+   - Nav2 DWB controller with proper `yaw_goal_tolerance`
+3. **QoS mismatch:** `/odom` publisher uses `BEST_EFFORT`; some Nav2 nodes may request `RELIABLE`. Non-blocking but should be cleaned up.
+4. **Watchdog sensitivity:** `cmd_timeout: 0.5s` triggers during pauses between test sides. For Nav2 continuous operation this is fine, but for discrete motion scripts consider increasing `cmd_timeout`.
+5. **Nav2 autonomous test pending:** Once base control is reliable, launch `navigation.launch.py slam:=true` with `use_voice:=false use_llm:=false ...` and let Nav2 drive the square autonomously.
+
+### Hardware State
+
+- **Battery:** Almost depleted (user report at end of session)
+- **Serial ports:** `/dev/ttyUSB0` (base), `/dev/ttyUSB1` (lidar)
+- **Network:** Base on `192.168.1.56` via HTTP; host `Minnie` on local network
+
+---
+
+# Aimee Robot - Session Checkpoint
+
+**Date:** 2026-04-23
+**Session Focus:** Replace Fast DDS with Cyclone DDS; free disk space; stabilize Nav2/ROS2 middleware
+
+---
+
+## 🎉 MISSION ACCOMPLISHED!
+
+### What Was Done Today
+
+1. **Freed Disk Space on Root Partition**
+   - Identified root partition (`/`) was 100% full (9.8G)
+   - Removed two unused Arduino brick Docker images:
+     - `ghcr.io/arduino/app-bricks/python-apps-base:0.8.0` (768MB)
+     - `ghcr.io/arduino/app-bricks/ei-models-runner:0.8.0` (1.33GB)
+   - Freed ~2.1GB on root partition; dropped from 100% to 80% usage
+
+2. **Installed Cyclone DDS in Running Container**
+   - Installed `ros-humble-rmw-cyclonedds-cpp` (v1.3.4) plus dependencies inside the running `aimee-robot` container via `apt-get install --allow-unauthenticated`
+   - Committed the updated container to a new image: `aimee-robot:cyclone-installed`
+
+3. **Switched RMW from Fast DDS to Cyclone DDS**
+   - Updated `docker-compose.yml`: changed image to `aimee-robot:cyclone-installed`, set `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`, removed `FASTRTPS_DEFAULT_PROFILES_FILE` and `FASTRTPS_PROFILE` env vars
+   - Updated `.env`: cleared `FASTRTPS_PROFILE=`, added Cyclone DDS comment
+   - Updated `.env.example`: same changes for consistency
+   - Updated `setup_env.sh`: replaced Fast DDS SHM exports with `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`
+   - Updated `Dockerfile`: added `ros-humble-rmw-cyclonedds-cpp` to ROS2 package install list for future builds
+
+4. **Updated Project Documentation**
+   - Updated `Aimee_Project_Plan.md`:
+     - Changed key design decision from "Fast DDS + SHM" to "Cyclone DDS"
+     - Updated architecture diagram label to "ROS2 Topic Bus (Cyclone DDS)"
+     - Rewrote "Memory Optimization (4GB Limit)" section to explain why Cyclone DDS was chosen and included feature comparison table
+
+5. **Recreated Container & Verified**
+   - Ran `docker compose up -d` to recreate the container from `aimee-robot:cyclone-installed`
+   - Container starts healthy with `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`
+   - Confirmed `rmw_cyclonedds_cpp` v1.3.4 is installed and available
+   - Removed old `aimee-robot:latest` tag to prevent accidental use
+   - Root partition now at ~81% with 1.9GB free
+
+### Files Modified
+
+```
+/home/arduino/aimee-robot-ws/
+├── docker-compose.yml          [UPDATED - image, RMW env vars]
+├── .env                        [UPDATED - cleared FASTRTPS_PROFILE]
+├── .env.example                [UPDATED - cleared FASTRTPS_PROFILE]
+├── setup_env.sh                [UPDATED - Cyclone DDS exports]
+├── Dockerfile                  [UPDATED - added ros-humble-rmw-cyclonedds-cpp]
+├── Aimee_Project_Plan.md       [UPDATED - Cyclone DDS rationale & comparison]
+└── CHECKPOINT.md               [THIS FILE - updated]
+```
+
+### Notes
+
+- The old Fast DDS XML profiles (`fastdds_shm.xml`, `fastdds_disable_shm.xml`, `fastdds_shm_simple.xml`) are still present in the repo for reference but are no longer used.
+- If you ever need to revert to Fast DDS temporarily, set `RMW_IMPLEMENTATION=rmw_fastrtps_cpp` and `FASTRTPS_DEFAULT_PROFILES_FILE` before launching.
+- Disk space is still tight on root (81%). Consider moving `/var/lib/docker` to the user partition (`/home/arduino`) for future headroom if more Docker builds are planned.
+
+---
+
+# Aimee Robot - Session Checkpoint
+
 **Date:** 2026-04-22  
 **Session Focus:** SLAM/Nav2 integration for Minnie; multi-base platform architecture; robot description URDF
 

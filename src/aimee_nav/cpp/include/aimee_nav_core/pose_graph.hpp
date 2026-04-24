@@ -45,6 +45,9 @@ public:
     const std::vector<Keyframe>& keyframes() const { return keyframes_; }
     std::vector<Keyframe>& keyframes() { return keyframes_; }
 
+    const std::vector<Constraint>& constraints() const { return constraints_; }
+    std::vector<Constraint>& constraints() { return constraints_; }
+
 private:
     std::vector<Keyframe> keyframes_;
     std::vector<Constraint> constraints_;

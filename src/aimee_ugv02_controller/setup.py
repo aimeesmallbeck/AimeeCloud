@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'ugv02_controller_node = aimee_ugv02_controller.ugv02_controller_node:main',
             'ugv02_teleop_node = aimee_ugv02_controller.ugv02_teleop_node:main',
+            'wasd_teleop = aimee_ugv02_controller.wasd_teleop:main',
         ],
     },
 )

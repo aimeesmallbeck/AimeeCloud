@@ -56,6 +56,13 @@ public:
     float origin_x() const { return origin_x_; }
     float origin_y() const { return origin_y_; }
 
+    void set_data(const std::vector<int8_t>& data) {
+        if (static_cast<int>(data.size()) == width_cells_ * height_cells_) {
+            grid_ = data;
+            inflate_obstacles();
+        }
+    }
+
 private:
     float width_m_, height_m_, resolution_m_, inflation_radius_m_;
     int width_cells_, height_cells_;

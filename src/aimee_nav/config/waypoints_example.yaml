@@ -1,0 +1,30 @@
+# Example waypoints file for AimeeNav.
+#
+# Load this by setting the waypoints_file parameter in your launch file or
+# by adding to aimee_nav_params.yaml:
+#     waypoints_file: "/path/to/waypoints.yaml"
+#
+# Then navigate to a waypoint by publishing its name:
+#     ros2 topic pub /go_to_waypoint_name std_msgs/msg/String '{data: "kitchen"}'
+# Or use the helper script:
+#     ros2 run aimee_nav go_to_waypoint.py kitchen
+
+kitchen:
+  x: 2.5
+  y: -1.2
+  yaw: 1.57
+
+living_room:
+  x: 0.0
+  y: 0.0
+  yaw: 0.0
+
+bedroom:
+  x: -3.0
+  y: 2.0
+  yaw: -1.57
+
+charging_dock:
+  x: 0.5
+  y: -0.5
+  yaw: 0.0

@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: aimee-robot:latest
+    image: aimee-robot:cyclone-installed
     container_name: aimee-robot
     hostname: aimee-robot
     
@@ -22,8 +22,9 @@ services:
     environment:
       - TZ=America/Los_Angeles
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
-      - FASTRTPS_DEFAULT_PROFILES_FILE=/workspace/${FASTRTPS_PROFILE:-fastdds_shm.xml}
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - FASTRTPS_DEFAULT_PROFILES_FILE=
+      - FASTRTPS_PROFILE=
       - AIMEE_ROBOT_WS=/workspace
       - LEMONFOX_API_KEY=${LEMONFOX_API_KEY:-}
       - AIMEE_CLOUD_ENDPOINT=${AIMEE_CLOUD_ENDPOINT:-https://aimeecloud.com}

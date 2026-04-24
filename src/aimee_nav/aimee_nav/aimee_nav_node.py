@@ -30,11 +30,15 @@ Usage:
     ros2 launch aimee_nav aimee_nav.launch.py
 """
 
+import base64
+import json
 import math
+import os
 import random
 import threading
 import time
-from typing import Optional, Tuple, List
+from pathlib import Path
+from typing import Optional, Tuple, List, Dict
 
 import numpy as np
 
@@ -49,7 +53,8 @@ from sensor_msgs.msg import LaserScan
 import tf2_ros
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from nav2_msgs.action import NavigateToPose
-from std_srvs.srv import Empty
+from std_msgs.msg import String
+from std_srvs.srv import Empty, SetBool
 
 from aimee_nav.ld19_driver import LD19Driver, LD19Scan
 from aimee_nav.wave_rover_driver import WaveRoverDriver
@@ -85,6 +90,8 @@ class AimeeNavNode(Node):
             ('max_speed', 0.5),
             ('control_mode', 'wheel_speed'),
             ('angular_scale', 1.0),
+            ('accel_limit_linear', 0.0),
+            ('accel_limit_angular', 0.0),
 
             # Grid map
             ('grid_size_m', 5.0),
@@ -127,6 +134,9 @@ class AimeeNavNode(Node):
             # Timing
             ('nav_rate_hz', 10.0),
             ('publish_decimation', 10),  # Publish scan/map every N cycles
+            ('map_save_dir', '~/aimee_maps'),
+            ('waypoints_file', ''),
+            ('localization_mode', False),
         ])
 
         # Read parameters
@@ -143,6 +153,8 @@ class AimeeNavNode(Node):
         self._max_speed = self.get_parameter('max_speed').value
         self._control_mode = self.get_parameter('control_mode').value
         self._angular_scale = self.get_parameter('angular_scale').value
+        self._accel_limit_linear = self.get_parameter('accel_limit_linear').value
+        self._accel_limit_angular = self.get_parameter('accel_limit_angular').value
 
         self._grid_size = self.get_parameter('grid_size_m').value
         self._grid_res = self.get_parameter('grid_resolution_m').value
@@ -184,6 +196,9 @@ class AimeeNavNode(Node):
 
         self._nav_rate = self.get_parameter('nav_rate_hz').value
         self._publish_decimation = self.get_parameter('publish_decimation').value
+        self._map_save_dir = os.path.expanduser(self.get_parameter('map_save_dir').value)
+        self._waypoints_file = self.get_parameter('waypoints_file').value
+        self._localization_mode = self.get_parameter('localization_mode').value
 
         # ─── QoS Profiles ───
         self._best_effort_qos = QoSProfile(
@@ -214,6 +229,9 @@ class AimeeNavNode(Node):
         self._goal_sub = self.create_subscription(
             PoseStamped, '/goal_pose', self._on_goal_pose, 10
         )
+        self._go_to_waypoint_sub = self.create_subscription(
+            String, '/go_to_waypoint_name', self._on_go_to_waypoint_name, 10
+        )
 
         # ─── Action Server ───
         self._nav_action_server = ActionServer(
@@ -227,6 +245,8 @@ class AimeeNavNode(Node):
 
         # ─── Services ───
         self._save_map_srv = self.create_service(Empty, '/save_map', self._on_save_map)
+        self._load_map_srv = self.create_service(Empty, '/load_map', self._on_load_map)
+        self._set_localization_srv = self.create_service(SetBool, '/set_localization_mode', self._on_set_localization_mode)
         self._clear_costmap_srv = self.create_service(Empty, '/clear_costmap', self._on_clear_costmap)
         self._reinit_localization_srv = self.create_service(Empty, '/reinitialize_global_localization', self._on_reinit_localization)
 
@@ -247,6 +267,8 @@ class AimeeNavNode(Node):
             max_angular=1.5,
             angular_scale=self._angular_scale,
             control_mode=self._control_mode,
+            accel_limit_linear=self._accel_limit_linear,
+            accel_limit_angular=self._accel_limit_angular,
         )
         self._grid = LocalGridMap(
             size_m=self._grid_size,
@@ -281,6 +303,10 @@ class AimeeNavNode(Node):
             max_linear=self._max_speed,
             max_angular=1.5,
         )
+
+        # ─── Waypoints ───
+        self._waypoints: Dict[str, Tuple[float, float, float]] = {}
+        self._load_waypoints()
 
         # ─── State ───
         self._state_lock = threading.Lock()
@@ -318,7 +344,7 @@ class AimeeNavNode(Node):
         self._ekf = EKF2D()
         self._slam_initialized = False
         self._last_scan_match_time = 0.0
-        self._scan_match_interval = 0.2  # 5 Hz
+        self._scan_match_interval = 0.5  # 2 Hz — reduces CPU load on UNO Q
 
         # Loop closure
         self._pose_graph = PoseGraph()
@@ -383,6 +409,7 @@ class AimeeNavNode(Node):
             self._path_world = []
             self._path_index = 0
             self._controller.reset()
+        self._nav_state = 'GOING_TO_GOAL'
         self.get_logger().info(
             f"New goal: x={self._goal_x:.2f}, y={self._goal_y:.2f}"
         )
@@ -451,6 +478,9 @@ class AimeeNavNode(Node):
 
     def _nav_cycle(self) -> None:
         """One iteration of the navigation control loop."""
+        t0 = time.time()
+        prof = {}
+
         # ─── Get latest sensor data ───
         with self._state_lock:
             scan = self._latest_scan
@@ -472,16 +502,18 @@ class AimeeNavNode(Node):
         self._ekf.predict(vx, vth, dt)
 
         # Run scan matching at reduced rate
+        t_slam = time.time()
         now = time.time()
         if now - self._last_scan_match_time >= self._scan_match_interval:
             self._last_scan_match_time = now
+            angle_min = math.radians(angles[0]) if angles else 0.0
+            angle_increment = 0.0
+            if len(angles) > 1:
+                angle_increment = math.radians(angles[1] - angles[0])
+
             if not self._slam_initialized:
                 # Initialize SLAM with first scan at origin
                 self._ekf.reset(0.0, 0.0, 0.0)
-                angle_min = math.radians(angles[0]) if angles else 0.0
-                angle_increment = 0.0
-                if len(angles) > 1:
-                    angle_increment = math.radians(angles[1] - angles[0])
                 self._global_map.update_from_scan(
                     0.0, 0.0, 0.0,
                     ranges, angle_min, angle_increment,
@@ -498,10 +530,6 @@ class AimeeNavNode(Node):
                 )
                 self._slam_initialized = True
             else:
-                angle_min = math.radians(angles[0]) if angles else 0.0
-                angle_increment = 0.0
-                if len(angles) > 1:
-                    angle_increment = math.radians(angles[1] - angles[0])
                 init_x = self._ekf.x()
                 init_y = self._ekf.y()
                 init_theta = self._ekf.theta()
@@ -513,55 +541,64 @@ class AimeeNavNode(Node):
                 )
                 if score > 10.0:
                     self._ekf.update_scan_pose(match_x, match_y, match_theta, 0.05, 0.02)
-                    # Update global map with corrected pose
                     cx = self._ekf.x()
                     cy = self._ekf.y()
                     ctheta = self._ekf.theta()
-                    self._global_map.update_from_scan(
-                        cx, cy, ctheta,
-                        ranges, angle_min, angle_increment,
-                        0.01, 12.0,
-                    )
-                    self._global_map.inflate_obstacles()
-                    # Count map cells for debugging
-                    raw = self._global_map.data()
-                    n_free = sum(1 for v in raw if v == 0)
-                    n_occ = sum(1 for v in raw if v == 100)
-                    n_unk = sum(1 for v in raw if v == -1)
-                    self.get_logger().info(
-                        f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
-                        f"map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
-                    )
 
-                    # Insert keyframe if moved far enough
-                    kx, ky, kth = self._last_keyframe_pos
-                    dx = cx - kx
-                    dy = cy - ky
-                    dth = abs(ctheta - kth)
-                    while dth > math.pi:
-                        dth -= 2.0 * math.pi
-                    if math.hypot(dx, dy) > self._keyframe_dist_threshold or dth > self._keyframe_angle_threshold:
-                        kf = Keyframe()
-                        kf.x = cx
-                        kf.y = cy
-                        kf.theta = ctheta
-                        # Store scan points in map frame
-                        for i, r in enumerate(ranges):
-                            if r <= 0.01 or math.isinf(r) or math.isnan(r):
-                                continue
-                            a = angle_min + i * angle_increment
-                            lx = r * math.cos(a)
-                            ly = r * math.sin(a)
-                            # Rotate to map frame
-                            mx = cx + math.cos(ctheta) * lx - math.sin(ctheta) * ly
-                            my = cy + math.sin(ctheta) * lx + math.cos(ctheta) * ly
-                            kf.xs.append(float(mx))
-                            kf.ys.append(float(my))
-                        self._pose_graph.add_keyframe(kf)
-                        self._last_keyframe_pos = (cx, cy, ctheta)
-                        self.get_logger().info(f"Keyframe added at ({cx:.2f}, {cy:.2f})")
+                    if self._localization_mode:
+                        # Localization only: correct pose but do NOT modify the map
+                        self.get_logger().info(
+                            f"Localized: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
+                            f"[localization mode — map unchanged]"
+                        )
+                    else:
+                        # Mapping mode: update global map with corrected pose
+                        self._global_map.update_from_scan(
+                            cx, cy, ctheta,
+                            ranges, angle_min, angle_increment,
+                            0.01, 12.0,
+                        )
+                        self._global_map.inflate_obstacles()
+                        # Count map cells for debugging
+                        raw = self._global_map.data()
+                        n_free = sum(1 for v in raw if v == 0)
+                        n_occ = sum(1 for v in raw if v == 100)
+                        n_unk = sum(1 for v in raw if v == -1)
+                        self.get_logger().info(
+                            f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
+                            f"map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
+                        )
+
+                        # Insert keyframe if moved far enough
+                        kx, ky, kth = self._last_keyframe_pos
+                        dx = cx - kx
+                        dy = cy - ky
+                        dth = abs(ctheta - kth)
+                        while dth > math.pi:
+                            dth -= 2.0 * math.pi
+                        if math.hypot(dx, dy) > self._keyframe_dist_threshold or dth > self._keyframe_angle_threshold:
+                            kf = Keyframe()
+                            kf.x = cx
+                            kf.y = cy
+                            kf.theta = ctheta
+                            # Store scan points in map frame
+                            for i, r in enumerate(ranges):
+                                if r <= 0.01 or math.isinf(r) or math.isnan(r):
+                                    continue
+                                a = angle_min + i * angle_increment
+                                lx = r * math.cos(a)
+                                ly = r * math.sin(a)
+                                # Rotate to map frame
+                                mx = cx + math.cos(ctheta) * lx - math.sin(ctheta) * ly
+                                my = cy + math.sin(ctheta) * lx + math.cos(ctheta) * ly
+                                kf.xs.append(float(mx))
+                                kf.ys.append(float(my))
+                            self._pose_graph.add_keyframe(kf)
+                            self._last_keyframe_pos = (cx, cy, ctheta)
+                            self.get_logger().info(f"Keyframe added at ({cx:.2f}, {cy:.2f})")
                 else:
                     self.get_logger().info(f"Scan match FAILED: score={score:.1f}")
+            prof['slam'] = time.time() - t_slam
 
         # Use SLAM-corrected pose for navigation
         robot_x = self._ekf.x()
@@ -569,8 +606,7 @@ class AimeeNavNode(Node):
         robot_theta = self._ekf.theta()
 
         # ─── Update grid map ───
-        # Skip in pure reactive mode: grid is only needed for path planning.
-        # This saves significant CPU on the UNO Q by avoiding Bresenham ray-casting.
+        t_grid = time.time()
         if self._enable_planning:
             self._grid.update_from_scan(
                 ranges=ranges,
@@ -581,7 +617,10 @@ class AimeeNavNode(Node):
                 max_range_m=8.0,
             )
 
+        prof['grid'] = time.time() - t_grid
+
         # ─── Reactive obstacle avoidance ───
+        t_react = time.time()
         points = list(zip(angles, ranges, intensities))
         sectors = self._avoidance.analyze_sectors(points)
 
@@ -614,6 +653,7 @@ class AimeeNavNode(Node):
                         self._has_goal = True
                         self._path_world = []
                         self._path_index = 0
+                    self._nav_state = 'EXPLORING'
                     self.get_logger().info(
                         f"Exploration goal: ({best[0]:.2f}, {best[1]:.2f})"
                     )
@@ -633,6 +673,7 @@ class AimeeNavNode(Node):
                         self._has_goal = True
                         self._path_world = []
                         self._path_index = 0
+                    self._nav_state = 'EXPLORING'
                     self.get_logger().info(
                         "Exploration bootstrap: forward goal "
                         f"({bx:.2f}, {by:.2f})"
@@ -824,7 +865,10 @@ class AimeeNavNode(Node):
                     if random.random() < 0.05:  # 5% chance per cycle (~0.25Hz @ 5Hz)
                         angular_z = random.choice([-0.5, 0.5])
 
+        prof['react'] = time.time() - t_react
+
         # ─── Send command to rover ───
+        t_pub = time.time()
         self._rover.send_velocity(linear_x, angular_z)
 
         # ─── Publish visualization topics ───
@@ -838,6 +882,20 @@ class AimeeNavNode(Node):
             self._publish_path()
             self._publish_local_plan()
             self._publish_cmd_vel(linear_x, angular_z)
+        prof['pub'] = time.time() - t_pub
+
+        total = time.time() - t0
+        if self._nav_cycle_count == 1 or self._nav_cycle_count % 10 == 0:
+            slam_ms = prof.get('slam', 0.0) * 1000
+            grid_ms = prof.get('grid', 0.0) * 1000
+            react_ms = prof.get('react', 0.0) * 1000
+            pub_ms = prof.get('pub', 0.0) * 1000
+            other_ms = total * 1000 - slam_ms - grid_ms - react_ms - pub_ms
+            self.get_logger().info(
+                f"Cycle timing: total={total*1000:.1f}ms "
+                f"slam={slam_ms:.1f}ms grid={grid_ms:.1f}ms "
+                f"react={react_ms:.1f}ms pub={pub_ms:.1f}ms other={other_ms:.1f}ms"
+            )
 
     # ------------------------------------------------------------------
     # Publishers
@@ -1211,6 +1269,7 @@ class AimeeNavNode(Node):
             self._has_goal = True
             self._path_world = []
             self._path_index = 0
+        self._nav_state = 'GOING_TO_GOAL'
 
         # Wait for goal completion or cancellation
         feedback_msg = NavigateToPose.Feedback()
@@ -1255,12 +1314,211 @@ class AimeeNavNode(Node):
         return NavigateToPose.Result()
 
     # ------------------------------------------------------------------
-    # Services
+    # Waypoints
+    # ------------------------------------------------------------------
+
+    def _load_waypoints(self) -> None:
+        """Load named waypoints from YAML file."""
+        if not self._waypoints_file:
+            return
+        path = os.path.expanduser(self._waypoints_file)
+        if not os.path.exists(path):
+            self.get_logger().warn(f"Waypoints file not found: {path}")
+            return
+        try:
+            import yaml
+            with open(path, 'r') as f:
+                data = yaml.safe_load(f)
+            if isinstance(data, dict):
+                for name, pose in data.items():
+                    if isinstance(pose, dict):
+                        x = float(pose.get('x', 0.0))
+                        y = float(pose.get('y', 0.0))
+                        yaw = float(pose.get('yaw', 0.0))
+                        self._waypoints[name] = (x, y, yaw)
+                    elif isinstance(pose, (list, tuple)) and len(pose) >= 2:
+                        x = float(pose[0])
+                        y = float(pose[1])
+                        yaw = float(pose[2]) if len(pose) > 2 else 0.0
+                        self._waypoints[name] = (x, y, yaw)
+            self.get_logger().info(
+                f"Loaded {len(self._waypoints)} waypoints: {list(self._waypoints.keys())}"
+            )
+        except Exception as e:
+            self.get_logger().error(f"Failed to load waypoints: {e}")
+
+    def _on_go_to_waypoint_name(self, msg: String) -> None:
+        """Navigate to a named waypoint."""
+        name = msg.data.strip()
+        if name not in self._waypoints:
+            self.get_logger().warn(f"Unknown waypoint: '{name}'")
+            return
+        x, y, yaw = self._waypoints[name]
+        with self._state_lock:
+            self._goal_x = x
+            self._goal_y = y
+            self._goal_theta = yaw
+            self._has_goal = True
+            self._path_world = []
+            self._path_index = 0
+            self._controller.reset()
+        self._nav_state = 'GOING_TO_GOAL'
+        self.get_logger().info(f"Navigating to waypoint '{name}': ({x:.2f}, {y:.2f})")
+
+    # ------------------------------------------------------------------
+    # Map Save / Load
     # ------------------------------------------------------------------
 
     def _on_save_map(self, request, response):
-        self.get_logger().info("Save map requested (not yet implemented)")
+        """Save current map, pose graph, and EKF state to disk."""
+        try:
+            os.makedirs(self._map_save_dir, exist_ok=True)
+            timestamp = time.strftime('%Y%m%d_%H%M%S')
+            filename = os.path.join(self._map_save_dir, f'map_{timestamp}.json')
+            self._save_map_to_file(filename)
+            self.get_logger().info(f"Map saved to {filename}")
+        except Exception as e:
+            self.get_logger().error(f"Failed to save map: {e}")
         return response
+
+    def _on_load_map(self, request, response):
+        """Load the most recent map from the save directory."""
+        try:
+            filename = self._find_latest_map_file()
+            if filename is None:
+                self.get_logger().warn("No saved map found to load")
+                return response
+            self._load_map_from_file(filename)
+            self._localization_mode = True
+            self.get_logger().info(
+                f"Map loaded from {filename}. Localization mode ENABLED."
+            )
+        except Exception as e:
+            self.get_logger().error(f"Failed to load map: {e}")
+        return response
+
+    def _on_set_localization_mode(self, request, response):
+        """Enable or disable localization-only mode."""
+        self._localization_mode = bool(request.data)
+        mode_str = "ENABLED" if self._localization_mode else "DISABLED"
+        self.get_logger().info(f"Localization mode {mode_str}")
+        response.success = True
+        response.message = f"Localization mode {mode_str}"
+        return response
+
+    def _find_latest_map_file(self) -> Optional[str]:
+        """Return the most recent .json map file in the save directory."""
+        if not os.path.isdir(self._map_save_dir):
+            return None
+        files = [
+            f for f in os.listdir(self._map_save_dir)
+            if f.startswith('map_') and f.endswith('.json')
+        ]
+        if not files:
+            return None
+        files.sort(reverse=True)
+        return os.path.join(self._map_save_dir, files[0])
+
+    def _save_map_to_file(self, filename: str) -> None:
+        """Serialize map state to a JSON file."""
+        # Grid data
+        raw_grid = self._global_map.data()
+        grid_bytes = bytes(b if b >= 0 else 256 + b for b in raw_grid)
+        grid_b64 = base64.b64encode(grid_bytes).decode('ascii')
+
+        # EKF state
+        P = self._ekf.covariance().tolist()
+
+        # Pose graph keyframes
+        kfs = self._pose_graph.keyframes()
+        keyframes_json = []
+        for kf in kfs:
+            keyframes_json.append({
+                'x': kf.x, 'y': kf.y, 'theta': kf.theta,
+                'xs': list(kf.xs), 'ys': list(kf.ys),
+            })
+
+        # Pose graph constraints
+        constraints = self._pose_graph.constraints()
+        constraints_json = []
+        for c in constraints:
+            constraints_json.append({
+                'from': getattr(c, 'from'), 'to': c.to,
+                'dx': c.dx, 'dy': c.dy, 'dtheta': c.dtheta,
+            })
+
+        data = {
+            'version': 1,
+            'map': {
+                'resolution': self._global_map.resolution_m(),
+                'width': self._global_map.width_cells(),
+                'height': self._global_map.height_cells(),
+                'origin_x': self._global_map.origin_x(),
+                'origin_y': self._global_map.origin_y(),
+                'grid_data_b64': grid_b64,
+            },
+            'ekf': {
+                'x': self._ekf.x(),
+                'y': self._ekf.y(),
+                'theta': self._ekf.theta(),
+                'covariance': P,
+            },
+            'pose_graph': {
+                'keyframes': keyframes_json,
+                'constraints': constraints_json,
+            },
+        }
+
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    def _load_map_from_file(self, filename: str) -> None:
+        """Deserialize map state from a JSON file."""
+        with open(filename, 'r') as f:
+            data = json.load(f)
+
+        map_data = data['map']
+        ekf_data = data.get('ekf', {})
+        pg_data = data.get('pose_graph', {})
+
+        # Reconstruct global map
+        grid_bytes = base64.b64decode(map_data['grid_data_b64'])
+        grid_list = [b if b < 128 else b - 256 for b in grid_bytes]
+        self._global_map.set_data(grid_list)
+        self._global_map.set_origin(map_data['origin_x'], map_data['origin_y'])
+
+        # Reconstruct EKF
+        self._ekf.reset(
+            ekf_data.get('x', 0.0),
+            ekf_data.get('y', 0.0),
+            ekf_data.get('theta', 0.0),
+        )
+        # Covariance is not settable via public API; skip for now
+
+        # Reconstruct pose graph
+        self._pose_graph = PoseGraph()
+        for kf_json in pg_data.get('keyframes', []):
+            kf = Keyframe()
+            kf.x = float(kf_json['x'])
+            kf.y = float(kf_json['y'])
+            kf.theta = float(kf_json['theta'])
+            kf.xs = [float(v) for v in kf_json.get('xs', [])]
+            kf.ys = [float(v) for v in kf_json.get('ys', [])]
+            self._pose_graph.add_keyframe(kf)
+
+        for c_json in pg_data.get('constraints', []):
+            self._pose_graph.add_constraint(
+                int(c_json['from']), int(c_json['to']),
+                float(c_json['dx']), float(c_json['dy']),
+                float(c_json['dtheta']),
+            )
+
+        self._slam_initialized = True
+        self._last_keyframe_pos = (self._ekf.x(), self._ekf.y(), self._ekf.theta())
+
+    # ------------------------------------------------------------------
+    # Services
+    # ------------------------------------------------------------------
 
     def _on_clear_costmap(self, request, response):
         self.get_logger().info("Clearing costmaps")
@@ -1278,7 +1536,9 @@ class AimeeNavNode(Node):
     def _loop_closure_worker(self) -> None:
         """Background thread: detect loop closures and optimize pose graph."""
         while self._run_loop_closure:
-            time.sleep(2.0)
+            time.sleep(5.0)
+            if self._localization_mode:
+                continue  # Skip loop closure in localization mode
             try:
                 kfs = self._pose_graph.keyframes()
                 if len(kfs) < 10:

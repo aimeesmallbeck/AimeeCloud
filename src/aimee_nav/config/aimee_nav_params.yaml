@@ -18,14 +18,16 @@ aimee_nav:
     wheel_separation: 0.172
     wheel_radius: 0.04
     max_speed: 0.3
-    angular_scale: 0.3              # Calibrated for arc turns: gentle correction = arc, max = full diff
+    angular_scale: 3.0              # Calibrated for arc turns: gentle correction = arc, max = full diff
     control_mode: "wheel_speed"     # "wheel_speed" (T=1) or "velocity" (T=13)
+    accel_limit_linear: 0.5         # m/s^2  (0 = disabled)
+    accel_limit_angular: 1.0        # rad/s^2 (0 = disabled)
 
     # ─── Local Grid Map ───
     grid_size_m: 3.0
     grid_resolution_m: 0.15
-    global_map_size_m: 20.0
-    global_map_resolution_m: 0.05
+    global_map_size_m: 10.0
+    global_map_resolution_m: 0.10
     obstacle_inflation_m: 0.15
     decay_time_s: 10.0
 
@@ -41,7 +43,7 @@ aimee_nav:
 
     # ─── Rate & Controllers ───
     nav_rate_hz: 5.0                 # Lower rate for UNO Q headroom
-    publish_decimation: 50            # Viz topics every ~10s @ 5Hz
+    publish_decimation: 100           # Viz topics every ~20s @ 5Hz
     heading_kp: 2.0
     heading_ki: 0.0
     heading_kd: 0.5
@@ -61,6 +63,11 @@ aimee_nav:
     base_frame: "base_link"
     publish_tf: true
     publish_map_odom_tf: true  # Set to false when external SLAM provides map→odom
+
+    # ─── Map Persistence ───
+    map_save_dir: "~/aimee_maps"
+    waypoints_file: ""
+    localization_mode: false   # Set to true to disable map updates (load a map first)
 
     # ─── Timing ───
     # nav_rate_hz and publish_decimation defined above

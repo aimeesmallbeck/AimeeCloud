@@ -48,6 +48,9 @@ install(DIRECTORY
 
 install(PROGRAMS
   scripts/aimee_nav_node
+  scripts/go_to_waypoint.py
+  scripts/save_map.py
+  scripts/load_map.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
