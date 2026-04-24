@@ -51,6 +51,7 @@ install(PROGRAMS
   scripts/go_to_waypoint.py
   scripts/save_map.py
   scripts/load_map.py
+  scripts/test_motion.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

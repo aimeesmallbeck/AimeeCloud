@@ -112,6 +112,7 @@ class AimeeNavNode(Node):
             ('heading_kp', 2.0),
             ('heading_ki', 0.0),
             ('heading_kd', 0.5),
+            ('imu_yaw_variance', 0.05),
             ('velocity_kp', 1.0),
             ('velocity_ki', 0.0),
             ('velocity_kd', 0.0),
@@ -134,6 +135,8 @@ class AimeeNavNode(Node):
             # Timing
             ('nav_rate_hz', 10.0),
             ('publish_decimation', 10),  # Publish scan/map every N cycles
+            ('lidar_downsample', 6),  # Use every Nth lidar point (1=full, 6=60 pts)
+            ('scan_match_interval', 0.2),  # Seconds between scan matches
             ('map_save_dir', '~/aimee_maps'),
             ('waypoints_file', ''),
             ('localization_mode', False),
@@ -170,6 +173,7 @@ class AimeeNavNode(Node):
         self._heading_kp = self.get_parameter('heading_kp').value
         self._heading_ki = self.get_parameter('heading_ki').value
         self._heading_kd = self.get_parameter('heading_kd').value
+        self._imu_yaw_variance = self.get_parameter('imu_yaw_variance').value
         self._velocity_kp = self.get_parameter('velocity_kp').value
         self._velocity_ki = self.get_parameter('velocity_ki').value
         self._velocity_kd = self.get_parameter('velocity_kd').value
@@ -196,6 +200,8 @@ class AimeeNavNode(Node):
 
         self._nav_rate = self.get_parameter('nav_rate_hz').value
         self._publish_decimation = self.get_parameter('publish_decimation').value
+        self._lidar_downsample = max(1, self.get_parameter('lidar_downsample').value)
+        self._scan_match_interval = self.get_parameter('scan_match_interval').value
         self._map_save_dir = os.path.expanduser(self.get_parameter('map_save_dir').value)
         self._waypoints_file = self.get_parameter('waypoints_file').value
         self._localization_mode = self.get_parameter('localization_mode').value
@@ -344,7 +350,10 @@ class AimeeNavNode(Node):
         self._ekf = EKF2D()
         self._slam_initialized = False
         self._last_scan_match_time = 0.0
-        self._scan_match_interval = 0.5  # 2 Hz — reduces CPU load on UNO Q
+        # scan_match_interval now loaded from parameter above
+
+        # IMU yaw offset (for fusing absolute IMU yaw into relative EKF theta)
+        self._imu_yaw_offset: Optional[float] = None
 
         # Loop closure
         self._pose_graph = PoseGraph()
@@ -494,8 +503,25 @@ class AimeeNavNode(Node):
         if scan is None or not ranges:
             return
 
-        # ─── Get odometry ───
+        # Downsample lidar for CPU efficiency on UNO Q
+        if self._lidar_downsample > 1:
+            ranges = ranges[::self._lidar_downsample]
+            angles = angles[::self._lidar_downsample]
+            intensities = intensities[::self._lidar_downsample]
+
+        # ─── Get odometry & IMU ───
         odom_x, odom_y, odom_theta, vx, vth = self._rover.get_odometry()
+        imu_roll, imu_pitch, imu_yaw = self._rover.get_imu()
+
+        # ─── Fuse IMU yaw into EKF ───
+        if self._imu_yaw_offset is None:
+            self._imu_yaw_offset = imu_yaw
+        relative_imu_yaw = imu_yaw - self._imu_yaw_offset
+        while relative_imu_yaw > math.pi:
+            relative_imu_yaw -= 2.0 * math.pi
+        while relative_imu_yaw < -math.pi:
+            relative_imu_yaw += 2.0 * math.pi
+        self._ekf.update_imu_yaw(relative_imu_yaw, self._imu_yaw_variance)
 
         # ─── SLAM / Localization ───
         dt = 1.0 / self._nav_rate
@@ -843,7 +869,7 @@ class AimeeNavNode(Node):
             if front_dist < panic_dist:
                 # Too close — reverse and turn toward more open side
                 linear_x = -self._max_speed * 0.3 * speed_scale
-                angular_z = 0.8 if fl_dist > fr_dist else -0.8
+                angular_z = 0.5 if fl_dist > fr_dist else -0.5
                 self._last_turn_dir = angular_z
                 self._last_turn_time = time.time()
             elif front_dist < drive_dist:
@@ -851,7 +877,7 @@ class AimeeNavNode(Node):
                 linear_x = -self._max_speed * 0.15 * speed_scale
                 now = time.time()
                 if self._last_turn_dir == 0.0:
-                    self._last_turn_dir = 0.8 if fl_dist > fr_dist else -0.8
+                    self._last_turn_dir = 0.5 if fl_dist > fr_dist else -0.5
                     self._last_turn_time = now
                 angular_z = self._last_turn_dir
             else:
@@ -862,8 +888,8 @@ class AimeeNavNode(Node):
 
                 # Exploration: add small random bias to break loops and cover new ground
                 if self._enable_exploration and not has_goal:
-                    if random.random() < 0.05:  # 5% chance per cycle (~0.25Hz @ 5Hz)
-                        angular_z = random.choice([-0.5, 0.5])
+                    if random.random() < 0.03:  # 3% chance per cycle (~0.15Hz @ 5Hz)
+                        angular_z = random.choice([-0.3, 0.3])
 
         prof['react'] = time.time() - t_react
 
@@ -1515,6 +1541,7 @@ class AimeeNavNode(Node):
 
         self._slam_initialized = True
         self._last_keyframe_pos = (self._ekf.x(), self._ekf.y(), self._ekf.theta())
+        self._imu_yaw_offset = None
 
     # ------------------------------------------------------------------
     # Services
@@ -1531,6 +1558,7 @@ class AimeeNavNode(Node):
         self._ekf.reset(0.0, 0.0, 0.0)
         self._global_map.clear()
         self._slam_initialized = False
+        self._imu_yaw_offset = None
         return response
 
     def _loop_closure_worker(self) -> None:

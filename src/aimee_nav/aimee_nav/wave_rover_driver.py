@@ -217,16 +217,25 @@ class WaveRoverDriver:
 
         if self._control_mode == 'wheel_speed':
             # ESP32 firmware accepts T=1 with L/R in [-1.0, 1.0].
-            # We use the full range for maximum motor torque.
-            # Formula: fwd = linear/max_speed * 1.0, diff = angular/max_speed * 1.0 * scale
-            fwd = linear_x / self._max_speed * 1.0
-            diff = angular_z / self._max_speed * 1.0 * self._angular_scale
-
-            # Allow inner wheel reversal for maximum turning torque.
-            # Arc turns and spin-in-place both need full differential.
+            # We use a scaled differential formula that accounts for the
+            # Wave Rover motor dead zone (~0.18 power minimum).
+            fwd = linear_x / self._max_speed
+            diff = angular_z / self._max_speed * self._angular_scale
 
             L = fwd - diff
             R = fwd + diff
+
+            # Motor dead-zone compensation: if the computed command is
+            # non-zero but below the motor's minimum reliable power,
+            # scale the entire (L, R) vector up so the dominant wheel
+            # reaches the threshold. This preserves turn geometry while
+            # ensuring the robot actually moves.
+            MIN_POWER = 0.18
+            cmd_mag = max(abs(L), abs(R))
+            if cmd_mag > 1e-4 and cmd_mag < MIN_POWER:
+                scale = MIN_POWER / cmd_mag
+                L *= scale
+                R *= scale
 
             # Clamp to firmware's full range [-1.0, 1.0]
             L = max(-1.0, min(1.0, L))

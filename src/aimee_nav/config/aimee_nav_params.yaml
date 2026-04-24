@@ -18,10 +18,11 @@ aimee_nav:
     wheel_separation: 0.172
     wheel_radius: 0.04
     max_speed: 0.3
-    angular_scale: 3.0              # Calibrated for arc turns: gentle correction = arc, max = full diff
+    angular_scale: 0.25             # Calibrated for hard floor + motor dead zone
     control_mode: "wheel_speed"     # "wheel_speed" (T=1) or "velocity" (T=13)
     accel_limit_linear: 0.5         # m/s^2  (0 = disabled)
     accel_limit_angular: 1.0        # rad/s^2 (0 = disabled)
+    imu_yaw_variance: 0.05          # rad^2 — trust IMU more = lower value
 
     # ─── Local Grid Map ───
     grid_size_m: 3.0
@@ -44,9 +45,10 @@ aimee_nav:
     # ─── Rate & Controllers ───
     nav_rate_hz: 5.0                 # Lower rate for UNO Q headroom
     publish_decimation: 100           # Viz topics every ~20s @ 5Hz
-    heading_kp: 2.0
+    lidar_downsample: 6               # 60 points instead of 360 (6° resolution)
+    heading_kp: 0.6
     heading_ki: 0.0
-    heading_kd: 0.5
+    heading_kd: 1.0
     velocity_kp: 1.0
     velocity_ki: 0.0
     velocity_kd: 0.0
@@ -68,6 +70,7 @@ aimee_nav:
     map_save_dir: "~/aimee_maps"
     waypoints_file: ""
     localization_mode: false   # Set to true to disable map updates (load a map first)
+    scan_match_interval: 0.2    # Run scan matching every 0.2s (5 Hz) with downsampling
 
     # ─── Timing ───
     # nav_rate_hz and publish_decimation defined above
