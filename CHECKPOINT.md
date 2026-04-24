@@ -1,5 +1,135 @@
 # Aimee Robot - Session Checkpoint
 
+**Date:** 2026-04-24 (Late Session)
+**Session Focus:** Map persistence, waypoints, localization mode, precise movement control, lidar downsampling
+**Git Commit:** `4bef2b9`
+
+---
+
+## 🎉 MISSION ACCOMPLISHED!
+
+### What Was Done Today
+
+1. **Added Map Save / Load**
+   - `save_map` service serializes global occupancy grid + pose graph + EKF state to timestamped JSON
+   - `load_map` service loads the most recent saved map and auto-enables localization mode
+   - File format: JSON with base64-encoded grid data
+   - C++ changes: exposed `PoseGraph.constraints()` and `GridMap.set_data()` in pybind11 bindings
+   - Helper scripts: `save_map.py`, `load_map.py`
+
+2. **Added Named Waypoints**
+   - Load waypoints from YAML file via `waypoints_file` parameter
+   - `/go_to_waypoint_name` topic accepts `std_msgs/String` to navigate by name
+   - Example: `ros2 topic pub /go_to_waypoint_name std_msgs/msg/String '{data: "kitchen"}'`
+   - Example YAML in `config/waypoints_example.yaml`
+   - Helper script: `go_to_waypoint.py`
+
+3. **Added Velocity Smoothing**
+   - `WaveRoverDriver` now supports `accel_limit_linear` and `accel_limit_angular`
+   - Ramp-rate limits velocity changes to prevent jerky starts/stops
+   - Parameters in `aimee_nav_params.yaml`
+
+4. **Added Localization Mode**
+   - `localization_mode` parameter + `/set_localization_mode` service
+   - When enabled: scan matching corrects EKF pose but does NOT modify the global map
+   - Loop closure thread is paused in localization mode
+   - Map load auto-enables localization mode
+
+5. **Fixed Wheel Speed Formula**
+   - Previous formula `diff = angular_z / max_speed * angular_scale` was physically incorrect
+   - Caused extreme wheel differential amplification (any turn = max spin)
+   - **Fix:** Replaced with proper differential-drive kinematics:
+     ```
+     v_left  = linear_x - angular_z * wheel_sep / 2
+     v_right = linear_x + angular_z * wheel_sep / 2
+     ```
+   - Added motor dead-zone compensation: boosts small commands to MIN_POWER=0.18
+
+6. **Added IMU Yaw Fusion (Later Found Unreliable)**
+   - Added `_ekf.update_imu_yaw()` calls in nav cycle using relative IMU yaw
+   - Tracks IMU yaw offset on EKF reset
+   - **CRITICAL FINDING:** IMU yaw is wildly inaccurate during motion
+     - User observed ~90° physical spin; IMU reported only 15°
+     - This caused the EKF to think the robot hadn't turned, leading to repeated turn commands
+   - **Decision:** IMU fusion should be REMOVED or disabled in next session
+
+7. **Downsampled Lidar for CPU Efficiency**
+   - `lidar_downsample: 6` parameter uses every 6th point (60 points instead of 360)
+   - Scan matching frequency increased from 2 Hz → 5 Hz
+   - Scan match time dropped from ~45ms → ~20ms per cycle
+   - Total nav cycle well under 200ms target even at 5Hz
+
+8. **Tuned Heading PID**
+   - `heading_kp`: 2.0 → 0.6 (less aggressive)
+   - `heading_kd`: 0.5 → 1.0 (more damping)
+   - Added explicit state machine states: `EXPLORING`, `GOING_TO_GOAL`
+
+9. **Created Motion Test Scripts**
+   - `test_motion.py`: ROS-based goal-directed turn tests
+   - `test_a.py`: Direct HTTP motor command tests with IMU yaw measurement
+
+### Critical Hardware Findings from Testing
+
+| Finding | Impact | Status |
+|---------|--------|--------|
+| **IMU yaw is broken** | Reports 15° for 90° physical spin | Must remove from EKF |
+| **Scan matcher can't track rotation** | Force-fits rotated scans back to origin pose | Needs higher score threshold or rotation-aware matching |
+| **Robot has two turn speeds** | Fast phase overshoots; slow phase is smooth and good | Cap max_angular lower |
+| **Motor dead zone ~0.18** | Commands below this produce no motion | Compensated in driver |
+| **Battery dropping** | Started at 12.39V, now ~12.05V | Needs charging soon |
+
+### Current Parameters (`aimee_nav_params.yaml`)
+
+```yaml
+nav_rate_hz: 5.0
+lidar_downsample: 6           # 60 points
+scan_match_interval: 0.2      # 5 Hz
+angular_scale: 0.25           # Calibrated for hard floor + dead zone
+heading_kp: 0.6
+heading_kd: 1.0
+max_speed: 0.3
+accel_limit_linear: 0.5
+accel_limit_angular: 1.0
+imu_yaw_variance: 0.05
+localization_mode: false
+enable_exploration: false     # Set true for mapping runs
+map_save_dir: "~/aimee_maps"
+```
+
+### Files Modified
+
+```
+src/aimee_nav/
+├── aimee_nav/aimee_nav_node.py           [IMU fusion, downsampling, localization, state machine]
+├── aimee_nav/wave_rover_driver.py        [Kinematic fix, dead-zone comp, velocity smoothing]
+├── cpp/include/aimee_nav_core/grid_map.hpp      [set_data() method]
+├── cpp/include/aimee_nav_core/pose_graph.hpp    [constraints() getter]
+├── cpp/src/bindings.cpp                  [Expose new methods]
+├── config/aimee_nav_params.yaml          [All new params]
+├── config/waypoints_example.yaml         [New]
+├── scripts/test_motion.py                [New]
+├── scripts/go_to_waypoint.py             [New]
+├── scripts/save_map.py                   [New]
+├── scripts/load_map.py                   [New]
+└── CMakeLists.txt                        [Install new scripts]
+```
+
+### Known Issues / Next Steps (Priority Order)
+
+1. **REMOVE IMU yaw fusion** — It makes heading tracking worse, not better. The EKF works better with dead reckoning + scan matching alone.
+2. **Cap max_angular at ~0.4 rad/s** — User observed the "slow" turn speed is good; the "fast" speed overshoots. Current max_angular=1.5 is too high.
+3. **Fix scan matcher for rotation** — When robot turns 90°, scan matcher force-fits back to original pose. Options:
+   - Increase score threshold (currently 10.0, maybe raise to 30.0+)
+   - Skip scan matching when angular velocity is high
+   - Use scan-to-scan matching instead of scan-to-map for rotation detection
+4. **Charge battery** — Down to ~12.0V; torque will suffer on carpet.
+5. **Test goal-directed navigation** — After fixes 1-3, test a 90° turn goal and verify the robot turns once, stops, and faces the goal.
+6. **Save a good map** — Once movement is precise, do an exploration run and save the map.
+
+---
+
+# Aimee Robot - Session Checkpoint
+
 **Date:** 2026-04-24
 **Session Focus:** Hardware validation of AimeeNav integrated navigation; fixes for autonomous wandering, motor power, and turning
 
