@@ -1,0 +1,1365 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL
+#
+# SPDX-License-Identifier: MPL-2.0
+
+"""
+AimeeNav — Integrated Self-Contained Navigation Node.
+
+A single ROS2 node that directly interfaces with the LD19 lidar and
+Wave Rover base, performs local mapping, path planning, and obstacle
+avoidance, all in-process without DDS dependencies for the navigation
+loop.
+
+Publishers (for visualization / interoperability):
+    /scan           sensor_msgs/LaserScan
+    /map            nav_msgs/OccupancyGrid
+    /odom           nav_msgs/Odometry
+    /tf             geometry_msgs/TransformStamped
+    /path           nav_msgs/Path
+    /cmd_vel        geometry_msgs/Twist
+
+Subscribers:
+    /goal_pose      geometry_msgs/PoseStamped
+
+Action Server:
+    navigate_to_pose  (not yet implemented — stretch goal)
+
+Usage:
+    ros2 run aimee_nav aimee_nav_node
+    ros2 launch aimee_nav aimee_nav.launch.py
+"""
+
+import math
+import random
+import threading
+import time
+from typing import Optional, Tuple, List
+
+import numpy as np
+
+import rclpy
+from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
+from rclpy.executors import MultiThreadedExecutor
+
+from geometry_msgs.msg import Twist, TransformStamped, PoseStamped, Quaternion
+from nav_msgs.msg import Odometry, OccupancyGrid, Path
+from sensor_msgs.msg import LaserScan
+import tf2_ros
+from rclpy.action import ActionServer, CancelResponse, GoalResponse
+from nav2_msgs.action import NavigateToPose
+from std_srvs.srv import Empty
+
+from aimee_nav.ld19_driver import LD19Driver, LD19Scan
+from aimee_nav.wave_rover_driver import WaveRoverDriver
+from aimee_nav.local_grid_map_cpp import LocalGridMapCpp as LocalGridMap
+from aimee_nav._core import GridMap, ScanMatcher, EKF2D, GlobalPlanner, PoseGraph, Keyframe, DWALocalPlanner, DWAConfig
+from aimee_nav.simple_planner import SimplePlanner
+from aimee_nav.obstacle_avoidance import ObstacleAvoidance
+from aimee_nav.pid_controller import HeadingVelocityController
+
+
+class AimeeNavNode(Node):
+    """
+    Integrated navigation node for AIMEE Robot.
+    """
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__('aimee_nav', **kwargs)
+
+        # ─── Parameters ───
+        self.declare_parameters(namespace='', parameters=[
+            # Lidar
+            ('lidar_port', '/dev/ttyUSB1'),
+            ('lidar_baud', 230400),
+            ('lidar_frame_id', 'base_laser'),
+            ('lidar_angle_offset_deg', 0.0),
+
+            # Rover
+            ('rover_port', '/dev/ttyUSB0'),
+            ('rover_baud', 115200),
+            ('rover_http_ip', ''),
+            ('wheel_separation', 0.172),
+            ('wheel_radius', 0.04),
+            ('max_speed', 0.5),
+            ('control_mode', 'wheel_speed'),
+            ('angular_scale', 1.0),
+
+            # Grid map
+            ('grid_size_m', 5.0),
+            ('grid_resolution_m', 0.05),
+            ('global_map_size_m', 20.0),
+            ('global_map_resolution_m', 0.05),
+            ('obstacle_inflation_m', 0.15),
+            ('decay_time_s', 10.0),
+
+            # Navigation
+            ('safety_distance_m', 0.35),
+            ('goal_tolerance_m', 0.25),
+            ('replan_interval_s', 1.0),
+            ('min_clearance_m', 0.20),
+            ('navigation_mode', 'reactive'),  # 'reactive' or 'planned'
+
+            # PID
+            ('heading_kp', 2.0),
+            ('heading_ki', 0.0),
+            ('heading_kd', 0.5),
+            ('velocity_kp', 1.0),
+            ('velocity_ki', 0.0),
+            ('velocity_kd', 0.0),
+
+            # Behavior
+            ('enable_reactive', True),
+            ('enable_planning', True),
+            ('enable_exploration', False),
+            ('exploration_speed_scale', 0.3),
+            ('min_frontier_size', 5),
+            ('emergency_reverse_time_s', 0.5),
+
+            # Frames
+            ('map_frame', 'map'),
+            ('odom_frame', 'odom'),
+            ('base_frame', 'base_link'),
+            ('publish_tf', True),
+            ('publish_map_odom_tf', True),
+
+            # Timing
+            ('nav_rate_hz', 10.0),
+            ('publish_decimation', 10),  # Publish scan/map every N cycles
+        ])
+
+        # Read parameters
+        self._lidar_port = self.get_parameter('lidar_port').value
+        self._lidar_baud = self.get_parameter('lidar_baud').value
+        self._lidar_frame_id = self.get_parameter('lidar_frame_id').value
+        self._lidar_angle_offset = self.get_parameter('lidar_angle_offset_deg').value
+
+        self._rover_port = self.get_parameter('rover_port').value
+        self._rover_baud = self.get_parameter('rover_baud').value
+        self._rover_http_ip = self.get_parameter('rover_http_ip').value
+        self._wheel_sep = self.get_parameter('wheel_separation').value
+        self._wheel_radius = self.get_parameter('wheel_radius').value
+        self._max_speed = self.get_parameter('max_speed').value
+        self._control_mode = self.get_parameter('control_mode').value
+        self._angular_scale = self.get_parameter('angular_scale').value
+
+        self._grid_size = self.get_parameter('grid_size_m').value
+        self._grid_res = self.get_parameter('grid_resolution_m').value
+        self._inflation = self.get_parameter('obstacle_inflation_m').value
+        self._decay_time = self.get_parameter('decay_time_s').value
+
+        self._safety_distance = self.get_parameter('safety_distance_m').value
+        self._goal_tolerance = self.get_parameter('goal_tolerance_m').value
+        self._replan_interval = self.get_parameter('replan_interval_s').value
+        self._min_clearance = self.get_parameter('min_clearance_m').value
+        self._nav_mode = self.get_parameter('navigation_mode').value
+
+        self._heading_kp = self.get_parameter('heading_kp').value
+        self._heading_ki = self.get_parameter('heading_ki').value
+        self._heading_kd = self.get_parameter('heading_kd').value
+        self._velocity_kp = self.get_parameter('velocity_kp').value
+        self._velocity_ki = self.get_parameter('velocity_ki').value
+        self._velocity_kd = self.get_parameter('velocity_kd').value
+
+        self._enable_reactive = self.get_parameter('enable_reactive').value
+        self._enable_planning = self.get_parameter('enable_planning').value
+        self._enable_exploration = self.get_parameter('enable_exploration').value
+        self._exploration_speed_scale = self.get_parameter('exploration_speed_scale').value
+        self._min_frontier_size = self.get_parameter('min_frontier_size').value
+        # navigation_mode can override the individual booleans for convenience
+        if self._nav_mode == 'reactive':
+            self._enable_reactive = True
+            self._enable_planning = False
+        elif self._nav_mode == 'planned':
+            self._enable_reactive = True
+            self._enable_planning = True
+        self._emergency_reverse_time = self.get_parameter('emergency_reverse_time_s').value
+
+        self._map_frame = self.get_parameter('map_frame').value
+        self._odom_frame = self.get_parameter('odom_frame').value
+        self._base_frame = self.get_parameter('base_frame').value
+        self._do_publish_tf = self.get_parameter('publish_tf').value
+        self._do_publish_map_odom_tf = self.get_parameter('publish_map_odom_tf').value
+
+        self._nav_rate = self.get_parameter('nav_rate_hz').value
+        self._publish_decimation = self.get_parameter('publish_decimation').value
+
+        # ─── QoS Profiles ───
+        self._best_effort_qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1,
+        )
+        self._reliable_qos = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1,
+        )
+
+        # ─── Publishers ───
+        self._scan_pub = self.create_publisher(LaserScan, '/scan', self._best_effort_qos)
+        self._map_pub = self.create_publisher(OccupancyGrid, '/map', self._reliable_qos)
+        self._local_map_pub = self.create_publisher(OccupancyGrid, '/local_map', self._reliable_qos)
+        self._odom_pub = self.create_publisher(Odometry, '/odom', self._best_effort_qos)
+        self._path_pub = self.create_publisher(Path, '/path', self._reliable_qos)
+        self._local_plan_pub = self.create_publisher(Path, '/local_plan', self._reliable_qos)
+        self._cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', self._best_effort_qos)
+
+        # ─── TF ───
+        if self._do_publish_tf:
+            self._tf_broadcaster = tf2_ros.TransformBroadcaster(self)
+
+        # ─── Subscribers ───
+        self._goal_sub = self.create_subscription(
+            PoseStamped, '/goal_pose', self._on_goal_pose, 10
+        )
+
+        # ─── Action Server ───
+        self._nav_action_server = ActionServer(
+            self,
+            NavigateToPose,
+            'navigate_to_pose',
+            self._navigate_to_pose_callback,
+            goal_callback=self._nav_goal_callback,
+            cancel_callback=self._nav_cancel_callback,
+        )
+
+        # ─── Services ───
+        self._save_map_srv = self.create_service(Empty, '/save_map', self._on_save_map)
+        self._clear_costmap_srv = self.create_service(Empty, '/clear_costmap', self._on_clear_costmap)
+        self._reinit_localization_srv = self.create_service(Empty, '/reinitialize_global_localization', self._on_reinit_localization)
+
+        # ─── Sub-modules ───
+        self._lidar = LD19Driver(
+            port=self._lidar_port,
+            baudrate=self._lidar_baud,
+            angle_offset_deg=self._lidar_angle_offset,
+            queue_size=2,
+        )
+        self._rover = WaveRoverDriver(
+            port=self._rover_port,
+            baudrate=self._rover_baud,
+            http_ip=self._rover_http_ip,
+            wheel_separation=self._wheel_sep,
+            wheel_radius=self._wheel_radius,
+            max_speed=self._max_speed,
+            max_angular=1.5,
+            angular_scale=self._angular_scale,
+            control_mode=self._control_mode,
+        )
+        self._grid = LocalGridMap(
+            size_m=self._grid_size,
+            resolution_m=self._grid_res,
+            inflation_m=self._inflation,
+            decay_time_s=self._decay_time,
+        )
+        self._planner = SimplePlanner(self._grid)
+        self._global_planner = GlobalPlanner()
+        self._dwa_cfg = DWAConfig()
+        self._dwa_cfg.max_vel_x = float(self._max_speed)
+        self._dwa_cfg.max_vel_theta = 1.5
+        self._dwa_cfg.acc_lim_x = 1.0
+        self._dwa_cfg.acc_lim_theta = 2.0
+        self._dwa_cfg.sim_time = 1.5
+        self._dwa_cfg.dt = 0.1
+        self._dwa_cfg.vx_samples = 20
+        self._dwa_cfg.vtheta_samples = 20
+        self._dwa = DWALocalPlanner(self._dwa_cfg)
+        self._avoidance = ObstacleAvoidance(
+            safety_distance_m=self._safety_distance,
+            min_clearance_m=self._min_clearance,
+            emergency_reverse_time_s=self._emergency_reverse_time,
+        )
+        self._controller = HeadingVelocityController(
+            heading_kp=self._heading_kp,
+            heading_ki=self._heading_ki,
+            heading_kd=self._heading_kd,
+            velocity_kp=self._velocity_kp,
+            velocity_ki=self._velocity_ki,
+            velocity_kd=self._velocity_kd,
+            max_linear=self._max_speed,
+            max_angular=1.5,
+        )
+
+        # ─── State ───
+        self._state_lock = threading.Lock()
+        self._goal_x: Optional[float] = None
+        self._goal_y: Optional[float] = None
+        self._goal_theta: Optional[float] = None
+        self._has_goal = False
+        self._path_world: List[Tuple[float, float]] = []
+        self._path_index = 0
+        self._last_replan_time = 0.0
+        self._nav_cycle_count = 0
+        self._last_turn_dir = 0.0
+        self._last_turn_time = 0.0
+        self._latest_scan: Optional[LD19Scan] = None
+        self._latest_ranges: List[float] = []
+        self._latest_angles: List[float] = []
+        self._latest_intensities: List[float] = []
+        self._latest_local_plan: List[Tuple[float, float]] = []
+
+        # ─── Recovery / State Machine ───
+        self._nav_state = 'IDLE'  # IDLE, PLANNING, CONTROLLING, RECOVERY
+        self._recovery_behaviors = ['spin', 'backup', 'clear_costmap']
+        self._recovery_index = 0
+        self._recovery_start_time = 0.0
+        self._stuck_start_time = time.time()
+        self._last_progress_pos = (0.0, 0.0)
+        self._stuck_timeout = 10.0  # seconds without progress = stuck
+
+        # ─── SLAM / Localization ───
+        global_map_size = self.get_parameter('global_map_size_m').value
+        global_map_res = self.get_parameter('global_map_resolution_m').value
+        self._global_map = GridMap(global_map_size, global_map_size, global_map_res, 0.15)
+        self._global_map.set_origin(-global_map_size / 2.0, -global_map_size / 2.0)
+        self._scan_matcher = ScanMatcher(self._global_map)
+        self._ekf = EKF2D()
+        self._slam_initialized = False
+        self._last_scan_match_time = 0.0
+        self._scan_match_interval = 0.2  # 5 Hz
+
+        # Loop closure
+        self._pose_graph = PoseGraph()
+        self._last_keyframe_pos = (0.0, 0.0, 0.0)
+        self._keyframe_dist_threshold = 0.3
+        self._keyframe_angle_threshold = 0.26  # ~15 deg
+        self._loop_closure_thread: Optional[threading.Thread] = None
+        self._run_loop_closure = False
+
+        # ─── Start loop closure thread ───
+        self._run_loop_closure = True
+        self._loop_closure_thread = threading.Thread(target=self._loop_closure_worker, daemon=True)
+        self._loop_closure_thread.start()
+
+        # ─── Start hardware ───
+        try:
+            self._lidar.start()
+            self.get_logger().info(f"LD19 lidar started on {self._lidar_port} @ {self._lidar_baud}")
+        except RuntimeError as e:
+            self.get_logger().error(f"Failed to start lidar: {e}")
+
+        try:
+            self._rover.connect()
+            self.get_logger().info(f"Wave Rover connected on {self._rover_port}")
+        except RuntimeError as e:
+            self.get_logger().error(f"Failed to connect to rover: {e}")
+
+        # ─── Threads ───
+        self._running = True
+        self._lidar_consumer_thread = threading.Thread(target=self._lidar_consumer_loop, daemon=True)
+        self._lidar_consumer_thread.start()
+
+        self._nav_thread = threading.Thread(target=self._navigation_loop, daemon=True)
+        self._nav_thread.start()
+
+        # ─── Timers ───
+        self._watchdog_timer = self.create_timer(0.5, self._watchdog_callback)
+
+        self.get_logger().info(
+            "AimeeNav initialized.\n"
+            f"  Lidar: {self._lidar_port} @ {self._lidar_baud}\n"
+            f"  Rover: {self._rover_port} @ {self._rover_baud}\n"
+            f"  Grid:  {self._grid_size}m x {self._grid_size}m @ {self._grid_res}m\n"
+            f"  Mode:  {self._nav_mode}"
+        )
+
+    # ------------------------------------------------------------------
+    # ROS2 callbacks
+    # ------------------------------------------------------------------
+
+    def _on_goal_pose(self, msg: PoseStamped) -> None:
+        """Receive a navigation goal."""
+        with self._state_lock:
+            self._goal_x = msg.pose.position.x
+            self._goal_y = msg.pose.position.y
+            # Extract yaw from quaternion
+            q = msg.pose.orientation
+            siny = 2.0 * (q.w * q.z + q.x * q.y)
+            cosy = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+            self._goal_theta = math.atan2(siny, cosy)
+            self._has_goal = True
+            self._path_world = []
+            self._path_index = 0
+            self._controller.reset()
+        self.get_logger().info(
+            f"New goal: x={self._goal_x:.2f}, y={self._goal_y:.2f}"
+        )
+
+    def _watchdog_callback(self) -> None:
+        """Periodic watchdog to check hardware health."""
+        if not self._lidar.is_running():
+            self.get_logger().warn("Lidar not running — attempting restart")
+            try:
+                self._lidar.start()
+            except RuntimeError as e:
+                self.get_logger().error(f"Lidar restart failed: {e}")
+
+        if not self._rover.is_connected():
+            self.get_logger().warn("Rover disconnected — attempting reconnect")
+            try:
+                self._rover.connect()
+            except RuntimeError as e:
+                self.get_logger().error(f"Rover reconnect failed: {e}")
+
+        # Rover command watchdog
+        self._rover.check_watchdog()
+
+    # ------------------------------------------------------------------
+    # Lidar consumer thread
+    # ------------------------------------------------------------------
+
+    def _lidar_consumer_loop(self) -> None:
+        """Background thread: consume scans from lidar driver."""
+        while self._running:
+            scan = self._lidar.get_scan(block=True, timeout=0.1)
+            if scan is not None:
+                with self._state_lock:
+                    self._latest_scan = scan
+                    self._latest_ranges = [p.distance_m for p in scan.points]
+                    self._latest_angles = [p.angle_deg for p in scan.points]
+                    self._latest_intensities = [float(p.intensity) for p in scan.points]
+
+    # ------------------------------------------------------------------
+    # Navigation loop (main control thread)
+    # ------------------------------------------------------------------
+
+    def _navigation_loop(self) -> None:
+        """Background thread: run navigation at fixed rate."""
+        period = 1.0 / self._nav_rate
+        overrun_warned = False
+        while self._running:
+            loop_start = time.time()
+            try:
+                self._nav_cycle()
+            except Exception as e:
+                import traceback
+                self.get_logger().error(f"Navigation cycle error: {e}\n{traceback.format_exc()}")
+
+            # Maintain fixed rate
+            elapsed = time.time() - loop_start
+            if elapsed > period and not overrun_warned:
+                self.get_logger().warn(
+                    f"Nav cycle overrun: {elapsed*1000:.1f}ms > {period*1000:.1f}ms "
+                    f"— consider lowering nav_rate_hz or reducing grid resolution"
+                )
+                overrun_warned = True
+            sleep_time = period - elapsed
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
+    def _nav_cycle(self) -> None:
+        """One iteration of the navigation control loop."""
+        # ─── Get latest sensor data ───
+        with self._state_lock:
+            scan = self._latest_scan
+            ranges = self._latest_ranges
+            angles = self._latest_angles
+            intensities = self._latest_intensities
+            goal_x = self._goal_x
+            goal_y = self._goal_y
+            has_goal = self._has_goal
+
+        if scan is None or not ranges:
+            return
+
+        # ─── Get odometry ───
+        odom_x, odom_y, odom_theta, vx, vth = self._rover.get_odometry()
+
+        # ─── SLAM / Localization ───
+        dt = 1.0 / self._nav_rate
+        self._ekf.predict(vx, vth, dt)
+
+        # Run scan matching at reduced rate
+        now = time.time()
+        if now - self._last_scan_match_time >= self._scan_match_interval:
+            self._last_scan_match_time = now
+            if not self._slam_initialized:
+                # Initialize SLAM with first scan at origin
+                self._ekf.reset(0.0, 0.0, 0.0)
+                angle_min = math.radians(angles[0]) if angles else 0.0
+                angle_increment = 0.0
+                if len(angles) > 1:
+                    angle_increment = math.radians(angles[1] - angles[0])
+                self._global_map.update_from_scan(
+                    0.0, 0.0, 0.0,
+                    ranges, angle_min, angle_increment,
+                    0.01, 12.0,
+                )
+                self._global_map.inflate_obstacles()
+                # Verify map was actually updated
+                raw = self._global_map.data()
+                n_free = sum(1 for v in raw if v == 0)
+                n_occ = sum(1 for v in raw if v == 100)
+                n_unk = sum(1 for v in raw if v == -1)
+                self.get_logger().info(
+                    f"SLAM initialized — map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
+                )
+                self._slam_initialized = True
+            else:
+                angle_min = math.radians(angles[0]) if angles else 0.0
+                angle_increment = 0.0
+                if len(angles) > 1:
+                    angle_increment = math.radians(angles[1] - angles[0])
+                init_x = self._ekf.x()
+                init_y = self._ekf.y()
+                init_theta = self._ekf.theta()
+                match_x, match_y, match_theta, score = self._scan_matcher.match(
+                    ranges, angle_min, angle_increment,
+                    0.01, 12.0,
+                    init_x, init_y, init_theta,
+                    0.5, 0.2,
+                )
+                if score > 10.0:
+                    self._ekf.update_scan_pose(match_x, match_y, match_theta, 0.05, 0.02)
+                    # Update global map with corrected pose
+                    cx = self._ekf.x()
+                    cy = self._ekf.y()
+                    ctheta = self._ekf.theta()
+                    self._global_map.update_from_scan(
+                        cx, cy, ctheta,
+                        ranges, angle_min, angle_increment,
+                        0.01, 12.0,
+                    )
+                    self._global_map.inflate_obstacles()
+                    # Count map cells for debugging
+                    raw = self._global_map.data()
+                    n_free = sum(1 for v in raw if v == 0)
+                    n_occ = sum(1 for v in raw if v == 100)
+                    n_unk = sum(1 for v in raw if v == -1)
+                    self.get_logger().info(
+                        f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
+                        f"map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
+                    )
+
+                    # Insert keyframe if moved far enough
+                    kx, ky, kth = self._last_keyframe_pos
+                    dx = cx - kx
+                    dy = cy - ky
+                    dth = abs(ctheta - kth)
+                    while dth > math.pi:
+                        dth -= 2.0 * math.pi
+                    if math.hypot(dx, dy) > self._keyframe_dist_threshold or dth > self._keyframe_angle_threshold:
+                        kf = Keyframe()
+                        kf.x = cx
+                        kf.y = cy
+                        kf.theta = ctheta
+                        # Store scan points in map frame
+                        for i, r in enumerate(ranges):
+                            if r <= 0.01 or math.isinf(r) or math.isnan(r):
+                                continue
+                            a = angle_min + i * angle_increment
+                            lx = r * math.cos(a)
+                            ly = r * math.sin(a)
+                            # Rotate to map frame
+                            mx = cx + math.cos(ctheta) * lx - math.sin(ctheta) * ly
+                            my = cy + math.sin(ctheta) * lx + math.cos(ctheta) * ly
+                            kf.xs.append(float(mx))
+                            kf.ys.append(float(my))
+                        self._pose_graph.add_keyframe(kf)
+                        self._last_keyframe_pos = (cx, cy, ctheta)
+                        self.get_logger().info(f"Keyframe added at ({cx:.2f}, {cy:.2f})")
+                else:
+                    self.get_logger().info(f"Scan match FAILED: score={score:.1f}")
+
+        # Use SLAM-corrected pose for navigation
+        robot_x = self._ekf.x()
+        robot_y = self._ekf.y()
+        robot_theta = self._ekf.theta()
+
+        # ─── Update grid map ───
+        # Skip in pure reactive mode: grid is only needed for path planning.
+        # This saves significant CPU on the UNO Q by avoiding Bresenham ray-casting.
+        if self._enable_planning:
+            self._grid.update_from_scan(
+                ranges=ranges,
+                angles_deg=angles,
+                robot_x=robot_x,
+                robot_y=robot_y,
+                robot_theta=robot_theta,
+                max_range_m=8.0,
+            )
+
+        # ─── Reactive obstacle avoidance ───
+        points = list(zip(angles, ranges, intensities))
+        sectors = self._avoidance.analyze_sectors(points)
+
+        # Check for emergency situations
+        emergency_action = self._avoidance.check_emergency(sectors)
+
+        # ─── Check for stuck condition ───
+        current_pos = (robot_x, robot_y)
+        dist_moved = math.hypot(current_pos[0] - self._last_progress_pos[0],
+                                current_pos[1] - self._last_progress_pos[1])
+        if dist_moved > 0.1:
+            self._last_progress_pos = current_pos
+            self._stuck_start_time = time.time()
+            if self._nav_state == 'RECOVERY':
+                self._nav_state = 'CONTROLLING'
+                self._recovery_index = 0
+
+        is_stuck = (time.time() - self._stuck_start_time) > self._stuck_timeout
+
+        # ─── Frontier exploration ───
+        if not has_goal and self._enable_exploration:
+            frontiers = self._find_frontiers(robot_x, robot_y)
+            if frontiers:
+                best = self._select_best_frontier(frontiers, robot_x, robot_y)
+                if best:
+                    with self._state_lock:
+                        self._goal_x = best[0]
+                        self._goal_y = best[1]
+                        self._goal_theta = None
+                        self._has_goal = True
+                        self._path_world = []
+                        self._path_index = 0
+                    self.get_logger().info(
+                        f"Exploration goal: ({best[0]:.2f}, {best[1]:.2f})"
+                    )
+                    has_goal = True
+            else:
+                # Bootstrap: no frontiers yet because map is all unknown.
+                # Set a short forward goal so existing nav drives there.
+                front = next((s for s in sectors if s.name == 'front'), None)
+                front_dist = front.min_distance if front else float('inf')
+                if front_dist > 0.5:
+                    bx = robot_x + 0.3 * math.cos(robot_theta)
+                    by = robot_y + 0.3 * math.sin(robot_theta)
+                    with self._state_lock:
+                        self._goal_x = bx
+                        self._goal_y = by
+                        self._goal_theta = None
+                        self._has_goal = True
+                        self._path_world = []
+                        self._path_index = 0
+                    self.get_logger().info(
+                        "Exploration bootstrap: forward goal "
+                        f"({bx:.2f}, {by:.2f})"
+                    )
+                    has_goal = True
+                else:
+                    self.get_logger().info(
+                        "Exploration complete — no frontiers remaining"
+                    )
+                    self._enable_exploration = False
+
+        # ─── State machine ───
+        linear_x = 0.0
+        angular_z = 0.0
+
+        if emergency_action is not None:
+            linear_x, angular_z = self._avoidance.get_emergency_velocity(
+                emergency_action, max_speed=self._max_speed
+            )
+            self.get_logger().debug(f"Emergency: {emergency_action}")
+
+        elif self._nav_state == 'RECOVERY':
+            linear_x, angular_z = self._execute_recovery()
+
+        elif has_goal and self._enable_planning:
+            # ─── Goal-directed navigation ───
+            # Re-read goal in case exploration/bootstrap just set it
+            with self._state_lock:
+                goal_x = self._goal_x
+                goal_y = self._goal_y
+            dx = goal_x - robot_x
+            dy = goal_y - robot_y
+            distance_to_goal = math.hypot(dx, dy)
+
+            if distance_to_goal < self._goal_tolerance:
+                # Goal reached
+                with self._state_lock:
+                    self._has_goal = False
+                    self._path_world = []
+                self._nav_state = 'IDLE'
+                self.get_logger().info("Goal reached!")
+                linear_x, angular_z = 0.0, 0.0
+
+            elif is_stuck:
+                self._nav_state = 'RECOVERY'
+                self._recovery_start_time = time.time()
+                self._recovery_index = 0
+                self.get_logger().warn("Robot stuck — entering recovery")
+                linear_x, angular_z = self._execute_recovery()
+
+            else:
+                # Re-plan if needed
+                now = time.time()
+                should_replan = (
+                    not self._path_world
+                    or now - self._last_replan_time > self._replan_interval
+                    or self._path_index >= len(self._path_world) - 1
+                )
+
+                if should_replan:
+                    # Plan on global SLAM map
+                    path = self._global_planner.plan(
+                        self._global_map,
+                        robot_x, robot_y,
+                        goal_x, goal_y,
+                    )
+                    if path:
+                        with self._state_lock:
+                            self._path_world = path
+                            self._path_index = 0
+                        self._last_replan_time = now
+                    else:
+                        # Fallback to local planner if global fails
+                        path = self._planner.plan(
+                            start_world=(robot_x, robot_y),
+                            goal_world=(goal_x, goal_y),
+                        )
+                        if path is not None:
+                            path = self._planner.smooth_path(path)
+                            with self._state_lock:
+                                self._path_world = path
+                                self._path_index = 0
+                            self._last_replan_time = now
+                        else:
+                            self.get_logger().warn("Planning failed — falling back to reactive")
+                            with self._state_lock:
+                                self._path_world = []
+
+                # Follow path
+                if self._path_world:
+                    with self._state_lock:
+                        path = self._path_world
+                        idx = self._path_index
+
+                    # Advance path index
+                    while idx < len(path) - 1:
+                        wx, wy = path[idx]
+                        dist = math.hypot(wx - robot_x, wy - robot_y)
+                        if dist < 0.15:
+                            idx += 1
+                        else:
+                            break
+
+                    with self._state_lock:
+                        self._path_index = idx
+
+                    # Target heading = direction to next waypoint
+                    if idx < len(path):
+                        wx, wy = path[idx]
+                        target_heading = math.atan2(wy - robot_y, wx - robot_x)
+                        target_speed = min(self._max_speed, distance_to_goal)
+
+                        linear_x, angular_z = self._controller.compute(
+                            target_heading=target_heading,
+                            current_heading=robot_theta,
+                            target_speed=target_speed,
+                            current_speed=vx,
+                        )
+
+                        # Override with VFF if obstacles are close
+                        goal_angle = math.degrees(target_heading)
+                        fx, fy = self._avoidance.compute_vff(
+                            points=points,
+                            goal_angle_deg=goal_angle,
+                            goal_distance_m=distance_to_goal,
+                        )
+                        if any(s.is_blocked for s in sectors if s.name in ('front', 'front_left', 'front_right')):
+                            vff_linear, vff_angular = self._avoidance.vff_to_velocity(
+                                fx, fy, max_speed=self._max_speed
+                            )
+                            # Blend path following with VFF
+                            linear_x = 0.5 * linear_x + 0.5 * vff_linear
+                            angular_z = 0.5 * angular_z + 0.5 * vff_angular
+                else:
+                    # No path — use VFF directly toward goal
+                    goal_angle = math.degrees(math.atan2(dy, dx))
+                    fx, fy = self._avoidance.compute_vff(
+                        points=points,
+                        goal_angle_deg=goal_angle,
+                        goal_distance_m=distance_to_goal,
+                    )
+                    linear_x, angular_z = self._avoidance.vff_to_velocity(
+                        fx, fy, max_speed=self._max_speed
+                    )
+
+        elif self._enable_reactive and (has_goal or self._enable_exploration):
+            # ─── Pure reactive mode with hysteresis ───
+            # Active when a goal is set OR when enable_exploration is true.
+            front = next((s for s in sectors if s.name == 'front'), None)
+            front_left = next((s for s in sectors if s.name == 'front_left'), None)
+            front_right = next((s for s in sectors if s.name == 'front_right'), None)
+
+            front_dist = front.min_distance if front else float('inf')
+            fl_dist = front_left.min_distance if front_left else float('inf')
+            fr_dist = front_right.min_distance if front_right else float('inf')
+
+            # Exploration mode: slower, more cautious speeds
+            if self._enable_exploration and not has_goal:
+                speed_scale = self._exploration_speed_scale
+            else:
+                speed_scale = 1.0
+
+            safety = self._safety_distance
+            panic_dist = safety * 0.5
+            drive_dist = safety * 1.2
+
+            if front_dist < panic_dist:
+                # Too close — reverse and turn toward more open side
+                linear_x = -self._max_speed * 0.3 * speed_scale
+                angular_z = 0.8 if fl_dist > fr_dist else -0.8
+                self._last_turn_dir = angular_z
+                self._last_turn_time = time.time()
+            elif front_dist < drive_dist:
+                # Caution zone — arc backward while turning toward more open side
+                linear_x = -self._max_speed * 0.15 * speed_scale
+                now = time.time()
+                if self._last_turn_dir == 0.0:
+                    self._last_turn_dir = 0.8 if fl_dist > fr_dist else -0.8
+                    self._last_turn_time = now
+                angular_z = self._last_turn_dir
+            else:
+                # Clear road ahead
+                linear_x = self._max_speed * 0.4 * speed_scale
+                angular_z = 0.0
+                self._last_turn_dir = 0.0
+
+                # Exploration: add small random bias to break loops and cover new ground
+                if self._enable_exploration and not has_goal:
+                    if random.random() < 0.05:  # 5% chance per cycle (~0.25Hz @ 5Hz)
+                        angular_z = random.choice([-0.5, 0.5])
+
+        # ─── Send command to rover ───
+        self._rover.send_velocity(linear_x, angular_z)
+
+        # ─── Publish visualization topics ───
+        self._nav_cycle_count += 1
+        if self._nav_cycle_count >= self._publish_decimation:
+            self._nav_cycle_count = 0
+            self._publish_scan(scan, ranges, angles, intensities)
+            self._publish_map()
+            self._publish_odom(robot_x, robot_y, robot_theta, vx, vth)
+            self._publish_transforms(robot_x, robot_y, robot_theta)
+            self._publish_path()
+            self._publish_local_plan()
+            self._publish_cmd_vel(linear_x, angular_z)
+
+    # ------------------------------------------------------------------
+    # Publishers
+    # ------------------------------------------------------------------
+
+    def _execute_recovery(self) -> Tuple[float, float]:
+        """Execute current recovery behavior. Returns (linear_x, angular_z)."""
+        elapsed = time.time() - self._recovery_start_time
+        behavior = self._recovery_behaviors[self._recovery_index] if self._recovery_index < len(self._recovery_behaviors) else 'wait'
+
+        if behavior == 'spin':
+            # Rotate 360 degrees at 0.5 rad/s (~12 seconds)
+            if elapsed > 12.0:
+                self._recovery_index += 1
+                self._recovery_start_time = time.time()
+                self.get_logger().info("Recovery: spin complete, next behavior")
+            return 0.0, 0.5
+
+        elif behavior == 'backup':
+            # Reverse for 2 seconds
+            if elapsed > 2.0:
+                self._recovery_index += 1
+                self._recovery_start_time = time.time()
+                self.get_logger().info("Recovery: backup complete, next behavior")
+            return -0.15, 0.0
+
+        elif behavior == 'clear_costmap':
+            self._global_map.clear()
+            self._grid.clear()
+            self._recovery_index += 1
+            self._recovery_start_time = time.time()
+            self.get_logger().info("Recovery: costmaps cleared, next behavior")
+            return 0.0, 0.0
+
+        elif behavior == 'wait':
+            if elapsed > 3.0:
+                self._nav_state = 'CONTROLLING'
+                self._recovery_index = 0
+                self._stuck_start_time = time.time()
+                self.get_logger().info("Recovery: wait complete, resuming control")
+            return 0.0, 0.0
+
+        else:
+            self._nav_state = 'CONTROLLING'
+            self._recovery_index = 0
+            return 0.0, 0.0
+
+    def _publish_scan(
+        self,
+        scan: LD19Scan,
+        ranges: List[float],
+        angles: List[float],
+        intensities: List[float],
+    ) -> None:
+        """Publish LaserScan message."""
+        msg = LaserScan()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = self._lidar_frame_id
+
+        # LD19: 0-360 degrees, ~1 degree resolution
+        msg.angle_min = 0.0
+        msg.angle_max = 2.0 * math.pi
+        msg.angle_increment = 2.0 * math.pi / 360.0
+        msg.range_min = 0.02
+        msg.range_max = 12.0
+        msg.ranges = [float('inf')] * 360
+        msg.intensities = [0.0] * 360
+
+        for angle_deg, dist, intensity in zip(angles, ranges, intensities):
+            idx = int(round(angle_deg)) % 360
+            if 0 <= idx < 360:
+                if dist < msg.ranges[idx]:
+                    msg.ranges[idx] = dist
+                msg.intensities[idx] = intensity
+
+        self._scan_pub.publish(msg)
+
+    def _publish_map(self) -> None:
+        """Publish global OccupancyGrid from SLAM."""
+        msg = OccupancyGrid()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = self._map_frame
+        msg.info.resolution = self._global_map.resolution_m()
+        msg.info.width = self._global_map.width_cells()
+        msg.info.height = self._global_map.height_cells()
+        msg.info.origin.position.x = float(self._global_map.origin_x())
+        msg.info.origin.position.y = float(self._global_map.origin_y())
+        msg.info.origin.position.z = 0.0
+        msg.info.origin.orientation.w = 1.0
+        # Convert C++ grid data (-1/0/100) to ROS OccupancyGrid format
+        raw = self._global_map.data()
+        out = []
+        for v in raw:
+            if v == -1:
+                out.append(-1)
+            elif v == 0:
+                out.append(0)
+            else:
+                out.append(min(100, int(v)))
+        msg.data = out
+        self._map_pub.publish(msg)
+
+        # Also publish local map for debugging
+        local_msg = OccupancyGrid()
+        local_msg.header.stamp = msg.header.stamp
+        local_msg.header.frame_id = self._map_frame
+        local_msg.info.resolution = self._grid.resolution
+        local_msg.info.width = self._grid.grid_size
+        local_msg.info.height = self._grid.grid_size
+        half = self._grid.size_m / 2.0
+        cos_t = math.cos(self._grid.origin_theta)
+        sin_t = math.sin(self._grid.origin_theta)
+        local_msg.info.origin.position.x = float(self._grid.origin_x - half * cos_t + half * sin_t)
+        local_msg.info.origin.position.y = float(self._grid.origin_y - half * sin_t - half * cos_t)
+        local_msg.info.origin.position.z = 0.0
+        local_msg.info.origin.orientation = self._euler_to_quaternion(0.0, 0.0, self._grid.origin_theta)
+        local_msg.data = self._grid.to_occupancy_grid_data()
+        self._local_map_pub.publish(local_msg)
+
+    def _publish_odom(
+        self,
+        x: float, y: float, theta: float,
+        vx: float, vth: float,
+    ) -> None:
+        """Publish Odometry message with EKF covariance."""
+        msg = Odometry()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = self._odom_frame
+        msg.child_frame_id = self._base_frame
+        msg.pose.pose.position.x = x
+        msg.pose.pose.position.y = y
+        msg.pose.pose.position.z = 0.0
+        msg.pose.pose.orientation = self._euler_to_quaternion(0.0, 0.0, theta)
+        msg.twist.twist.linear.x = vx
+        msg.twist.twist.angular.z = vth
+        # EKF covariance [x, y, theta]
+        P = self._ekf.covariance()
+        msg.pose.covariance[0] = float(P[0])   # x-x
+        msg.pose.covariance[1] = float(P[1])   # x-y
+        msg.pose.covariance[5] = float(P[2])   # x-theta
+        msg.pose.covariance[6] = float(P[3])   # y-x
+        msg.pose.covariance[7] = float(P[4])   # y-y
+        msg.pose.covariance[11] = float(P[5])  # y-theta
+        msg.pose.covariance[30] = float(P[6])  # theta-x
+        msg.pose.covariance[31] = float(P[7])  # theta-y
+        msg.pose.covariance[35] = float(P[8])  # theta-theta
+        self._odom_pub.publish(msg)
+
+    def _publish_transforms(self, x: float, y: float, theta: float) -> None:
+        """Publish TF transforms."""
+        now = self.get_clock().now().to_msg()
+
+        # Get dead-reckoning pose for odom->base_link
+        odom_x, odom_y, odom_theta, _, _ = self._rover.get_odometry()
+
+        # map → odom (SLAM correction)
+        if self._do_publish_map_odom_tf:
+            dx = x - odom_x
+            dy = y - odom_y
+            dtheta = theta - odom_theta
+            while dtheta > math.pi:
+                dtheta -= 2.0 * math.pi
+            while dtheta < -math.pi:
+                dtheta += 2.0 * math.pi
+            t1 = TransformStamped()
+            t1.header.stamp = now
+            t1.header.frame_id = self._map_frame
+            t1.child_frame_id = self._odom_frame
+            t1.transform.translation.x = float(dx)
+            t1.transform.translation.y = float(dy)
+            t1.transform.translation.z = 0.0
+            t1.transform.rotation = self._euler_to_quaternion(0.0, 0.0, dtheta)
+            self._tf_broadcaster.sendTransform(t1)
+
+        # odom → base_link (dead reckoning)
+        t2 = TransformStamped()
+        t2.header.stamp = now
+        t2.header.frame_id = self._odom_frame
+        t2.child_frame_id = self._base_frame
+        t2.transform.translation.x = float(odom_x)
+        t2.transform.translation.y = float(odom_y)
+        t2.transform.translation.z = 0.0
+        t2.transform.rotation = self._euler_to_quaternion(0.0, 0.0, odom_theta)
+        self._tf_broadcaster.sendTransform(t2)
+
+        # base_link → base_laser
+        t3 = TransformStamped()
+        t3.header.stamp = now
+        t3.header.frame_id = self._base_frame
+        t3.child_frame_id = self._lidar_frame_id
+        t3.transform.translation.z = 0.18
+        t3.transform.rotation.w = 1.0
+        self._tf_broadcaster.sendTransform(t3)
+
+    def _publish_path(self) -> None:
+        """Publish current planned path."""
+        with self._state_lock:
+            path = self._path_world.copy()
+
+        if not path:
+            return
+
+        msg = Path()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = self._map_frame
+        for wx, wy in path:
+            pose = PoseStamped()
+            pose.pose.position.x = wx
+            pose.pose.position.y = wy
+            pose.pose.orientation.w = 1.0
+            msg.poses.append(pose)
+        self._path_pub.publish(msg)
+
+    def _publish_local_plan(self) -> None:
+        """Publish best DWA trajectory for RViz."""
+        if not self._latest_local_plan:
+            return
+        msg = Path()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = self._map_frame
+        for wx, wy in self._latest_local_plan:
+            pose = PoseStamped()
+            pose.pose.position.x = wx
+            pose.pose.position.y = wy
+            pose.pose.orientation.w = 1.0
+            msg.poses.append(pose)
+        self._local_plan_pub.publish(msg)
+
+    def _publish_cmd_vel(self, linear_x: float, angular_z: float) -> None:
+        """Publish commanded velocity for monitoring."""
+        msg = Twist()
+        msg.linear.x = linear_x
+        msg.angular.z = angular_z
+        self._cmd_vel_pub.publish(msg)
+
+    # ------------------------------------------------------------------
+    # Utilities
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _euler_to_quaternion(roll: float, pitch: float, yaw: float) -> Quaternion:
+        """Convert Euler angles to quaternion."""
+        cy = math.cos(yaw * 0.5)
+        sy = math.sin(yaw * 0.5)
+        cp = math.cos(pitch * 0.5)
+        sp = math.sin(pitch * 0.5)
+        cr = math.cos(roll * 0.5)
+        sr = math.sin(roll * 0.5)
+        q = Quaternion()
+        q.w = cr * cp * cy + sr * sp * sy
+        q.x = sr * cp * cy - cr * sp * sy
+        q.y = cr * sp * cy + sr * cp * sy
+        q.z = cr * cp * sy - sr * sp * cy
+        return q
+
+    # ------------------------------------------------------------------
+    # Frontier Exploration
+    # ------------------------------------------------------------------
+
+    def _find_frontiers(self, robot_x: float, robot_y: float):
+        """Detect frontiers on the global SLAM map.
+
+        Uses the global occupancy grid which covers the full explored area.
+        Returns list of (world_x, world_y, size) for each frontier cluster.
+        """
+        import numpy as np
+
+        w = self._global_map.width_cells()
+        h = self._global_map.height_cells()
+        raw = self._global_map.data()
+        grid = np.array(raw, dtype=np.int8).reshape((h, w))
+        res = self._global_map.resolution_m()
+        origin_x = self._global_map.origin_x()
+        origin_y = self._global_map.origin_y()
+
+        # Frontier cells: free (val == 0) adjacent to unknown (val == -1)
+        frontier_mask = np.zeros((h, w), dtype=bool)
+        for r in range(1, h - 1):
+            for c in range(1, w - 1):
+                if grid[r, c] == 0:  # Free cell
+                    if (grid[r - 1, c] == -1 or grid[r + 1, c] == -1 or
+                            grid[r, c - 1] == -1 or grid[r, c + 1] == -1):
+                        frontier_mask[r, c] = True
+
+        if not frontier_mask.any():
+            return []
+
+        # Cluster frontier cells using BFS
+        visited = np.zeros((h, w), dtype=bool)
+        clusters = []
+
+        for r in range(h):
+            for c in range(w):
+                if frontier_mask[r, c] and not visited[r, c]:
+                    cluster = []
+                    queue = [(r, c)]
+                    visited[r, c] = True
+                    while queue:
+                        cr, cc = queue.pop(0)
+                        cluster.append((cr, cc))
+                        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                            nr, nc = cr + dr, cc + dc
+                            if 0 <= nr < h and 0 <= nc < w:
+                                if frontier_mask[nr, nc] and not visited[nr, nc]:
+                                    visited[nr, nc] = True
+                                    queue.append((nr, nc))
+
+                    if len(cluster) >= self._min_frontier_size:
+                        avg_r = sum(p[0] for p in cluster) / len(cluster)
+                        avg_c = sum(p[1] for p in cluster) / len(cluster)
+                        # Grid coords: row=y, col=x
+                        wx = origin_x + avg_c * res
+                        wy = origin_y + avg_r * res
+                        clusters.append((wx, wy, len(cluster)))
+
+        return clusters
+
+    def _select_best_frontier(self, frontiers, robot_x, robot_y):
+        """Pick the best frontier based on distance and size."""
+        best = None
+        best_score = -1.0
+
+        for wx, wy, size in frontiers:
+            # Skip goals inside obstacles
+            if self._grid.is_occupied(wx, wy):
+                continue
+
+            dist = math.hypot(wx - robot_x, wy - robot_y)
+            # Skip frontiers that are too close (avoid jitter)
+            if dist < 0.3:
+                continue
+
+            # Score: larger frontiers closer to robot are better
+            score = size / (dist + 0.1)
+            if score > best_score:
+                best_score = score
+                best = (wx, wy)
+
+        return best
+
+    # ------------------------------------------------------------------
+    # Action Server: navigate_to_pose
+    # ------------------------------------------------------------------
+
+    def _nav_goal_callback(self, goal_request):
+        self.get_logger().info(f"Received navigate_to_pose goal: "
+                               f"({goal_request.pose.pose.position.x:.2f}, "
+                               f"{goal_request.pose.pose.position.y:.2f})")
+        return GoalResponse.ACCEPT
+
+    def _nav_cancel_callback(self, goal_handle):
+        self.get_logger().info("Goal cancel requested")
+        return CancelResponse.ACCEPT
+
+    async def _navigate_to_pose_callback(self, goal_handle):
+        self.get_logger().info("Executing navigate_to_pose...")
+        pose = goal_request = goal_handle.request.pose.pose
+        goal_x = pose.position.x
+        goal_y = pose.position.y
+
+        # Extract yaw from quaternion
+        q = pose.orientation
+        siny = 2.0 * (q.w * q.z + q.x * q.y)
+        cosy = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+        goal_theta = math.atan2(siny, cosy)
+
+        with self._state_lock:
+            self._goal_x = goal_x
+            self._goal_y = goal_y
+            self._goal_theta = goal_theta
+            self._has_goal = True
+            self._path_world = []
+            self._path_index = 0
+
+        # Wait for goal completion or cancellation
+        feedback_msg = NavigateToPose.Feedback()
+        rate = self.create_rate(2.0)
+        while rclpy.ok() and self._running:
+            if goal_handle.is_cancel_requested:
+                goal_handle.canceled()
+                with self._state_lock:
+                    self._has_goal = False
+                self.get_logger().info("Goal canceled")
+                return NavigateToPose.Result()
+
+            with self._state_lock:
+                has_goal = self._has_goal
+                robot_x = self._ekf.x()
+                robot_y = self._ekf.y()
+                robot_theta = self._ekf.theta()
+
+            if not has_goal:
+                # Goal reached
+                goal_handle.succeed()
+                self.get_logger().info("Goal succeeded")
+                return NavigateToPose.Result()
+
+            # Publish feedback
+            feedback_msg.current_pose.pose.position.x = robot_x
+            feedback_msg.current_pose.pose.position.y = robot_y
+            feedback_msg.current_pose.pose.orientation = self._euler_to_quaternion(0.0, 0.0, robot_theta)
+            feedback_msg.distance_remaining = math.hypot(goal_x - robot_x, goal_y - robot_y)
+            goal_handle.publish_feedback(feedback_msg)
+
+            try:
+                rate.sleep()
+            except Exception:
+                break
+
+        # Timeout or error
+        goal_handle.abort()
+        with self._state_lock:
+            self._has_goal = False
+        self.get_logger().warn("Goal aborted")
+        return NavigateToPose.Result()
+
+    # ------------------------------------------------------------------
+    # Services
+    # ------------------------------------------------------------------
+
+    def _on_save_map(self, request, response):
+        self.get_logger().info("Save map requested (not yet implemented)")
+        return response
+
+    def _on_clear_costmap(self, request, response):
+        self.get_logger().info("Clearing costmaps")
+        self._global_map.clear()
+        self._grid.clear()
+        return response
+
+    def _on_reinit_localization(self, request, response):
+        self.get_logger().info("Reinitializing localization")
+        self._ekf.reset(0.0, 0.0, 0.0)
+        self._global_map.clear()
+        self._slam_initialized = False
+        return response
+
+    def _loop_closure_worker(self) -> None:
+        """Background thread: detect loop closures and optimize pose graph."""
+        while self._run_loop_closure:
+            time.sleep(2.0)
+            try:
+                kfs = self._pose_graph.keyframes()
+                if len(kfs) < 10:
+                    continue
+                # Check last keyframe against older ones
+                last_idx = len(kfs) - 1
+                last = kfs[last_idx]
+                nearby = self._pose_graph.find_nearby(last.x, last.y, 2.0)
+                for idx in nearby:
+                    if idx >= last_idx - 5:
+                        continue  # Too recent
+                    old = kfs[idx]
+                    # Attempt scan-to-keyframe match
+                    dx = last.x - old.x
+                    dy = last.y - old.y
+                    dtheta = last.theta - old.theta
+                    while dtheta > math.pi:
+                        dtheta -= 2.0 * math.pi
+                    while dtheta < -math.pi:
+                        dtheta += 2.0 * math.pi
+                    # Simple constraint: just use relative pose
+                    # (A real implementation would run ICP/correlation here)
+                    dist = math.hypot(dx, dy)
+                    if dist < 0.3 and abs(dtheta) < 0.1:
+                        self._pose_graph.add_constraint(idx, last_idx, dx, dy, dtheta)
+                        self.get_logger().info(f"Loop closure: keyframe {idx} <-> {last_idx}")
+                        self._pose_graph.optimize(5)
+                        # Update EKF with optimized last pose
+                        optimized = kfs[last_idx]
+                        self._ekf.update_scan_pose(optimized.x, optimized.y, optimized.theta, 0.02, 0.01)
+                        break
+            except Exception as e:
+                self.get_logger().warn(f"Loop closure error: {e}")
+
+    def destroy_node(self) -> None:
+        """Clean shutdown."""
+        self.get_logger().info("Shutting down AimeeNav...")
+        self._running = False
+        self._run_loop_closure = False
+
+        # Stop rover
+        try:
+            self._rover.stop()
+            self._rover.disconnect()
+        except Exception:
+            pass
+
+        # Stop lidar
+        try:
+            self._lidar.stop()
+        except Exception:
+            pass
+
+        # Join threads
+        if self._loop_closure_thread is not None and self._loop_closure_thread.is_alive():
+            self._loop_closure_thread.join(timeout=2.0)
+        if self._nav_thread is not None and self._nav_thread.is_alive():
+            self._nav_thread.join(timeout=2.0)
+        if self._lidar_consumer_thread is not None and self._lidar_consumer_thread.is_alive():
+            self._lidar_consumer_thread.join(timeout=1.0)
+
+        super().destroy_node()
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = AimeeNavNode()
+
+    # Use MultiThreadedExecutor to allow ROS callbacks to run concurrently
+    # with our background threads (though our threads are independent)
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
+
+    try:
+        executor.spin()
+    except KeyboardInterrupt:
+        node.get_logger().info("Interrupted by user")
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

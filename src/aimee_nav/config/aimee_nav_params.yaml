@@ -1,0 +1,66 @@
+# AimeeNav parameters for AIMEE Robot (Arduino UNO Q)
+#
+# This config is optimized for the Wave Rover + LD19 lidar combination.
+# Tune values based on your environment and robot behavior.
+
+aimee_nav:
+  ros__parameters:
+    # ─── LiDAR ───
+    lidar_port: "/dev/ttyUSB1"
+    lidar_baud: 230400
+    lidar_frame_id: "base_laser"
+    lidar_angle_offset_deg: 0.0
+
+    # ─── Wave Rover Base ───
+    rover_port: "/dev/ttyUSB0"
+    rover_baud: 115200
+    rover_http_ip: "192.168.1.56"   # HTTP mode for Wave Rover ESP32
+    wheel_separation: 0.172
+    wheel_radius: 0.04
+    max_speed: 0.3
+    angular_scale: 0.3              # Calibrated for arc turns: gentle correction = arc, max = full diff
+    control_mode: "wheel_speed"     # "wheel_speed" (T=1) or "velocity" (T=13)
+
+    # ─── Local Grid Map ───
+    grid_size_m: 3.0
+    grid_resolution_m: 0.15
+    global_map_size_m: 20.0
+    global_map_resolution_m: 0.05
+    obstacle_inflation_m: 0.15
+    decay_time_s: 10.0
+
+    # ─── Navigation Behavior ───
+    safety_distance_m: 0.35
+    goal_tolerance_m: 0.20
+    replan_interval_s: 1.0
+    min_clearance_m: 0.20
+    navigation_mode: "planned"      # "reactive" or "planned"
+    enable_exploration: true
+    exploration_speed_scale: 0.4
+    publish_decimation: 50          # Publish viz topics every 50 cycles (~5s @ 10Hz)
+
+    # ─── Rate & Controllers ───
+    nav_rate_hz: 5.0                 # Lower rate for UNO Q headroom
+    publish_decimation: 50            # Viz topics every ~10s @ 5Hz
+    heading_kp: 2.0
+    heading_ki: 0.0
+    heading_kd: 0.5
+    velocity_kp: 1.0
+    velocity_ki: 0.0
+    velocity_kd: 0.0
+
+    # ─── Safety & Behavior ───
+    enable_reactive: true
+    enable_planning: true
+    min_frontier_size: 5
+    emergency_reverse_time_s: 0.5
+
+    # ─── TF Frames ───
+    map_frame: "map"
+    odom_frame: "odom"
+    base_frame: "base_link"
+    publish_tf: true
+    publish_map_odom_tf: true  # Set to false when external SLAM provides map→odom
+
+    # ─── Timing ───
+    # nav_rate_hz and publish_decimation defined above
