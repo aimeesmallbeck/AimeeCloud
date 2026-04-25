@@ -1,20 +1,24 @@
 #!/bin/bash
 # Setup udev rules for Aimee Robot USB devices
-# Run with sudo when both rover and lidar are connected to identify them
+# Both LD19 lidar and Wave Rover use CP210x chips (10c4:ea60), so we distinguish by serial.
+#
+# Verified serials (update these if hardware changes):
+#   Wave Rover: 7a4ad02fc773ef11ade0c68c8fcc3fa0  -> /dev/aimee_rover
+#   LD19 Lidar: 0001                               -> /dev/aimee_lidar
+#
+# Run with sudo when both devices are connected.
 
 RULES_FILE=/etc/udev/rules.d/99-aimee-robot.rules
 
 echo "Creating udev rules for Aimee Robot..."
 
-# LD19 Lidar (Silicon Labs CP210x UART Bridge)
-# Verified ID: 10c4:ea60
 cat > "$RULES_FILE" <<'EOF'
 # Aimee Robot USB Serial Devices
-# LD19 Lidar (CP210x)
-SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="lidar", MODE="0666"
+# Wave Rover (CP210x)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ATTRS{serial}=="7a4ad02fc773ef11ade0c68c8fcc3fa0", SYMLINK+="aimee_rover", MODE="0666"
 
-# Waveshare General Driver / Wave Rover (CH340) — uncomment after verifying with lsusb
-# SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="rover", MODE="0666"
+# LD19 Lidar (CP210x)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ATTRS{serial}=="0001", SYMLINK+="aimee_lidar", MODE="0666"
 EOF
 
 echo "Reloading udev rules..."
@@ -24,7 +28,8 @@ udevadm trigger
 echo "Done. Rules written to $RULES_FILE"
 echo ""
 echo "Current USB serial devices:"
-ls -l /dev/ttyUSB* /dev/ttyACM* 2>/dev/null || echo "  (none found)"
+ls -l /dev/ttyUSB* /dev/aimee_* 2>/dev/null || echo "  (none found)"
 echo ""
-echo "To verify rover USB ID, power it on and run: lsusb | grep -i waveshare"
-echo "Then update $RULES_FILE with the correct idVendor/idProduct for the rover."
+echo "To update serial numbers, run:"
+echo "  udevadm info -a -n /dev/ttyUSB0 | grep serial"
+echo "  udevadm info -a -n /dev/ttyUSB1 | grep serial"

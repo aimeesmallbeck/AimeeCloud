@@ -34,6 +34,8 @@ import json
 import threading
 import time
 import math
+import urllib.request
+import urllib.parse
 from typing import Optional, Dict, Any
 
 
@@ -75,11 +77,13 @@ class UGV02ControllerNode(Node):
             ('wheel_radius', 0.04),        # meters
             ('max_speed', 0.5),            # m/s
             ('cmd_timeout', 0.5),          # seconds before stopping
-            ('heartbeat_interval', 0.1),   # seconds between heartbeat commands
+            ('heartbeat_interval', 0.5),   # seconds between heartbeat commands
             ('continuous_feedback', True), # Enable ESP32 continuous feedback
             ('publish_tf', True),
             ('linear_scale', 1.0),         # Scale factor for linear velocity
             ('angular_scale', 1.0),        # Scale factor for angular velocity
+            ('control_mode', 'velocity'),  # 'velocity' (T=13) or 'wheel_speed' (T=1)
+            ('http_ip', ''),               # ESP32 IP for HTTP commands (e.g., 192.168.1.56)
         ])
 
         # Get parameters
@@ -97,6 +101,8 @@ class UGV02ControllerNode(Node):
         self._publish_tf = self.get_parameter('publish_tf').value
         self._linear_scale = self.get_parameter('linear_scale').value
         self._angular_scale = self.get_parameter('angular_scale').value
+        self._control_mode = self.get_parameter('control_mode').value
+        self._http_ip = self.get_parameter('http_ip').value
 
         # Setup QoS
         reliable_qos = QoSProfile(
@@ -136,6 +142,12 @@ class UGV02ControllerNode(Node):
         self._last_angular = 0.0
         self._cmd_vel_active = False
 
+        # HTTP rate limiting (lessons from RoArm-M3 driver)
+        self._http_lock = threading.Lock()
+        self._last_http_send_time = 0.0
+        self._min_http_interval = 0.2  # max 5 Hz — ESP32 web server can't sustain more
+        self._http_timeout = 1.0
+
         # Odometry state
         self._x = 0.0
         self._y = 0.0
@@ -143,6 +155,10 @@ class UGV02ControllerNode(Node):
         self._vx = 0.0
         self._vth = 0.0
         self._last_odom_time = time.time()
+        
+        # Publish decimation (process all, publish every Nth)
+        self._feedback_count = 0
+        self._publish_decimation = 1  # Publish at ~10 Hz from 50 Hz input
 
         # Serial read thread
         self._read_thread: Optional[threading.Thread] = None
@@ -220,7 +236,7 @@ class UGV02ControllerNode(Node):
                             self._process_serial_data(line)
             except Exception as e:
                 self.get_logger().debug(f"Serial read error: {e}")
-            time.sleep(0.001)  # Small delay to prevent CPU spinning
+            time.sleep(0.02)  # Small delay to prevent CPU spinning
 
     def _process_serial_data(self, data: str):
         """Process incoming JSON data from ESP32."""
@@ -234,6 +250,8 @@ class UGV02ControllerNode(Node):
                 self._process_imu(msg)
             elif cmd_type == 2:  # Legacy odometry
                 self._process_legacy_odometry(msg)
+            elif cmd_type == 1001:  # Wave Rover continuous feedback
+                self._process_continuous_feedback(msg)
             else:
                 # Log other messages for debugging
                 self.get_logger().debug(f"Received: {data}")
@@ -242,6 +260,77 @@ class UGV02ControllerNode(Node):
             self.get_logger().debug(f"Non-JSON data: {data}")
         except Exception as e:
             self.get_logger().debug(f"Error processing data: {e}")
+
+    def _process_continuous_feedback(self, msg: Dict[str, Any]):
+        """Process Wave Rover T=1001 continuous feedback packet.
+        
+        Format: {"T":1001,"L":0,"R":0,"r":roll,"p":pitch,"y":yaw,"temp":C,"v":volts}
+        """
+        try:
+            # Extract wheel speeds for odometry
+            if self._control_mode == 'wheel_speed':
+                # Wave Rover has no encoders, so T=1001 L/R are always 0.
+                # Use the last commanded L/R values (in [-0.5, 0.5]) and convert to m/s.
+                left_speed = self._last_cmd_L * 2.0  # [-0.5, 0.5] -> [-1, 1]
+                right_speed = self._last_cmd_R * 2.0
+                v_left = left_speed * self._max_speed
+                v_right = right_speed * self._max_speed
+            else:
+                left_speed = msg.get('L', 0)
+                right_speed = msg.get('R', 0)
+                v_left = left_speed * self._wheel_radius
+                v_right = right_speed * self._wheel_radius
+            
+            self._vx = (v_right + v_left) / 2.0
+            self._vth = (v_right - v_left) / self._wheel_sep
+            
+            # Update position using dead reckoning
+            current_time = time.time()
+            dt = current_time - self._last_odom_time
+            self._last_odom_time = current_time
+            
+            if dt > 0:
+                delta_x = self._vx * math.cos(self._theta) * dt
+                delta_y = self._vx * math.sin(self._theta) * dt
+                delta_th = self._vth * dt
+                
+                self._x += delta_x
+                self._y += delta_y
+                self._theta += delta_th
+                
+                # Normalize theta
+                self._theta = math.atan2(math.sin(self._theta), math.cos(self._theta))
+            
+            # Publish odometry + TF (decimated to reduce CPU/DDS load)
+            self._feedback_count += 1
+            if self._feedback_count >= self._publish_decimation:
+                self._feedback_count = 0
+                self._publish_odometry()
+            
+            # Publish IMU if r/p/y present
+            if 'r' in msg or 'p' in msg or 'y' in msg:
+                imu_msg = Imu()
+                imu_msg.header.stamp = self.get_clock().now().to_msg()
+                imu_msg.header.frame_id = 'imu_link'
+                
+                # r/p/y are in degrees from Wave Rover
+                roll_rad = math.radians(msg.get('r', 0))
+                pitch_rad = math.radians(msg.get('p', 0))
+                yaw_rad = math.radians(msg.get('y', 0))
+                imu_msg.orientation = self._euler_to_quaternion(roll_rad, pitch_rad, yaw_rad)
+                
+                self._imu_pub.publish(imu_msg)
+            
+            # Publish battery voltage if present
+            if 'v' in msg:
+                battery_msg = BatteryState()
+                battery_msg.header.stamp = self.get_clock().now().to_msg()
+                battery_msg.voltage = float(msg['v'])
+                battery_msg.present = True
+                self._battery_pub.publish(battery_msg)
+                
+        except Exception as e:
+            self.get_logger().debug(f"Continuous feedback processing error: {e}")
 
     def _process_odometry(self, msg: Dict[str, Any]):
         """Process odometry feedback from ESP32."""
@@ -374,55 +463,107 @@ class UGV02ControllerNode(Node):
         linear_x = msg.linear.x * self._linear_scale
         angular_z = msg.angular.z * self._angular_scale
         
-        # Clamp to max speed
+        # Clamp linear to max speed
         linear_x = max(-self._max_speed, min(self._max_speed, linear_x))
-        angular_z = max(-self._max_speed, min(self._max_speed, angular_z))
+        # Note: angular is NOT clamped here - _send_velocity_command normalizes wheel speeds
         
         self._last_linear = linear_x
         self._last_angular = angular_z
         
         # Send to robot
+        self.get_logger().info(f"CMD_VEL received: linear={linear_x:.2f} angular={angular_z:.2f}")
         self._send_velocity_command(linear_x, angular_z)
 
     def _send_velocity_command(self, linear_x: float, angular_z: float):
-        """Send velocity command to ESP32."""
-        if not self._connected or not self._serial:
-            return
+        """Send velocity command to ESP32 via HTTP or serial."""
+        if self._control_mode == 'wheel_speed':
+            # Wave Rover ESP32 firmware expects T=1 with L/R as direct motor
+            # commands in [-0.5, 0.5], matching the web teleop's movtionButton().
+            # Web teleop mixing:  L = fwd - diff,  R = fwd + diff
+            #
+            # fwd  = linear component  in [-0.5, 0.5]
+            # diff = angular component in [-0.5, 0.5]
+            #
+            # Pure forward at max_speed  → L=0.5, R=0.5
+            # Pure turn  at max_angular  → L=-0.5, R=0.5 (or vice versa)
+            fwd = linear_x / self._max_speed * 0.5
+            diff = angular_z / self._max_speed * 0.5 * self._angular_scale
+
+            # Prevent inner wheel reversal when moving forward/backward.
+            # The web teleop keeps both wheels with the same sign as fwd
+            # for combined motion (e.g. forward-left: L=0.3, R=0.5).
+            if abs(fwd) > 0.001 and abs(diff) > abs(fwd):
+                diff = math.copysign(abs(fwd), diff)
+
+            L = fwd - diff
+            R = fwd + diff
+
+            # Clamp to firmware's expected range [-0.5, 0.5]
+            L = max(-0.5, min(0.5, L))
+            R = max(-0.5, min(0.5, R))
+
+            self.get_logger().info(f"CMD: L={L:.3f} R={R:.3f}")
+            cmd = {"T": self.CMD_SPEED_CTRL, "L": round(L, 4), "R": round(R, 4)}
+            self._last_cmd_L = L
+            self._last_cmd_R = R
+        else:
+            # UGV01 with encoders: use T=13 with X (linear m/s) and Z (angular rad/s)
+            linear_x = max(-self._max_speed, min(self._max_speed, linear_x))
+            angular_z = max(-self._max_speed, min(self._max_speed, angular_z))
+
+            self.get_logger().info(f"CMD: X={linear_x:.2f} Z={angular_z:.2f}")
+            cmd = {"T": self.CMD_VELOCITY, "X": linear_x, "Z": angular_z}
+            self._last_cmd_L = 0.0
+            self._last_cmd_R = 0.0
         
-        # Convert Twist to wheel speeds
-        # v_left = v - (omega * wheel_sep / 2)
-        # v_right = v + (omega * wheel_sep / 2)
-        v_left = linear_x - (angular_z * self._wheel_sep / 2.0)
-        v_right = linear_x + (angular_z * self._wheel_sep / 2.0)
-        
-        # Normalize to -0.5 to 0.5 range
-        max_wheel_speed = max(abs(v_left), abs(v_right), self._max_speed)
-        if max_wheel_speed > self._max_speed:
-            scale = self._max_speed / max_wheel_speed
-            v_left *= scale
-            v_right *= scale
-        
-        # Convert to ESP32 format (-0.5 to 0.5)
-        left_cmd = v_left / (self._max_speed * 2)  # Scale to -0.5 to 0.5
-        right_cmd = v_right / (self._max_speed * 2)
-        
-        # Send command
-        cmd = {"T": self.CMD_SPEED_CTRL, "L": left_cmd, "R": right_cmd}
-        self._send_json(cmd)
+        if self._http_ip:
+            self._send_http_command(cmd)
+        else:
+            self._send_json(cmd)
 
     def _send_velocity_command_alt(self, linear_x: float, angular_z: float):
         """Alternative: Use T=13 velocity command."""
         if not self._connected or not self._serial:
             return
         
+        self.get_logger().info(f"Sending T=13: X={linear_x:.2f} Z={angular_z:.2f}")
         cmd = {"T": self.CMD_VELOCITY, "X": linear_x, "Z": angular_z}
         self._send_json(cmd)
 
+    def _send_http_command(self, cmd: Dict[str, Any]):
+        """Send JSON command to ESP32 via HTTP GET.
+
+        Rate-limited to max 5 Hz because the ESP32 web server cannot sustain
+        high-frequency requests. Uses fresh connections (Connection: close) to
+        avoid crashing the ESP32's lightweight HTTP stack.
+        """
+        with self._http_lock:
+            now = time.time()
+            if now - self._last_http_send_time < self._min_http_interval:
+                return  # Too soon — drop to prevent ESP32 overload
+
+            try:
+                json_str = json.dumps(cmd, separators=(',', ':'))
+                encoded = urllib.parse.quote(json_str, safe='')
+                url = f"http://{self._http_ip}/js?json={encoded}"
+                req = urllib.request.Request(
+                    url, headers={'Connection': 'close'}
+                )
+                with urllib.request.urlopen(req, timeout=self._http_timeout) as resp:
+                    resp.read()
+                self._last_http_send_time = now
+                self.get_logger().info(f"HTTP sent: {json_str}")
+            except Exception as e:
+                self.get_logger().warn(f"HTTP command error: {e}")
+
     def _send_json(self, cmd: Dict[str, Any]):
-        """Send JSON command to ESP32."""
+        """Send JSON command to ESP32 via serial."""
+        if not self._connected or not self._serial:
+            return
         try:
             with self._serial_lock:
                 json_str = json.dumps(cmd) + '\n'
+                self.get_logger().info(f"Serial write: {json_str.strip()}")
                 self._serial.write(json_str.encode('utf-8'))
                 self._serial.flush()
         except serial.SerialException as e:
@@ -436,19 +577,24 @@ class UGV02ControllerNode(Node):
         self.get_logger().info(f"Continuous feedback {'enabled' if enable else 'disabled'}")
 
     def _heartbeat_callback(self):
-        """Send periodic heartbeat to keep robot moving."""
+        """Send periodic heartbeat to keep robot moving.
+
+        Skips if a command was recently sent via HTTP (the ESP32 already has
+        a fresh command). This avoids piling up requests on the ESP32 server.
+        """
         if not self._connected:
             return
-        
+
+        # Skip heartbeat if we just sent a command via HTTP (let ESP32 recover)
+        if time.time() - self._last_http_send_time < self._min_http_interval:
+            return
+
         # If we have an active command, resend it to prevent auto-stop
         if self._cmd_vel_active:
             self._send_velocity_command(self._last_linear, self._last_angular)
 
     def _watchdog_callback(self):
         """Watchdog to stop robot if no commands received."""
-        if not self._connected:
-            return
-        
         time_since_last_cmd = time.time() - self._last_cmd_time
         
         if time_since_last_cmd > self._cmd_timeout and self._cmd_vel_active:
