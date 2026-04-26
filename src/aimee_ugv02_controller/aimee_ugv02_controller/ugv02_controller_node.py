@@ -92,6 +92,7 @@ class UGV02ControllerNode(Node):
             ('voltage_scale', 0.01),       # volts per LSB (centivolts -> volts)
             ('accel_limit_linear', 0.5),   # m/s^2 ramp limit (0 = disabled)
             ('accel_limit_angular', 1.0),  # rad/s^2 ramp limit (0 = disabled)
+            ('battery_low_threshold', 11.5),  # volts — warn when battery drops below this
         ])
 
         # Get parameters
@@ -119,6 +120,8 @@ class UGV02ControllerNode(Node):
         self._voltage_scale = self.get_parameter('voltage_scale').value
         self._accel_limit_linear = self.get_parameter('accel_limit_linear').value
         self._accel_limit_angular = self.get_parameter('accel_limit_angular').value
+        self._battery_low_threshold = self.get_parameter('battery_low_threshold').value
+        self._battery_low = False  # Track battery state for edge-triggered logging
 
         # Setup QoS
         reliable_qos = QoSProfile(
@@ -136,6 +139,7 @@ class UGV02ControllerNode(Node):
         self._odom_pub = self.create_publisher(Odometry, '/odom', odom_qos)
         self._imu_pub = self.create_publisher(Imu, '/imu', odom_qos)
         self._battery_pub = self.create_publisher(BatteryState, '/battery', reliable_qos)
+        self._battery_status_pub = self.create_publisher(String, '/battery_status', reliable_qos)
         self._status_pub = self.create_publisher(String, '/ugv02/status', reliable_qos)
 
         # TF broadcaster
@@ -432,11 +436,28 @@ class UGV02ControllerNode(Node):
             
             # ─── Battery ───
             if 'v' in msg:
+                voltage = float(msg['v']) * self._voltage_scale
                 battery_msg = BatteryState()
                 battery_msg.header.stamp = self.get_clock().now().to_msg()
-                battery_msg.voltage = float(msg['v']) * self._voltage_scale
+                battery_msg.voltage = voltage
                 battery_msg.present = True
                 self._battery_pub.publish(battery_msg)
+
+                # Publish battery status and warn on low voltage
+                is_low = voltage < self._battery_low_threshold
+                if is_low and not self._battery_low:
+                    self._battery_low = True
+                    self.get_logger().warn(
+                        f"BATTERY LOW: {voltage:.2f}V (threshold {self._battery_low_threshold:.1f}V) — charge now!"
+                    )
+                elif not is_low and self._battery_low:
+                    self._battery_low = False
+                    self.get_logger().info(
+                        f"Battery recovered: {voltage:.2f}V (above {self._battery_low_threshold:.1f}V)"
+                    )
+                status_msg = String()
+                status_msg.data = "LOW" if is_low else "OK"
+                self._battery_status_pub.publish(status_msg)
                 
         except Exception as e:
             self.get_logger().debug(f"Continuous feedback processing error: {e}")
