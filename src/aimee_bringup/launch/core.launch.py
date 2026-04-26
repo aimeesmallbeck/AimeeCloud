@@ -106,6 +106,7 @@ def generate_launch_description():
     use_intent = LaunchConfiguration('use_intent')
     use_skills = LaunchConfiguration('use_skills')
     use_cloud = LaunchConfiguration('use_cloud')
+    voice_pipeline = LaunchConfiguration('voice_pipeline')
 
     # ─── Environment ───
     set_ros_domain_id = SetEnvironmentVariable(

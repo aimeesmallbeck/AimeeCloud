@@ -1,4 +1,9 @@
-# Minnie — Arduino UNO Q #2 (Base + Camera, no arm)
+# Minnie — Example Robot Configuration
+#
+# THIS IS A TEMPLATE. Copy this file to minnie.yaml (untracked) and customize.
+#   cp src/aimee_bringup/config/robots/minnie.example.yaml src/aimee_bringup/config/robots/minnie.yaml
+#
+# Arduino UNO Q #2 (Base + Camera, no arm)
 
 robot_name: "minnie"
 

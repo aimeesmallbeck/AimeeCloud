@@ -97,6 +97,7 @@ def generate_launch_description():
     arm_type = hw.get('arm', 'none')
     camera_type = hw.get('camera', 'none')
     lidar_type = hw.get('lidar', 'none')
+    nav_mode = sw.get('navigation_mode', 'distributed')
 
     # ─── Robot Description (URDF) ───
     # Look for a URDF named after the robot in aimee_description
@@ -179,6 +180,11 @@ def generate_launch_description():
         default_value=str(lidar_type != 'none').lower(),
         description='Enable lidar'
     )
+    use_nav_integrated_arg = DeclareLaunchArgument(
+        'use_nav_integrated',
+        default_value=str(nav_mode == 'integrated').lower(),
+        description='Enable AimeeNav integrated navigation'
+    )
 
     # Get launch configurations
     use_cloud = LaunchConfiguration('use_cloud')
@@ -193,6 +199,7 @@ def generate_launch_description():
     use_arm = LaunchConfiguration('use_arm')
     use_base = LaunchConfiguration('use_base')
     use_lidar = LaunchConfiguration('use_lidar')
+    use_nav_integrated = LaunchConfiguration('use_nav_integrated')
 
     # ─── Include core launch (intelligence stack) ───
     core_launch = IncludeLaunchDescription(
@@ -231,6 +238,18 @@ def generate_launch_description():
             'wheel_radius': base_params.get('wheel_radius', 0.04),
             'max_speed': base_params.get('max_speed', 0.5),
             'publish_tf': base_params.get('publish_tf', True),
+            'track_width_multiplier': base_params.get('track_width_multiplier', 1.0),
+            'http_ip': base_params.get('http_ip', ''),
+            'control_mode': base_params.get('control_mode', 'wheel_speed'),
+            'linear_scale': base_params.get('linear_scale', 1.0),
+            'angular_scale': base_params.get('angular_scale', 1.0),
+            'max_angular': base_params.get('max_angular', 1.0),
+            'accel_limit_linear': base_params.get('accel_limit_linear', 0.5),
+            'accel_limit_angular': base_params.get('accel_limit_angular', 1.0),
+            'ticks_per_meter': base_params.get('ticks_per_meter', 106.0),
+            'accel_scale': base_params.get('accel_scale', 0.001197),
+            'gyro_scale': base_params.get('gyro_scale', 0.001066),
+            'voltage_scale': base_params.get('voltage_scale', 0.01),
         }],
         condition=IfCondition(use_base),
     )
@@ -304,6 +323,37 @@ def generate_launch_description():
         condition=IfCondition(use_lidar),
     )
 
+    # ─── AimeeNav Integrated Navigation ───
+    # When navigation_mode is "integrated", AimeeNav replaces ldlidar + slam_toolbox + nav2.
+    # It handles the LD19 lidar directly and publishes /cmd_vel + /odom + /tf.
+    aimee_nav_node = Node(
+        package='aimee_nav',
+        executable='aimee_nav_node',
+        name='aimee_nav',
+        output='screen',
+        parameters=[
+            os.path.join(workspace, 'src/aimee_nav/config/aimee_nav_params.yaml'),
+            {
+                'lidar_port': lidar_params.get('serial_port', '/dev/ttyUSB0'),
+                'lidar_baud': lidar_params.get('baud_rate', 230400),
+                'lidar_frame_id': lidar_params.get('frame_id', 'base_laser'),
+                'wheel_separation': base_params.get('wheel_separation', 0.23),
+                'wheel_radius': base_params.get('wheel_radius', 0.04),
+                'angular_scale': base_params.get('angular_scale', 1.0),
+                'control_mode': base_params.get('control_mode', 'wheel_speed'),
+                'accel_limit_linear': base_params.get('accel_limit_linear', 0.5),
+                'accel_limit_angular': base_params.get('accel_limit_angular', 1.0),
+                'track_width_multiplier': base_params.get('track_width_multiplier', 1.0),
+                'ticks_per_meter': base_params.get('ticks_per_meter', 106.0),
+                'base_interface': base_params.get('base_interface', 'ros'),
+                # NOTE: max_speed and max_angular are NOT overridden here.
+                # AimeeNav uses its own aimee_nav_params.yaml values (navigation
+                # limits) independently of the controller's hardware max_speed.
+            }
+        ],
+        condition=IfCondition(use_nav_integrated),
+    )
+
     # Build launch description dynamically based on hardware config
     ld = LaunchDescription([
         LogInfo(msg=[
@@ -312,7 +362,8 @@ def generate_launch_description():
             " | base: ", base_type,
             " | arm: ", arm_type,
             " | camera: ", camera_type,
-            " | lidar: ", lidar_type
+            " | lidar: ", lidar_type,
+            " | nav: ", nav_mode
         ]),
         use_cloud_arg,
         use_voice_arg,
@@ -326,13 +377,22 @@ def generate_launch_description():
         use_arm_arg,
         use_base_arg,
         use_lidar_arg,
+        use_nav_integrated_arg,
         core_launch,
     ])
 
+    # Add AimeeNav integrated navigation (replaces ldlidar + slam + nav2)
+    if nav_mode == 'integrated':
+        ld.add_action(aimee_nav_node)
+
     # Add base controller for Waveshare-protocol platforms.
-    # To add a completely different motor platform, create a new elif block
-    # here with its own controller node. Nav2 / SLAM will not need changes.
-    if base_type in ('ugv02', 'wave_rover'):
+    # When AimeeNav is in integrated mode with direct base control,
+    # skip the base controller to avoid serial port conflicts.
+    base_interface = base_params.get('base_interface', 'ros')
+    launch_base_controller = base_type in ('ugv02', 'wave_rover')
+    if nav_mode == 'integrated' and base_interface == 'direct':
+        launch_base_controller = False  # AimeNav direct mode handles the base
+    if launch_base_controller:
         ld.add_action(base_controller_node)
     elif base_type != 'none':
         ld.add_action(LogInfo(msg=[
@@ -353,8 +413,10 @@ def generate_launch_description():
     if has_urdf:
         ld.add_action(robot_state_publisher_node)
 
-    # Add lidar if configured
-    if lidar_type == 'ld19':
+    # Add lidar if configured.
+    # When AimeeNav integrated mode is active, it handles the LD19 directly,
+    # so do not launch the separate ldlidar_stl_ros2 driver.
+    if lidar_type == 'ld19' and nav_mode != 'integrated':
         ld.add_action(lidar_node)
         # Only publish static lidar TF if URDF doesn't already define it
         if not has_urdf:

@@ -43,6 +43,18 @@ def generate_launch_description():
         description='Publish odom->base_link transform'
     )
     
+    wheel_separation_arg = DeclareLaunchArgument(
+        'wheel_separation',
+        default_value='0.172',
+        description='Wheel separation in meters (UGV02/Ron: 0.172)'
+    )
+    
+    control_mode_arg = DeclareLaunchArgument(
+        'control_mode',
+        default_value='wheel_speed',
+        description='Control mode: wheel_speed (T=1) or velocity (T=13)'
+    )
+    
     enable_teleop_arg = DeclareLaunchArgument(
         'enable_teleop',
         default_value='false',
@@ -53,6 +65,8 @@ def generate_launch_description():
     serial_port = LaunchConfiguration('serial_port')
     baud_rate = LaunchConfiguration('baud_rate')
     publish_tf = LaunchConfiguration('publish_tf')
+    wheel_separation = LaunchConfiguration('wheel_separation')
+    control_mode = LaunchConfiguration('control_mode')
     enable_teleop = LaunchConfiguration('enable_teleop')
 
     # UGV02 Controller Node
@@ -66,13 +80,14 @@ def generate_launch_description():
             'baud_rate': baud_rate,
             'base_frame': 'base_link',
             'odom_frame': 'odom',
-            'wheel_separation': 0.23,
+            'wheel_separation': wheel_separation,
             'wheel_radius': 0.04,
             'max_speed': 0.5,
             'cmd_timeout': 0.5,
             'heartbeat_interval': 0.1,
             'continuous_feedback': True,
             'publish_tf': publish_tf,
+            'control_mode': control_mode,
             'linear_scale': 1.0,
             'angular_scale': 1.0,
         }],
@@ -103,6 +118,8 @@ def generate_launch_description():
         serial_port_arg,
         baud_rate_arg,
         use_tf_arg,
+        wheel_separation_arg,
+        control_mode_arg,
         enable_teleop_arg,
         ugv02_controller,
         teleop_node,

@@ -103,27 +103,72 @@ void GridMap::inflate_obstacles() {
     int inflation_cells = static_cast<int>(std::ceil(inflation_radius_m_ / resolution_m_));
     std::fill(inflated_grid_.begin(), inflated_grid_.end(), 0);
 
+    // Precompute inflation kernel to avoid repeated sqrt in inner loop
+    struct KernelCell { int dx, dy; uint8_t cost; };
+    std::vector<KernelCell> kernel;
+    kernel.reserve((2 * inflation_cells + 1) * (2 * inflation_cells + 1));
+    for (int dy = -inflation_cells; dy <= inflation_cells; ++dy) {
+        for (int dx = -inflation_cells; dx <= inflation_cells; ++dx) {
+            float dist = std::sqrt(dx*dx + dy*dy) * resolution_m_;
+            if (dist > inflation_radius_m_) continue;
+            uint8_t cost = static_cast<uint8_t>(100.0f * (1.0f - dist / inflation_radius_m_));
+            if (cost > 0) {
+                kernel.push_back({dx, dy, cost});
+            }
+        }
+    }
+
     for (int y = 0; y < height_cells_; ++y) {
         for (int x = 0; x < width_cells_; ++x) {
             int idx = y * width_cells_ + x;
             if (grid_[idx] >= 50) {
-                for (int dy = -inflation_cells; dy <= inflation_cells; ++dy) {
-                    for (int dx = -inflation_cells; dx <= inflation_cells; ++dx) {
-                        float dist = std::sqrt(dx*dx + dy*dy) * resolution_m_;
-                        if (dist > inflation_radius_m_) continue;
-                        int nx = x + dx;
-                        int ny = y + dy;
-                        if (nx < 0 || nx >= width_cells_ || ny < 0 || ny >= height_cells_) continue;
-                        int nidx = ny * width_cells_ + nx;
-                        uint8_t cost = static_cast<uint8_t>(100.0f * (1.0f - dist / inflation_radius_m_));
-                        if (cost > inflated_grid_[nidx]) {
-                            inflated_grid_[nidx] = cost;
-                        }
+                for (const auto& k : kernel) {
+                    int nx = x + k.dx;
+                    int ny = y + k.dy;
+                    if (nx < 0 || nx >= width_cells_ || ny < 0 || ny >= height_cells_) continue;
+                    int nidx = ny * width_cells_ + nx;
+                    if (k.cost > inflated_grid_[nidx]) {
+                        inflated_grid_[nidx] = k.cost;
                     }
                 }
             }
         }
     }
+}
+
+std::tuple<int, int, int> GridMap::count_cells() const {
+    int free_cells = 0;
+    int occupied_cells = 0;
+    int unknown_cells = 0;
+    for (int8_t v : grid_) {
+        if (v == 0) {
+            ++free_cells;
+        } else if (v == 100) {
+            ++occupied_cells;
+        } else if (v == -1) {
+            ++unknown_cells;
+        }
+    }
+    return {free_cells, occupied_cells, unknown_cells};
+}
+
+std::vector<int8_t> GridMap::to_occupancy_grid_data() const {
+    // GridMap already stores -1/0/100, which matches ROS OccupancyGrid format.
+    // We clamp any intermediate values to [0, 100] for safety.
+    std::vector<int8_t> out;
+    out.reserve(grid_.size());
+    for (int8_t v : grid_) {
+        if (v == -1) {
+            out.push_back(-1);
+        } else if (v <= 0) {
+            out.push_back(0);
+        } else if (v >= 100) {
+            out.push_back(100);
+        } else {
+            out.push_back(v);
+        }
+    }
+    return out;
 }
 
 std::vector<uint8_t> GridMap::extract_local_costmap(float cx, float cy,

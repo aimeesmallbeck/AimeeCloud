@@ -1,6 +1,148 @@
 # Aimee Robot - Session Checkpoint
 
-**Date:** 2026-04-24 (Late Session)
+**Date:** 2026-04-26 (Continued)
+**Session Focus:** AimeeNav audit fixes, build verification, and safe launch on UGV02 (Ron)
+**Previous Session:** Lost unexpectedly at ~18:12 UTC during troubleshooting. Recovered and verified stack health.
+**Status:** 🟢 AimeeNav launches cleanly, robot stationary, all audit fixes verified in code. Ready for exploration test (requires user confirmation to move robot).
+
+---
+
+## ✅ What Was Accomplished (Audit Fixes Verified)
+
+All **5 critical issues** from `AIMEENAV_AUDIT_RON_2026-04-25.md` were implemented and verified:
+
+| # | Audit Issue | Status | Details |
+|---|-------------|--------|---------|
+| 1 | **Duplicate `/odom` publishers** | ✅ Fixed | `_publish_odom()` returns early when `base_interface == 'ros'`. Controller owns `/odom`. |
+| 2 | **Hardcoded reactive/recovery speeds** | ✅ Fixed | Reactive panic/caution turns, recovery backup, and exploration bias now use `self._max_speed` and `self._max_angular`. |
+| 3 | **Global map fixed at 10 m** | ✅ Fixed | `global_map_size_m` raised to **50.0** |
+| 4 | **EKF covariance propagation bug** | ✅ Fixed | `ekf_2d.cpp` now implements `F*P*F^T + Q*dt` |
+| 5 | **`_std` naming ambiguity** | ✅ Fixed | Renamed to `scan_match_pos_variance` / `scan_match_yaw_variance` |
+
+**Additional changes:**
+- `base_interface: "ros"` fully implemented — AimeeNav subscribes to `/odom`, publishes `/cmd_vel` (RELIABLE QoS)
+- Scan matcher parameters exposed in YAML (`search_radius_m`, `search_angle_rad`, `score_threshold`)
+- `robot.launch.py` forwards base params to `aimee_nav_node`
+- `ron.yaml` updated with calibrated UGV02 params (`ticks_per_meter: 106.0`, `base_interface: "ros"`)
+- IMU yaw fusion removed from nav node (`imu_yaw_variance` deleted)
+- `enable_exploration` changed from `true` to `false` in default YAML for safe launch
+
+---
+
+## 🚀 Launch Verification Results
+
+**Launch command used:**
+```bash
+ros2 launch aimee_bringup robot.launch.py use_voice:=false use_vision:=false use_llm:=false use_arm:=false
+```
+
+**Verified healthy:**
+- ✅ `/aimee_nav` node started with "Base interface: ROS topics"
+- ✅ `/base_controller` connected to `/dev/ttyACM0`, encoder odometry ON
+- ✅ `/scan` publishing (LD19 lidar active)
+- ✅ `/odom` publishing from base controller (`frame_id: odom`, `child_frame_id: base_link`)
+- ✅ `/cmd_vel` publishing zeros — **robot is stationary**
+- ✅ `/map` publishing (global occupancy grid building)
+- ✅ Scan matching working (scores 37–84, well above threshold 30.0)
+- ✅ Cycle timing excellent: ~2–11 ms total (target 333 ms @ 3 Hz)
+- ✅ One transient nav cycle overrun at startup (531 ms) — initialization hiccup, not recurring
+- ✅ `map -> odom` TF publishing (every 50 s due to `publish_decimation: 150`)
+- ✅ `odom -> base_link` TF publishing from base controller at ~20 Hz
+- ⚠️ `base_link -> base_laser` TF also on 50 s decimation — may affect RViz visualization
+
+**Warnings observed (non-critical):**
+- `tts_node`: Lemonfox API key missing, pygame/ALSA failure (expected — TTS not in use)
+- `monitor_node`: Failed subscription for `/intent/classified` (DDS allocator issue, non-blocking)
+- `base_controller`: One command timeout during startup overrun (watchdog behaved correctly)
+
+---
+
+## 🎯 Next Steps (Require User Confirmation to Move Robot)
+
+1. **Exploration test** — Set `enable_exploration=true` and observe autonomous wandering
+2. **Reactive obstacle avoidance** — Place object in front and verify avoidance
+3. **Goal-directed navigation** — Publish a `PoseStamped` goal and verify robot turns/moves toward it
+4. **Map save** — Run `save_map` service after a brief exploration
+5. **Commit changes** — 18 files modified, all uncommitted
+
+---
+
+## 📋 Pre-Test Checklist (from Audit)
+
+| # | Issue | Severity | Fix Location |
+|---|-------|----------|-------------|
+| 1 | Duplicate `/odom` publishers | HIGH | `aimee_nav_node.py` — skip `/odom` pub when `base_interface: "ros"` |
+| 2 | Hardcoded 0.5 rad/s / -0.15 m/s speeds | HIGH | `aimee_nav_node.py` — replace constants with param refs |
+| 3 | Global map fixed at 10 m | HIGH | `aimee_nav_params.yaml` — raise `global_map_size_m` |
+| 4 | EKF covariance propagation bug | HIGH | `ekf_2d.cpp` — `P = F*P*F^T + Q` |
+| 5 | `_std` naming ambiguity | HIGH | Rename to `_variance` or square values |
+| 6 | Local grid too coarse (21×21) | MEDIUM | Increase `grid_size_m` / reduce `grid_resolution_m` |
+| 7 | Hardcoded scan-match thresholds | MEDIUM | Expose in YAML |
+| 8 | Process noise Q not scaled by dt | MEDIUM | Multiply by `dt` in `predict()` |
+| 9 | Missing param forwarding from launch | MEDIUM | `robot.launch.py` → `aimee_nav_node` |
+| 10 | `ugv02_bringup.launch.py` hardcodes | MEDIUM | Accept `control_mode` / `wheel_separation` args |
+
+---
+
+## 🔧 Current Hardware Configuration (Ron)
+
+| Component | Connection | Parameters |
+|-----------|-----------|------------|
+| UGV02 base | `/dev/ttyACM0` serial | `ticks_per_meter: 200.0`, `wheel_separation: 0.172` |
+| LD19 lidar | `/dev/ttyUSB0` | `lidar_downsample: 6` (60 points) |
+| Control mode | `velocity` (T=13) | `max_speed: 0.5`, `max_angular: 1.0` (controller); `0.3` / `0.3` (AimeeNav) |
+| Odometry | Encoder-based | Real `odl`/`odr` from T=1001; dead-reckoning fallback disabled |
+| EKF | C++ extension | Lower Q/P after encoder tuning (see 2026-04-25 late session) |
+
+---
+
+## 🚀 Launch Command
+
+```bash
+# Full stack with AimeeNav integrated nav (no Nav2/SLAM Toolbox)
+docker exec -it aimee-robot bash -c \
+  "source /ros_entrypoint.sh && source /workspace/install/setup.bash && \
+   ros2 launch aimee_bringup robot.launch.py use_voice:=false use_vision:=false use_llm:=false"
+
+# In another terminal — enable exploration
+ros2 param set /aimee_nav enable_exploration true
+ros2 param set /aimee_nav max_speed 0.2
+ros2 param set /aimee_nav max_angular 0.3
+```
+
+---
+
+## 📝 Notes
+
+- **Battery:** Monitor voltage via T=1001 `v` field (centivolts). Charge if < 11.5V.
+- **IMU yaw:** Untested on UGV02. If scan matcher force-fits during rotation, may need to skip scan matching when turning.
+- **Map save dir:** `~/aimee_maps` (inside container = `/root/aimee_maps`)
+- **Safety:** Keep hand on e-stop / power switch. First exploration run in small, clear area.
+
+---
+
+## 🗂️ Files of Interest
+
+```
+src/aimee_nav/
+├── aimee_nav/aimee_nav_node.py           [Navigation loop, exploration, recovery]
+├── aimee_nav/wave_rover_driver.py        [Serial encoder/IMU parsing]
+├── cpp/src/ekf_2d.cpp                    [Covariance propagation fix needed]
+├── cpp/src/scan_matcher.cpp              [Threshold exposure]
+├── config/aimee_nav_params.yaml          [All tunables]
+└── launch/aimee_nav.launch.py            [Standalone launch]
+
+src/aimee_ugv02_controller/
+└── aimee_ugv02_controller/ugv02_controller_node.py   [Encoder odometry, /odom pub]
+
+AIMEENAV_AUDIT_RON_2026-04-25.md         [Full audit with line references]
+```
+
+---
+
+# Aimee Robot - Session Checkpoint
+
+**Date:** 2026-04-25 (Late Session)
 **Session Focus:** Map persistence, waypoints, localization mode, precise movement control, lidar downsampling
 **Git Commit:** `4bef2b9`
 

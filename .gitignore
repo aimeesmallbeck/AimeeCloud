@@ -67,3 +67,10 @@ vosk-models/
 
 # Temporary agent scripts
 scripts/rosagent_*.py
+
+# Robot-specific configurations — each robot maintains its own untracked copy.
+# See src/aimee_bringup/config/robots/default.yaml for the template.
+src/aimee_bringup/config/robots/*.yaml
+# Keep the template and examples tracked:
+!src/aimee_bringup/config/robots/default.yaml
+!src/aimee_bringup/config/robots/*.example.yaml

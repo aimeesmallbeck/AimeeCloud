@@ -1,6 +1,22 @@
 # Aimee Robot Configuration Template
-# Copy this file and customize for each robot in your fleet.
-# The launch system reads this to determine which hardware to enable.
+#
+# MULTI-ROBOT WORKFLOW:
+#   1. Copy this file to <robot_name>.yaml (e.g., ron.yaml, minnie.yaml)
+#   2. Customize geometry, ports, and enabled hardware for THAT robot
+#   3. DO NOT commit robot-specific YAMLs to git — they are .gitignored
+#   4. Commit the example templates (*.example.yaml) so new robots have a starting point
+#
+# The launch system auto-discovers the active config:
+#   - AIMEE_ROBOT_NAME env var  → looks for robots/<name>.yaml
+#   - Hostname                  → looks for robots/<hostname>.yaml
+#   - Fallback                  → robots/default.yaml
+#
+# The hostname on each UNO Q board is the source of truth for which config loads.
+# Set it with:  sudo hostnamectl set-hostname ron  (or minnie, etc.)
+#
+# Per-robot configs override the generic defaults in aimee_nav_params.yaml.
+# Put robot-specific calibrations (ticks_per_meter, track_width_multiplier,
+# wheel_separation, etc.) HERE — not in the shared aimee_nav_params.yaml.
 
 robot_name: "aimee"
 
@@ -8,8 +24,8 @@ robot_name: "aimee"
 # Set any item to "none" if the hardware is not present.
 #
 # Base types:
-#   - "ugv02"      : Waveshare UGV02 (track 0.23 m)
-#   - "wave_rover" : Waveshare Wave Rover (track 0.172 m)
+#   - "ugv02"      : Waveshare UGV02
+#   - "wave_rover" : Waveshare Wave Rover
 #   - "none"       : No mobile base
 #
 # Both UGV02 and Wave Rover use the same JSON serial protocol, so they share
@@ -18,14 +34,19 @@ robot_name: "aimee"
 #
 # Nav2 / SLAM are completely decoupled from the base controller — they only
 # require /odom, /cmd_vel, and the odom → base_link transform.
+#
+# AimeeNav base_interface:
+#   - "ros"    : AimeeNav uses /cmd_vel + /odom topics (base_controller runs)
+#   - "direct" : AimeeNav talks directly to hardware (base_controller skipped)
 hardware:
   base: "ugv02"
   base_params:
     serial_port: "/dev/ttyACM0"
     baud_rate: 115200
-    wheel_separation: 0.23
+    wheel_separation: 0.172
     wheel_radius: 0.04
     max_speed: 0.5
+    base_interface: "ros"     # "ros" or "direct"
   arm: "roarm_m3"      # Arm options: roarm_m3, none
   camera: "obsbot"     # Camera options: obsbot, none
   lidar: "none"        # Lidar options: ld19, none

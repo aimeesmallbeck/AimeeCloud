@@ -26,6 +26,12 @@ public:
 
     void inflate_obstacles();
 
+    /** Count free (0), occupied (100), and unknown (-1) cells in a single pass. */
+    std::tuple<int, int, int> count_cells() const;
+
+    /** Return grid data in ROS OccupancyGrid format (-1=unknown, 0=free, 100=occupied). */
+    std::vector<int8_t> to_occupancy_grid_data() const;
+
     std::vector<uint8_t> extract_local_costmap(float cx, float cy,
                                                 float window_width_m,
                                                 float window_height_m) const;

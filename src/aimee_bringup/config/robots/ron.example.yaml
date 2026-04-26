@@ -1,4 +1,9 @@
-# Ron — Arduino UNO Q #1 (Full robot: UGV02 base + RoArm-M3 + OBSBOT + LD19)
+# Ron — Example Robot Configuration
+#
+# THIS IS A TEMPLATE. Copy this file to ron.yaml (untracked) and customize.
+#   cp src/aimee_bringup/config/robots/ron.example.yaml src/aimee_bringup/config/robots/ron.yaml
+#
+# Arduino UNO Q #1 (Full robot: UGV02 base + RoArm-M3 + OBSBOT + LD19)
 
 robot_name: "ron"
 

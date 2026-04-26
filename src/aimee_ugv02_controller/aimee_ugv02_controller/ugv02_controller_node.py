@@ -76,14 +76,22 @@ class UGV02ControllerNode(Node):
             ('wheel_separation', 0.23),    # meters (distance between wheels)
             ('wheel_radius', 0.04),        # meters
             ('max_speed', 0.5),            # m/s
+            ('max_angular', 1.0),          # rad/s — maps to full differential (L=-1,R=1)
             ('cmd_timeout', 0.5),          # seconds before stopping
             ('heartbeat_interval', 0.5),   # seconds between heartbeat commands
             ('continuous_feedback', True), # Enable ESP32 continuous feedback
             ('publish_tf', True),
             ('linear_scale', 1.0),         # Scale factor for linear velocity
             ('angular_scale', 1.0),        # Scale factor for angular velocity
+            ('track_width_multiplier', 1.0), # Skid-steer effective track width multiplier
             ('control_mode', 'velocity'),  # 'velocity' (T=13) or 'wheel_speed' (T=1)
             ('http_ip', ''),               # ESP32 IP for HTTP commands (e.g., 192.168.1.56)
+            ('ticks_per_meter', 106.0),    # Calibrated 2026-04-25: 71cm actual / 37.7cm odom
+            ('accel_scale', 0.001197),     # m/s^2 per LSB (approx 8192 LSB/g)
+            ('gyro_scale', 0.001066),      # rad/s per LSB (approx 16.4 LSB/(deg/s))
+            ('voltage_scale', 0.01),       # volts per LSB (centivolts -> volts)
+            ('accel_limit_linear', 0.5),   # m/s^2 ramp limit (0 = disabled)
+            ('accel_limit_angular', 1.0),  # rad/s^2 ramp limit (0 = disabled)
         ])
 
         # Get parameters
@@ -95,14 +103,22 @@ class UGV02ControllerNode(Node):
         self._wheel_sep = self.get_parameter('wheel_separation').value
         self._wheel_radius = self.get_parameter('wheel_radius').value
         self._max_speed = self.get_parameter('max_speed').value
+        self._max_angular = self.get_parameter('max_angular').value
         self._cmd_timeout = self.get_parameter('cmd_timeout').value
         self._heartbeat_interval = self.get_parameter('heartbeat_interval').value
         self._continuous_feedback = self.get_parameter('continuous_feedback').value
         self._publish_tf = self.get_parameter('publish_tf').value
         self._linear_scale = self.get_parameter('linear_scale').value
         self._angular_scale = self.get_parameter('angular_scale').value
+        self._track_width_mult = self.get_parameter('track_width_multiplier').value
         self._control_mode = self.get_parameter('control_mode').value
         self._http_ip = self.get_parameter('http_ip').value
+        self._ticks_per_meter = self.get_parameter('ticks_per_meter').value
+        self._accel_scale = self.get_parameter('accel_scale').value
+        self._gyro_scale = self.get_parameter('gyro_scale').value
+        self._voltage_scale = self.get_parameter('voltage_scale').value
+        self._accel_limit_linear = self.get_parameter('accel_limit_linear').value
+        self._accel_limit_angular = self.get_parameter('accel_limit_angular').value
 
         # Setup QoS
         reliable_qos = QoSProfile(
@@ -156,6 +172,10 @@ class UGV02ControllerNode(Node):
         self._vth = 0.0
         self._last_odom_time = time.time()
         
+        # Encoder state
+        self._last_odl: Optional[int] = None
+        self._last_odr: Optional[int] = None
+        
         # Publish decimation (process all, publish every Nth)
         self._feedback_count = 0
         self._publish_decimation = 1  # Publish at ~10 Hz from 50 Hz input
@@ -184,12 +204,17 @@ class UGV02ControllerNode(Node):
                 0.1, self._watchdog_callback
             )
 
+        mode_str = "HTTP" if self._http_ip else "SERIAL"
+        enc_str = "encoders ON" if self._connected and not self._http_ip else "dead reckoning"
         self.get_logger().info(
             f"UGV02 Controller initialized:\n"
+            f"  Mode: {mode_str}\n"
             f"  Serial: {self._serial_port} @ {self._baud_rate} baud\n"
             f"  Base frame: {self._base_frame}\n"
             f"  Odom frame: {self._odom_frame}\n"
             f"  Max speed: {self._max_speed} m/s\n"
+            f"  Ticks/m: {self._ticks_per_meter}\n"
+            f"  Odometry: {enc_str}\n"
             f"  Connected: {self._connected}"
         )
 
@@ -262,70 +287,154 @@ class UGV02ControllerNode(Node):
             self.get_logger().debug(f"Error processing data: {e}")
 
     def _process_continuous_feedback(self, msg: Dict[str, Any]):
-        """Process Wave Rover T=1001 continuous feedback packet.
+        """Process T=1001 continuous feedback packet (UGV02 / Wave Rover).
         
-        Format: {"T":1001,"L":0,"R":0,"r":roll,"p":pitch,"y":yaw,"temp":C,"v":volts}
+        New firmware format:
+          {"T":1001,"L":0,"R":0,"ax":...,"ay":...,"az":...,
+           "gx":...,"gy":...,"gz":...,"mx":...,"my":...,"mz":...,
+           "odl":0,"odr":0,"v":1217}
+        
+        Legacy format (fallback):
+          {"T":1001,"L":0,"R":0,"r":roll,"p":pitch,"y":yaw,"temp":C,"v":volts}
         """
         try:
-            # Extract wheel speeds for odometry
-            if self._control_mode == 'wheel_speed':
-                # Wave Rover has no encoders, so T=1001 L/R are always 0.
-                # Use the last commanded L/R values (in [-0.5, 0.5]) and convert to m/s.
-                left_speed = self._last_cmd_L * 2.0  # [-0.5, 0.5] -> [-1, 1]
-                right_speed = self._last_cmd_R * 2.0
-                v_left = left_speed * self._max_speed
-                v_right = right_speed * self._max_speed
+            # ─── Encoder Odometry ───
+            odl = msg.get('odl')
+            odr = msg.get('odr')
+            
+            if odl is not None and odr is not None:
+                # Real encoder ticks available (UGV02 wired serial)
+                current_time = time.time()
+                dt = current_time - self._last_odom_time
+                self._last_odom_time = current_time
+                
+                if self._last_odl is not None and dt > 0:
+                    delta_odl = int(odl) - self._last_odl
+                    delta_odr = int(odr) - self._last_odr
+                    
+                    delta_left_m = delta_odl / self._ticks_per_meter
+                    delta_right_m = delta_odr / self._ticks_per_meter
+                    
+                    # Differential-drive forward kinematics
+                    delta_center = (delta_left_m + delta_right_m) / 2.0
+                    # Apply track_width_multiplier for skid-steer scrub compensation
+                    effective_wheel_sep = self._wheel_sep * self._track_width_mult
+                    delta_theta = (delta_right_m - delta_left_m) / effective_wheel_sep
+                    
+                    # Midpoint integration (more accurate than Euler for rotation)
+                    self._x += delta_center * math.cos(self._theta + delta_theta / 2.0)
+                    self._y += delta_center * math.sin(self._theta + delta_theta / 2.0)
+                    self._theta += delta_theta
+                    self._theta = math.atan2(math.sin(self._theta), math.cos(self._theta))
+                    
+                    # Velocity from encoder deltas
+                    self._vx = delta_center / dt
+                    self._vth = delta_theta / dt
+                
+                self._last_odl = int(odl)
+                self._last_odr = int(odr)
             else:
-                left_speed = msg.get('L', 0)
-                right_speed = msg.get('R', 0)
-                v_left = left_speed * self._wheel_radius
-                v_right = right_speed * self._wheel_radius
-            
-            self._vx = (v_right + v_left) / 2.0
-            self._vth = (v_right - v_left) / self._wheel_sep
-            
-            # Update position using dead reckoning
-            current_time = time.time()
-            dt = current_time - self._last_odom_time
-            self._last_odom_time = current_time
-            
-            if dt > 0:
-                delta_x = self._vx * math.cos(self._theta) * dt
-                delta_y = self._vx * math.sin(self._theta) * dt
-                delta_th = self._vth * dt
+                # No encoders — fallback to commanded-velocity dead reckoning
+                if self._control_mode == 'wheel_speed':
+                    left_speed = self._last_cmd_L * 2.0
+                    right_speed = self._last_cmd_R * 2.0
+                    v_left = left_speed * self._max_speed
+                    v_right = right_speed * self._max_speed
+                else:
+                    left_speed = msg.get('L', 0)
+                    right_speed = msg.get('R', 0)
+                    v_left = left_speed * self._wheel_radius
+                    v_right = right_speed * self._wheel_radius
                 
-                self._x += delta_x
-                self._y += delta_y
-                self._theta += delta_th
+                effective_wheel_sep = self._wheel_sep * self._track_width_mult
+                self._vx = (v_right + v_left) / 2.0
+                self._vth = (v_right - v_left) / effective_wheel_sep
                 
-                # Normalize theta
-                self._theta = math.atan2(math.sin(self._theta), math.cos(self._theta))
+                current_time = time.time()
+                dt = current_time - self._last_odom_time
+                self._last_odom_time = current_time
+                
+                if dt > 0:
+                    self._x += self._vx * math.cos(self._theta) * dt
+                    self._y += self._vx * math.sin(self._theta) * dt
+                    self._theta += self._vth * dt
+                    self._theta = math.atan2(math.sin(self._theta), math.cos(self._theta))
             
-            # Publish odometry + TF (decimated to reduce CPU/DDS load)
+            # Publish odometry + TF
             self._feedback_count += 1
             if self._feedback_count >= self._publish_decimation:
                 self._feedback_count = 0
                 self._publish_odometry()
             
-            # Publish IMU if r/p/y present
-            if 'r' in msg or 'p' in msg or 'y' in msg:
-                imu_msg = Imu()
-                imu_msg.header.stamp = self.get_clock().now().to_msg()
-                imu_msg.header.frame_id = 'imu_link'
+            # ─── IMU ───
+            imu_msg = Imu()
+            imu_msg.header.stamp = self.get_clock().now().to_msg()
+            imu_msg.header.frame_id = 'imu_link'
+            
+            # New firmware: raw accel + gyro + mag
+            if 'ax' in msg or 'gx' in msg:
+                ax = msg.get('ax', 0)
+                ay = msg.get('ay', 0)
+                az = msg.get('az', 0)
+                gx = msg.get('gx', 0)
+                gy = msg.get('gy', 0)
+                gz = msg.get('gz', 0)
+                mx = msg.get('mx', 0)
+                my = msg.get('my', 0)
+                mz = msg.get('mz', 0)
                 
-                # r/p/y are in degrees from Wave Rover
+                # Convert to SI units
+                accel_x = ax * self._accel_scale
+                accel_y = ay * self._accel_scale
+                accel_z = az * self._accel_scale
+                gyro_x = gx * self._gyro_scale
+                gyro_y = gy * self._gyro_scale
+                gyro_z = gz * self._gyro_scale
+                
+                imu_msg.linear_acceleration.x = accel_x
+                imu_msg.linear_acceleration.y = accel_y
+                imu_msg.linear_acceleration.z = accel_z
+                imu_msg.angular_velocity.x = gyro_x
+                imu_msg.angular_velocity.y = gyro_y
+                imu_msg.angular_velocity.z = gyro_z
+                
+                # Compute roll/pitch from accelerometer
+                roll = math.atan2(accel_y, accel_z)
+                pitch = math.atan2(-accel_x, math.sqrt(accel_y**2 + accel_z**2))
+                
+                # Compute yaw from magnetometer (basic, uncalibrated)
+                # Note: UGV02 IMU yaw accuracy is untested; may need calibration
+                yaw = math.atan2(float(my), float(mx))
+                
+                imu_msg.orientation = self._euler_to_quaternion(roll, pitch, yaw)
+                
+                # Covariances: position-level accel/gyro are raw sensor values
+                imu_msg.linear_acceleration_covariance[0] = 0.1
+                imu_msg.linear_acceleration_covariance[4] = 0.1
+                imu_msg.linear_acceleration_covariance[8] = 0.1
+                imu_msg.angular_velocity_covariance[0] = 0.05
+                imu_msg.angular_velocity_covariance[4] = 0.05
+                imu_msg.angular_velocity_covariance[8] = 0.05
+                # Orientation yaw is from uncalibrated magnetometer — mark less certain
+                imu_msg.orientation_covariance[0] = 0.05
+                imu_msg.orientation_covariance[4] = 0.05
+                imu_msg.orientation_covariance[8] = 0.5
+                
+                self._imu_pub.publish(imu_msg)
+            
+            # Legacy firmware: r/p/y in degrees
+            elif 'r' in msg or 'p' in msg or 'y' in msg:
                 roll_rad = math.radians(msg.get('r', 0))
                 pitch_rad = math.radians(msg.get('p', 0))
                 yaw_rad = math.radians(msg.get('y', 0))
                 imu_msg.orientation = self._euler_to_quaternion(roll_rad, pitch_rad, yaw_rad)
-                
                 self._imu_pub.publish(imu_msg)
             
-            # Publish battery voltage if present
+            # ─── Battery ───
             if 'v' in msg:
                 battery_msg = BatteryState()
                 battery_msg.header.stamp = self.get_clock().now().to_msg()
-                battery_msg.voltage = float(msg['v'])
+                battery_msg.voltage = float(msg['v']) * self._voltage_scale
                 battery_msg.present = True
                 self._battery_pub.publish(battery_msg)
                 
@@ -348,8 +457,10 @@ class UGV02ControllerNode(Node):
             v_left = left_speed * self._wheel_radius
             v_right = right_speed * self._wheel_radius
             
+            # Apply skid-steer track width multiplier to forward kinematics
+            effective_wheel_sep = self._wheel_sep * self._track_width_mult
             self._vx = (v_right + v_left) / 2.0
-            self._vth = (v_right - v_left) / self._wheel_sep
+            self._vth = (v_right - v_left) / effective_wheel_sep
             
             # Update position using dead reckoning
             current_time = time.time()
@@ -433,12 +544,21 @@ class UGV02ControllerNode(Node):
         odom.twist.twist.linear.x = self._vx
         odom.twist.twist.angular.z = self._vth
         
-        # Covariances (set high since we don't have covariance estimates)
-        odom.pose.covariance[0] = 0.1
-        odom.pose.covariance[7] = 0.1
-        odom.pose.covariance[35] = 0.2
-        odom.twist.covariance[0] = 0.1
-        odom.twist.covariance[35] = 0.1
+        # Covariances: lower values now that encoder odometry is available
+        if self._last_odl is not None:
+            # Encoder-based odometry — more trustworthy
+            odom.pose.covariance[0] = 0.02
+            odom.pose.covariance[7] = 0.02
+            odom.pose.covariance[35] = 0.05
+            odom.twist.covariance[0] = 0.02
+            odom.twist.covariance[35] = 0.02
+        else:
+            # Dead reckoning fallback — higher uncertainty
+            odom.pose.covariance[0] = 0.1
+            odom.pose.covariance[7] = 0.1
+            odom.pose.covariance[35] = 0.2
+            odom.twist.covariance[0] = 0.1
+            odom.twist.covariance[35] = 0.1
         
         self._odom_pub.publish(odom)
         
@@ -456,7 +576,7 @@ class UGV02ControllerNode(Node):
 
     def _on_cmd_vel(self, msg: Twist):
         """Handle incoming velocity commands."""
-        self._last_cmd_time = time.time()
+        now = time.time()
         self._cmd_vel_active = True
         
         # Extract velocities
@@ -465,8 +585,23 @@ class UGV02ControllerNode(Node):
         
         # Clamp linear to max speed
         linear_x = max(-self._max_speed, min(self._max_speed, linear_x))
-        # Note: angular is NOT clamped here - _send_velocity_command normalizes wheel speeds
         
+        # ─── Velocity ramping (accel limiting) ───
+        dt = now - self._last_cmd_time
+        if dt > 0.0 and self._cmd_vel_active:
+            dt = min(dt, 0.5)  # Cap dt to avoid huge jumps after long pauses
+            if self._accel_limit_linear > 0.0:
+                delta = linear_x - self._last_linear
+                max_delta = self._accel_limit_linear * dt
+                if abs(delta) > max_delta:
+                    linear_x = self._last_linear + math.copysign(max_delta, delta)
+            if self._accel_limit_angular > 0.0:
+                delta = angular_z - self._last_angular
+                max_delta = self._accel_limit_angular * dt
+                if abs(delta) > max_delta:
+                    angular_z = self._last_angular + math.copysign(max_delta, delta)
+        
+        self._last_cmd_time = now
         self._last_linear = linear_x
         self._last_angular = angular_z
         
@@ -477,30 +612,38 @@ class UGV02ControllerNode(Node):
     def _send_velocity_command(self, linear_x: float, angular_z: float):
         """Send velocity command to ESP32 via HTTP or serial."""
         if self._control_mode == 'wheel_speed':
-            # Wave Rover ESP32 firmware expects T=1 with L/R as direct motor
-            # commands in [-0.5, 0.5], matching the web teleop's movtionButton().
-            # Web teleop mixing:  L = fwd - diff,  R = fwd + diff
-            #
-            # fwd  = linear component  in [-0.5, 0.5]
-            # diff = angular component in [-0.5, 0.5]
-            #
-            # Pure forward at max_speed  → L=0.5, R=0.5
-            # Pure turn  at max_angular  → L=-0.5, R=0.5 (or vice versa)
-            fwd = linear_x / self._max_speed * 0.5
-            diff = angular_z / self._max_speed * 0.5 * self._angular_scale
+            # Wave Rover ESP32 firmware accepts T=1 with L/R in [-1.0, 1.0].
+            # Differential-drive mixing:
+            #   fwd  = linear component  in [-1.0, 1.0]
+            #   diff = angular component in [-1.0, 1.0]
+            # Pure forward at max_speed   → L=1.0, R=1.0
+            # Pure turn  at max_angular   → L=-1.0, R=1.0
+            fwd = linear_x / self._max_speed
+            if self._max_angular > 0.0:
+                diff = angular_z / self._max_angular
+            else:
+                diff = 0.0
 
             # Prevent inner wheel reversal when moving forward/backward.
-            # The web teleop keeps both wheels with the same sign as fwd
-            # for combined motion (e.g. forward-left: L=0.3, R=0.5).
             if abs(fwd) > 0.001 and abs(diff) > abs(fwd):
                 diff = math.copysign(abs(fwd), diff)
 
             L = fwd - diff
             R = fwd + diff
 
-            # Clamp to firmware's expected range [-0.5, 0.5]
-            L = max(-0.5, min(0.5, L))
-            R = max(-0.5, min(0.5, R))
+            # Motor dead-zone compensation: if computed command is non-zero
+            # but below the N20 motor's minimum reliable power, scale up
+            # so the dominant wheel reaches the threshold.
+            MIN_POWER = 0.18
+            cmd_mag = max(abs(L), abs(R))
+            if cmd_mag > 1e-4 and cmd_mag < MIN_POWER:
+                scale = MIN_POWER / cmd_mag
+                L *= scale
+                R *= scale
+
+            # Clamp to firmware's full range [-1.0, 1.0]
+            L = max(-1.0, min(1.0, L))
+            R = max(-1.0, min(1.0, R))
 
             self.get_logger().info(f"CMD: L={L:.3f} R={R:.3f}")
             cmd = {"T": self.CMD_SPEED_CTRL, "L": round(L, 4), "R": round(R, 4)}

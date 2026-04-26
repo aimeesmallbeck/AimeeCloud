@@ -6,17 +6,20 @@ namespace aimee_nav_core {
 
 EKF2D::EKF2D() {
     reset(0.0f, 0.0f, 0.0f);
-    // Process noise
-    Q_[0] = 0.01f; Q_[1] = 0.0f;  Q_[2] = 0.0f;
-    Q_[3] = 0.0f;  Q_[4] = 0.01f; Q_[5] = 0.0f;
-    Q_[6] = 0.0f;  Q_[7] = 0.0f;  Q_[8] = 0.02f;
+    // Process noise — lowered because encoder odometry is much more
+    // accurate than commanded-velocity dead reckoning.
+    // Tuned 2026-04-25 for UGV02 wired serial with wheel encoders.
+    Q_[0] = 0.005f; Q_[1] = 0.0f;  Q_[2] = 0.0f;
+    Q_[3] = 0.0f;   Q_[4] = 0.005f; Q_[5] = 0.0f;
+    Q_[6] = 0.0f;   Q_[7] = 0.0f;   Q_[8] = 0.01f;
 }
 
 void EKF2D::reset(float x, float y, float theta) {
     state_[0] = x; state_[1] = y; state_[2] = theta;
-    P_[0] = 0.1f; P_[1] = 0.0f;  P_[2] = 0.0f;
-    P_[3] = 0.0f; P_[4] = 0.1f;  P_[5] = 0.0f;
-    P_[6] = 0.0f; P_[7] = 0.0f;  P_[8] = 0.1f;
+    // Lower initial uncertainty now that encoder odometry is available
+    P_[0] = 0.05f; P_[1] = 0.0f;  P_[2] = 0.0f;
+    P_[3] = 0.0f;  P_[4] = 0.05f; P_[5] = 0.0f;
+    P_[6] = 0.0f;  P_[7] = 0.0f;  P_[8] = 0.05f;
 }
 
 void EKF2D::predict(float v, float w, float dt) {
@@ -41,13 +44,24 @@ void EKF2D::predict(float v, float w, float dt) {
         0.0f, 0.0f,  1.0f
     };
 
-    // P = F*P*F^T + Q  (simplified, only diagonal propagation for speed)
+    // P = F*P*F^T + Q*dt
+    // Step 1: FP = F * P
+    float FP[9];
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            FP[i*3+j] = 0.0f;
+            for (int k = 0; k < 3; ++k) {
+                FP[i*3+j] += F[i*3+k] * P_[k*3+j];
+            }
+        }
+    }
+    // Step 2: newP = FP * F^T + Q*dt
     float newP[9];
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
-            newP[i*3+j] = Q_[i*3+j];
+            newP[i*3+j] = Q_[i*3+j] * dt;
             for (int k = 0; k < 3; ++k) {
-                newP[i*3+j] += F[i*3+k] * P_[k*3+j];
+                newP[i*3+j] += FP[i*3+k] * F[j*3+k];  // F^T[j,k] = F[k,j] = F[j*3+k] in row-major
             }
         }
     }

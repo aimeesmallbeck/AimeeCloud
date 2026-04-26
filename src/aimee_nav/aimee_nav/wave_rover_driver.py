@@ -58,13 +58,18 @@ class WaveRoverDriver:
         wheel_separation: float = 0.172,
         wheel_radius: float = 0.04,
         max_speed: float = 0.5,
-        max_angular: float = 1.5,
+        max_angular: float = 1.0,
         angular_scale: float = 1.0,
+        track_width_multiplier: float = 1.0,
         control_mode: str = 'wheel_speed',
         min_http_interval: float = 0.2,
         cmd_timeout: float = 0.5,
         accel_limit_linear: float = 0.0,
         accel_limit_angular: float = 0.0,
+        ticks_per_meter: float = 106.0,
+        accel_scale: float = 0.001197,
+        gyro_scale: float = 0.001066,
+        voltage_scale: float = 0.01,
     ) -> None:
         self._port = port
         self._baudrate = baudrate
@@ -75,11 +80,16 @@ class WaveRoverDriver:
         self._max_speed = max_speed
         self._max_angular = max_angular
         self._angular_scale = angular_scale
+        self._track_width_mult = track_width_multiplier
         self._control_mode = control_mode
         self._min_http_interval = min_http_interval
         self._cmd_timeout = cmd_timeout
         self._accel_limit_linear = accel_limit_linear
         self._accel_limit_angular = accel_limit_angular
+        self._ticks_per_meter = ticks_per_meter
+        self._accel_scale = accel_scale
+        self._gyro_scale = gyro_scale
+        self._voltage_scale = voltage_scale
 
         self._serial: Optional[serial.Serial] = None
         self._serial_lock = threading.Lock()
@@ -99,7 +109,7 @@ class WaveRoverDriver:
         self._last_cmd_R = 0.0
         self._cmd_active = False
 
-        # Odometry state (dead reckoning)
+        # Odometry state
         self._odom_lock = threading.Lock()
         self._x = 0.0
         self._y = 0.0
@@ -107,6 +117,10 @@ class WaveRoverDriver:
         self._vx = 0.0
         self._vth = 0.0
         self._last_odom_time = time.time()
+        
+        # Encoder state
+        self._last_odl: Optional[int] = None
+        self._last_odr: Optional[int] = None
 
         # IMU state
         self._imu_lock = threading.Lock()
@@ -114,6 +128,9 @@ class WaveRoverDriver:
         self._pitch = 0.0
         self._yaw = 0.0
         self._battery_voltage = 0.0
+        self._accel = (0.0, 0.0, 0.0)
+        self._gyro = (0.0, 0.0, 0.0)
+        self._mag = (0.0, 0.0, 0.0)
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -217,10 +234,14 @@ class WaveRoverDriver:
 
         if self._control_mode == 'wheel_speed':
             # ESP32 firmware accepts T=1 with L/R in [-1.0, 1.0].
-            # We use a scaled differential formula that accounts for the
-            # Wave Rover motor dead zone (~0.18 power minimum).
+            # Differential-drive mixing:
+            #   fwd  = linear component  in [-1.0, 1.0]
+            #   diff = angular component in [-1.0, 1.0]
             fwd = linear_x / self._max_speed
-            diff = angular_z / self._max_speed * self._angular_scale
+            if self._max_angular > 0.0:
+                diff = angular_z / self._max_angular
+            else:
+                diff = 0.0
 
             L = fwd - diff
             R = fwd + diff
@@ -276,7 +297,12 @@ class WaveRoverDriver:
     def get_imu(self) -> Tuple[float, float, float]:
         """Return (roll, pitch, yaw) in radians — thread-safe."""
         with self._imu_lock:
-            return (math.radians(self._roll), math.radians(self._pitch), math.radians(self._yaw))
+            return (self._roll, self._pitch, self._yaw)
+    
+    def get_imu_raw(self) -> Tuple[Tuple[float, float, float], Tuple[float, float, float], Tuple[float, float, float]]:
+        """Return ((ax, ay, az), (gx, gy, gz), (mx, my, mz)) — thread-safe."""
+        with self._imu_lock:
+            return (self._accel, self._gyro, self._mag)
 
     def get_battery_voltage(self) -> float:
         with self._imu_lock:
@@ -371,33 +397,88 @@ class WaveRoverDriver:
             pass
 
     def _process_continuous_feedback(self, msg: Dict[str, Any]) -> None:
-        """Process T=1001 continuous feedback packet."""
+        """Process T=1001 continuous feedback packet.
+        
+        Supports both encoder-enabled UGV02 firmware and legacy Wave Rover.
+        """
         try:
-            # Update odometry from commanded velocities (no encoders on Wave Rover)
-            left_speed = msg.get('L', 0)
-            right_speed = msg.get('R', 0)
-
-            if self._control_mode == 'wheel_speed':
-                # L/R are now in [-1.0, 1.0] representing full motor range
-                v_left = self._last_cmd_L * self._max_speed
-                v_right = self._last_cmd_R * self._max_speed
-            else:
-                v_left = left_speed * self._wheel_radius
-                v_right = right_speed * self._wheel_radius
-
-            vx = (v_right + v_left) / 2.0
-            vth = (v_right - v_left) / self._wheel_sep
-
+            odl = msg.get('odl')
+            odr = msg.get('odr')
+            
             with self._odom_lock:
-                self._vx = vx
-                self._vth = vth
+                if odl is not None and odr is not None:
+                    # Encoder-based odometry (UGV02 wired serial)
+                    current_time = time.time()
+                    dt = current_time - self._last_odom_time
+                    self._last_odom_time = current_time
+                    
+                    if self._last_odl is not None and dt > 0:
+                        delta_odl = int(odl) - self._last_odl
+                        delta_odr = int(odr) - self._last_odr
+                        
+                        delta_left_m = delta_odl / self._ticks_per_meter
+                        delta_right_m = delta_odr / self._ticks_per_meter
+                        
+                        delta_center = (delta_left_m + delta_right_m) / 2.0
+                        effective_wheel_sep = self._wheel_sep * self._track_width_mult
+                        delta_theta = (delta_right_m - delta_left_m) / effective_wheel_sep
+                        
+                        self._x += delta_center * math.cos(self._theta + delta_theta / 2.0)
+                        self._y += delta_center * math.sin(self._theta + delta_theta / 2.0)
+                        self._theta += delta_theta
+                        self._theta = math.atan2(math.sin(self._theta), math.cos(self._theta))
+                        
+                        self._vx = delta_center / dt
+                        self._vth = delta_theta / dt
+                    
+                    self._last_odl = int(odl)
+                    self._last_odr = int(odr)
+                else:
+                    # Fallback: dead reckoning from commanded velocities
+                    left_speed = msg.get('L', 0)
+                    right_speed = msg.get('R', 0)
+                    
+                    if self._control_mode == 'wheel_speed':
+                        v_left = self._last_cmd_L * self._max_speed
+                        v_right = self._last_cmd_R * self._max_speed
+                    else:
+                        v_left = left_speed * self._wheel_radius
+                        v_right = right_speed * self._wheel_radius
+                    
+                    self._vx = (v_right + v_left) / 2.0
+                    self._vth = (v_right - v_left) / self._wheel_sep
 
-            # IMU data
+            # IMU data (new firmware: ax/ay/az/gx/gy/gz/mx/my/mz)
             with self._imu_lock:
-                self._roll = msg.get('r', 0.0)
-                self._pitch = msg.get('p', 0.0)
-                self._yaw = msg.get('y', 0.0)
-                self._battery_voltage = msg.get('v', 0.0)
+                if 'ax' in msg:
+                    self._accel = (
+                        msg.get('ax', 0) * self._accel_scale,
+                        msg.get('ay', 0) * self._accel_scale,
+                        msg.get('az', 0) * self._accel_scale,
+                    )
+                    self._gyro = (
+                        msg.get('gx', 0) * self._gyro_scale,
+                        msg.get('gy', 0) * self._gyro_scale,
+                        msg.get('gz', 0) * self._gyro_scale,
+                    )
+                    self._mag = (
+                        msg.get('mx', 0),
+                        msg.get('my', 0),
+                        msg.get('mz', 0),
+                    )
+                    # Compute orientation from accel + mag
+                    ax, ay, az = self._accel
+                    mx, my, _ = self._mag
+                    self._roll = math.atan2(ay, az)
+                    self._pitch = math.atan2(-ax, math.sqrt(ay**2 + az**2))
+                    self._yaw = math.atan2(my, mx)
+                else:
+                    # Legacy firmware
+                    self._roll = math.radians(msg.get('r', 0.0))
+                    self._pitch = math.radians(msg.get('p', 0.0))
+                    self._yaw = math.radians(msg.get('y', 0.0))
+                
+                self._battery_voltage = msg.get('v', 0.0) * self._voltage_scale
         except Exception:
             pass
 

@@ -20,10 +20,11 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_dir = get_package_share_directory('aimee_nav')
-    params_file = os.path.join(pkg_dir, 'config', 'aimee_nav_params.yaml')
+    default_params_file = os.path.join(pkg_dir, 'config', 'aimee_nav_params.yaml')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     robot_name = LaunchConfiguration('robot_name')
+    params_file = LaunchConfiguration('params_file')
 
     declare_use_sim_time = DeclareLaunchArgument(
         'use_sim_time',
@@ -34,6 +35,11 @@ def generate_launch_description():
         'robot_name',
         default_value='aimee',
         description='Robot name for frame IDs'
+    )
+    declare_params_file = DeclareLaunchArgument(
+        'params_file',
+        default_value=default_params_file,
+        description='Full path to AimeeNav params YAML file'
     )
 
     aimee_nav_node = Node(
@@ -48,5 +54,6 @@ def generate_launch_description():
         LogInfo(msg=["Starting AimeeNav — standalone integrated navigation"]),
         declare_use_sim_time,
         declare_robot_name,
+        declare_params_file,
         aimee_nav_node,
     ])

@@ -56,6 +56,8 @@ PYBIND11_MODULE(_core, m) {
              py::arg("ranges"), py::arg("angle_min"), py::arg("angle_increment"),
              py::arg("range_min"), py::arg("range_max"))
         .def("inflate_obstacles", &GridMap::inflate_obstacles)
+        .def("count_cells", &GridMap::count_cells)
+        .def("to_occupancy_grid_data", &GridMap::to_occupancy_grid_data)
         .def("extract_local_costmap", &GridMap::extract_local_costmap,
              py::arg("cx"), py::arg("cy"), py::arg("window_width_m"), py::arg("window_height_m"))
         .def("extract_local_grid_map", &GridMap::extract_local_grid_map,

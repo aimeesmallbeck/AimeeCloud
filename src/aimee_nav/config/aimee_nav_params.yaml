@@ -1,33 +1,49 @@
-# AimeeNav parameters for AIMEE Robot (Arduino UNO Q)
+# AimeeNav parameters — GENERIC DEFAULTS
 #
-# This config is optimized for the Wave Rover + LD19 lidar combination.
-# Tune values based on your environment and robot behavior.
+# ⚠️  IMPORTANT: These are FALLBACK defaults. When launched via
+#     robot.launch.py, values are overridden by the per-robot config
+#     (src/aimee_bringup/config/robots/<robot_name>.yaml).
+#
+#     Do NOT put robot-specific calibrations (ticks_per_meter,
+#     track_width_multiplier, etc.) in this file. Put them in the
+#     robot's YAML config under base_params.
+#
+# Platform-agnostic integrated navigation.
+#   base_interface: "ros"     → Use /cmd_vel + /odom (UGV02, etc.)
+#   base_interface: "direct" → Use WaveRoverDriver (Wave Rover direct control)
 
 aimee_nav:
   ros__parameters:
     # ─── LiDAR ───
-    lidar_port: "/dev/ttyUSB1"
+    lidar_port: "/dev/ttyUSB0"
     lidar_baud: 230400
     lidar_frame_id: "base_laser"
     lidar_angle_offset_deg: 0.0
 
-    # ─── Wave Rover Base ───
-    rover_port: "/dev/ttyUSB0"
+    # ─── Base Interface ───
+    base_interface: "ros"           # "ros" or "direct"
+    # Direct-mode params (ignored when base_interface="ros")
+    rover_port: "/dev/ttyACM0"
     rover_baud: 115200
-    rover_http_ip: "192.168.1.56"   # HTTP mode for Wave Rover ESP32
-    wheel_separation: 0.172
-    wheel_radius: 0.04
-    max_speed: 0.3
-    angular_scale: 0.25             # Calibrated for hard floor + motor dead zone
+    rover_http_ip: ""               # HTTP mode for Wave Rover ESP32
     control_mode: "wheel_speed"     # "wheel_speed" (T=1) or "velocity" (T=13)
+    angular_scale: 1.0              # No extra scaling; controller handles mapping
+    track_width_multiplier: 2.0     # Skid-steer scrub compensation
     accel_limit_linear: 0.5         # m/s^2  (0 = disabled)
     accel_limit_angular: 1.0        # rad/s^2 (0 = disabled)
-    imu_yaw_variance: 0.05          # rad^2 — trust IMU more = lower value
+
+    # ─── Platform Geometry ───
+    # UGV02  : wheel_separation=0.23, wheel_radius=0.04, max_speed=0.41
+    # WaveRover: wheel_separation=0.172, wheel_radius=0.04, max_speed=0.5
+    wheel_separation: 0.172
+    wheel_radius: 0.04
+    max_speed: 0.3               # Forward calibrated
+    max_angular: 0.3              # Maps to ~30% motor power ≈ 90°/s (clean in-place turn)
 
     # ─── Local Grid Map ───
     grid_size_m: 3.0
-    grid_resolution_m: 0.15
-    global_map_size_m: 10.0
+    grid_resolution_m: 0.10
+    global_map_size_m: 50.0
     global_map_resolution_m: 0.10
     obstacle_inflation_m: 0.15
     decay_time_s: 10.0
@@ -38,13 +54,12 @@ aimee_nav:
     replan_interval_s: 1.0
     min_clearance_m: 0.20
     navigation_mode: "planned"      # "reactive" or "planned"
-    enable_exploration: true
+    enable_exploration: false        # Enable autonomous exploration (set true after verifying node health)
     exploration_speed_scale: 0.4
-    publish_decimation: 50          # Publish viz topics every 50 cycles (~5s @ 10Hz)
 
     # ─── Rate & Controllers ───
-    nav_rate_hz: 5.0                 # Lower rate for UNO Q headroom
-    publish_decimation: 100           # Viz topics every ~20s @ 5Hz
+    nav_rate_hz: 3.0                 # Lower rate for UNO Q headroom
+    publish_decimation: 150           # Viz topics every ~50s @ 3Hz (reduce DDS load)
     lidar_downsample: 6               # 60 points instead of 360 (6° resolution)
     heading_kp: 0.6
     heading_ki: 0.0
@@ -66,11 +81,29 @@ aimee_nav:
     publish_tf: true
     publish_map_odom_tf: true  # Set to false when external SLAM provides map→odom
 
+    # ─── Encoder & IMU Tuning ───
+    ticks_per_meter: 200.0       # Generic N20 encoder estimate (~48 CPR, 0.04m radius)
+                                 # Override in robot YAML with calibrated value
+    accel_scale: 0.001197        # m/s^2 per LSB (approx 8192 LSB/g)
+    gyro_scale: 0.001066         # rad/s per LSB (approx 16.4 LSB/(deg/s))
+    voltage_scale: 0.01          # centivolts -> volts
+
+    # ─── Scan Matching / EKF Tuning ───
+    # These values are the VARIANCE (sigma^2) passed to the EKF update step.
+    # Lower value = higher trust in scan matcher relative to odometry prediction.
+    #
+    # Tuned 2026-04-25 for UGV02 with encoder odometry:
+    #   - Process noise Q was halved in C++ EKF because encoder prediction is accurate
+    #   - Scan-match variance raised slightly so EKF trusts encoder short-term motion
+    #     and only applies lidar corrections for drift/loop-closure
+    scan_match_pos_variance: 0.05   # meters^2 (was 0.04)
+    scan_match_yaw_variance: 0.03   # radians^2 (was 0.02)
+    scan_match_interval: 1.0        # Run scan matching every 1.0s (1 Hz) — CPU relief
+    scan_match_search_radius_m: 0.2 # Search radius for scan matcher (m) — smaller = faster
+    scan_match_search_angle_rad: 0.1 # Search angle for scan matcher (rad) — smaller = faster
+    scan_match_score_threshold: 30.0 # Minimum score to accept scan match — reject poor fits
+
     # ─── Map Persistence ───
     map_save_dir: "~/aimee_maps"
     waypoints_file: ""
     localization_mode: false   # Set to true to disable map updates (load a map first)
-    scan_match_interval: 0.2    # Run scan matching every 0.2s (5 Hz) with downsampling
-
-    # ─── Timing ───
-    # nav_rate_hz and publish_decimation defined above
