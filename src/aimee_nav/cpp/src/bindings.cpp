@@ -43,7 +43,8 @@ PYBIND11_MODULE(_core, m) {
                 else if (d[i] < 100) out[i] = 0;
                 else out[i] = 100;
             }
-            return out;  // flat list
+            static py::object array_ctor = py::module_::import("array").attr("array");
+            return array_ctor("b", py::bytes(reinterpret_cast<const char*>(out.data()), out.size()));
         });
 
     // GridMap
@@ -57,7 +58,11 @@ PYBIND11_MODULE(_core, m) {
              py::arg("range_min"), py::arg("range_max"))
         .def("inflate_obstacles", &GridMap::inflate_obstacles)
         .def("count_cells", &GridMap::count_cells)
-        .def("to_occupancy_grid_data", &GridMap::to_occupancy_grid_data)
+        .def("to_occupancy_grid_data", [](const GridMap& self) {
+            const auto& out = self.to_occupancy_grid_data();
+            static py::object array_ctor = py::module_::import("array").attr("array");
+            return array_ctor("b", py::bytes(reinterpret_cast<const char*>(out.data()), out.size()));
+        })
         .def("extract_local_costmap", &GridMap::extract_local_costmap,
              py::arg("cx"), py::arg("cy"), py::arg("window_width_m"), py::arg("window_height_m"))
         .def("extract_local_grid_map", &GridMap::extract_local_grid_map,

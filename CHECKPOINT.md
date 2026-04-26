@@ -1,5 +1,52 @@
 # Aimee Robot - Session Checkpoint
 
+**Date:** 2026-04-26 (Late Session — Exploration & Mapping Test)
+**Session Focus:** AimeeNav exploration test, map viewer integration, scan matcher diagnosis on UGV02 (Ron)
+**Previous Session:** AimeeNav audit fixes verified; stack healthy and stationary.
+**Status:** 🔴 Exploration works but scan matcher fails during motion — map does not update beyond initial scan. Robot odometry tracks correctly.
+
+---
+
+## 🧪 Exploration Test Results
+
+### Code Changes Made
+| Change | File | Status |
+|--------|------|--------|
+| Frontier scoring: prefers open areas + farther frontiers | `aimee_nav_node.py` | ✅ |
+| Auto-save on shutdown | `aimee_nav_node.py` | ✅ |
+| Rosbridge in robot.launch.py | `robot.launch.py` | ✅ |
+| `world_to_grid` unpack bug fix (returns `(ok, gx, gy)`) | `aimee_nav_node.py` | ✅ |
+
+### Test Execution
+- **3-minute exploration run** completed
+- Robot moved autonomously, found frontiers, avoided obstacles
+- **Map saved:** `/root/aimee_maps/map_20260426_141933.json` (341 KB)
+- **Map viewer:** Connected via `ws://localhost:9090`, served at `http://localhost:8080/map_viewer.html`
+
+### Critical Finding
+**Scan matcher fails during motion:**
+- Scores consistently **9–15** vs threshold **30.0**
+- Map never updates beyond initial stationary scan
+- Robot odometry works (pose tracks on viewer), but SLAM map is frozen
+- This is the same issue noted in previous session: "scan matcher can't track rotation"
+- Without scan matching, SLAM cannot build maps during exploration
+
+### System Issues During Session
+- Full `robot.launch.py` launched entire stack (voice manager, monitor, intent router, arm nodes, etc.) — caused CPU overload
+- Non-essential nodes killed manually; only nav + base + rosbridge kept
+- 88 zombie PIDs remain in container from previous unclean restarts
+- Robot moved unexpectedly when exploration was enabled; zero-vel stop required multiple attempts
+
+### Next Steps
+1. **Fix scan matcher** — likely needs larger search radius/angle, lower threshold, or rotation-aware matching
+2. **Test with manual goal** instead of exploration to isolate scan matcher behavior
+3. **Launch minimal stack only** — do not use full `robot.launch.py` for nav testing
+4. **Commit uncommitted changes** — frontier scoring, auto-save, rosbridge launch
+
+---
+
+# Aimee Robot - Session Checkpoint
+
 **Date:** 2026-04-26 (Continued)
 **Session Focus:** AimeeNav audit fixes, build verification, and safe launch on UGV02 (Ron)
 **Previous Session:** Lost unexpectedly at ~18:12 UTC during troubleshooting. Recovered and verified stack health.

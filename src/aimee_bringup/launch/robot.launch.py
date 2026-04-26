@@ -28,7 +28,7 @@ from launch.actions import (
     LogInfo,
 )
 from launch.conditions import IfCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_sources import PythonLaunchDescriptionSource, AnyLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -384,6 +384,16 @@ def generate_launch_description():
     # Add AimeeNav integrated navigation (replaces ldlidar + slam + nav2)
     if nav_mode == 'integrated':
         ld.add_action(aimee_nav_node)
+        # Rosbridge for map viewer and web tools
+        rosbridge_launch = IncludeLaunchDescription(
+            AnyLaunchDescriptionSource(
+                os.path.join(
+                    '/opt/ros/humble/share/rosbridge_server/launch',
+                    'rosbridge_websocket_launch.xml'
+                )
+            )
+        )
+        ld.add_action(rosbridge_launch)
 
     # Add base controller for Waveshare-protocol platforms.
     # When AimeeNav is in integrated mode with direct base control,

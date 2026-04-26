@@ -123,6 +123,7 @@ class AimeeNavNode(Node):
             ('enable_exploration', False),
             ('exploration_speed_scale', 0.3),
             ('min_frontier_size', 5),
+            ('auto_save_map', True),
             ('emergency_reverse_time_s', 0.5),
 
             # Frames
@@ -193,6 +194,7 @@ class AimeeNavNode(Node):
         self._enable_exploration = self.get_parameter('enable_exploration').value
         self._exploration_speed_scale = self.get_parameter('exploration_speed_scale').value
         self._min_frontier_size = self.get_parameter('min_frontier_size').value
+        self._auto_save_map = self.get_parameter('auto_save_map').value
         # navigation_mode can override the individual booleans for convenience
         if self._nav_mode == 'reactive':
             self._enable_reactive = True
@@ -475,6 +477,8 @@ class AimeeNavNode(Node):
             self._path_world = []
             self._path_index = 0
             self._controller.reset()
+        self._stuck_start_time = time.time()
+        self._last_progress_pos = (self._ekf.x(), self._ekf.y())
         self._nav_state = 'GOING_TO_GOAL'
         self.get_logger().info(
             f"New goal: x={self._goal_x:.2f}, y={self._goal_y:.2f}"
@@ -1452,7 +1456,11 @@ class AimeeNavNode(Node):
         return clusters
 
     def _select_best_frontier(self, frontiers, robot_x, robot_y):
-        """Pick the best frontier based on distance and size."""
+        """Pick the best frontier based on openness, size, and distance.
+
+        Prefers frontiers in open areas (more free space around them)
+        and rewards driving deeper into unexplored space.
+        """
         best = None
         best_score = -1.0
 
@@ -1466,8 +1474,32 @@ class AimeeNavNode(Node):
             if dist < 0.3:
                 continue
 
-            # Score: larger frontiers closer to robot are better
-            score = size / (dist + 0.1)
+            # --- Openness check: count free cells in a window around frontier ---
+            ok, gx, gy = self._global_map.world_to_grid(wx, wy)
+            if not ok:
+                continue
+            free_count = 0
+            total_count = 0
+            radius = 3  # 3 cells radius (~15 cm at 5 cm res, scale with map)
+            for dy in range(-radius, radius + 1):
+                for dx in range(-radius, radius + 1):
+                    cx = gx + dx
+                    cy = gy + dy
+                    if (0 <= cx < self._global_map.width_cells() and
+                            0 <= cy < self._global_map.height_cells()):
+                        val = self._global_map.cell(cx, cy)
+                        if 0 < val < 100:
+                            free_count += 1
+                        total_count += 1
+            openness = free_count / total_count if total_count > 0 else 0.0
+
+            # Skip frontiers that are wedged in tight corners
+            if openness < 0.3:
+                continue
+
+            # Score: larger * more open * farther = better
+            # sqrt(dist) gives a modest boost to farther frontiers
+            score = size * openness * math.sqrt(dist)
             if score > best_score:
                 best_score = score
                 best = (wx, wy)
@@ -1600,6 +1632,8 @@ class AimeeNavNode(Node):
             self._path_world = []
             self._path_index = 0
             self._controller.reset()
+        self._stuck_start_time = time.time()
+        self._last_progress_pos = (self._ekf.x(), self._ekf.y())
         self._nav_state = 'GOING_TO_GOAL'
         self.get_logger().info(f"Navigating to waypoint '{name}': ({x:.2f}, {y:.2f})")
 
@@ -1841,6 +1875,17 @@ class AimeeNavNode(Node):
             self._nav_thread.join(timeout=2.0)
         if self._lidar_consumer_thread is not None and self._lidar_consumer_thread.is_alive():
             self._lidar_consumer_thread.join(timeout=1.0)
+
+        # Auto-save map on shutdown
+        if self._auto_save_map:
+            try:
+                os.makedirs(self._map_save_dir, exist_ok=True)
+                timestamp = time.strftime('%Y%m%d_%H%M%S')
+                filename = os.path.join(self._map_save_dir, f'map_{timestamp}.json')
+                self._save_map_to_file(filename)
+                self.get_logger().info(f"Auto-saved map to {filename}")
+            except Exception as e:
+                self.get_logger().error(f"Auto-save failed: {e}")
 
         super().destroy_node()
 
