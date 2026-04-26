@@ -92,16 +92,17 @@ aimee_nav:
     # These values are the VARIANCE (sigma^2) passed to the EKF update step.
     # Lower value = higher trust in scan matcher relative to odometry prediction.
     #
-    # Tuned 2026-04-25 for UGV02 with encoder odometry:
-    #   - Process noise Q was halved in C++ EKF because encoder prediction is accurate
-    #   - Scan-match variance raised slightly so EKF trusts encoder short-term motion
-    #     and only applies lidar corrections for drift/loop-closure
-    scan_match_pos_variance: 0.05   # meters^2 (was 0.04)
-    scan_match_yaw_variance: 0.03   # radians^2 (was 0.02)
-    scan_match_interval: 1.0        # Run scan matching every 1.0s (1 Hz) — CPU relief
-    scan_match_search_radius_m: 0.2 # Search radius for scan matcher (m) — smaller = faster
-    scan_match_search_angle_rad: 0.1 # Search angle for scan matcher (rad) — smaller = faster
-    scan_match_score_threshold: 30.0 # Minimum score to accept scan match — reject poor fits
+    # Tuned 2026-04-26 for UGV02 with LD19 lidar:
+    #   - Threshold lowered because ~60 downsampled points makes 30.0 (50% hit rate)
+    #     impossible during motion; 15.0 (25% hit rate) is achievable.
+    #   - Search window widened to absorb encoder drift between matches.
+    #   - Interval shortened to 0.3s so EKF prediction has less time to drift.
+    scan_match_pos_variance: 0.05   # meters^2
+    scan_match_yaw_variance: 0.03   # radians^2
+    scan_match_interval: 0.3        # Run scan matching every 0.3s (~3 Hz)
+    scan_match_search_radius_m: 0.4 # Search radius for scan matcher (m)
+    scan_match_search_angle_rad: 0.25 # Search angle for scan matcher (rad = ~14°)
+    scan_match_score_threshold: 15.0 # Minimum score to accept scan match
 
     # ─── Map Persistence ───
     map_save_dir: "~/aimee_maps"

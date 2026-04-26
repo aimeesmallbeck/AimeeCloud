@@ -136,7 +136,7 @@ class AimeeNavNode(Node):
             # Timing
             ('nav_rate_hz', 10.0),
             ('publish_decimation', 10),  # Publish scan/map every N cycles
-            ('lidar_downsample', 6),  # Use every Nth lidar point (1=full, 6=60 pts)
+            ('lidar_downsample', 4),  # Use every Nth lidar point (1=full, 4=~90 pts)
             ('scan_match_interval', 0.2),  # Seconds between scan matches
             ('map_save_dir', '~/aimee_maps'),
             ('waypoints_file', ''),
@@ -146,7 +146,7 @@ class AimeeNavNode(Node):
             ('scan_match_yaw_variance', 0.02),   # Yaw measurement variance (rad^2); lower = trust scan more
             ('scan_match_search_radius_m', 0.5),  # Search radius for scan matcher (m)
             ('scan_match_search_angle_rad', 0.2), # Search angle for scan matcher (rad)
-            ('scan_match_score_threshold', 10.0), # Minimum score to accept scan match
+            ('scan_match_score_threshold', 15.0), # Minimum score to accept scan match
             ('ticks_per_meter', 106.0),     # Calibrated 2026-04-25: 71cm actual / 37.7cm odom
             ('accel_scale', 0.001197),      # IMU accel m/s^2 per LSB
             ('gyro_scale', 0.001066),       # IMU gyro rad/s per LSB
