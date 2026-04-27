@@ -1151,3 +1151,165 @@ base_params:
 - `aimee_tts/config/brick_config.yaml`: `DEFAULT_ENGINE` default and `development` profile changed from `kokoro` back to `gtts`.
 
 **Status:** 🤖 **VIDEO PIPELINE SEPARATED, MONITOR OPERATIONAL, TTS MIGRATED TO STANDARD ROS2 NODE WITH LEMONFOX PRIMARY, INTENT ROUTER REWRITTEN WITH EXTERNAL CONFIG, AIMEEAGENT PROTOCOL IMPLEMENTED WITH VOICE SUPPORT!**
+
+
+---
+
+# Aimee Robot - Session Checkpoint
+
+**Date:** 2026-04-26 (Evening session)
+**Session Focus:** Scan matcher tuning, stationary drift fix, LocalGridMapCpp.clear() fix, forward-motion test attempt
+**Status:** 🔴 **HALTED — Battery dead (0.59V). Session ended unexpectedly.**
+**Container:** `aimee-robot` (Docker), Python 3.10.12
+**Git:** Main branch at `c4b8927`
+**Hardware:** Arduino UNO Q + UGV02 base (Ron) + LD19 lidar
+**Battery:** 18650 pack (likely 3S). Failed at 0.59V during forward-motion test.
+
+---
+
+## ✅ What Was Accomplished
+
+### 1. Scan Matcher Tuning (commit `419bb60`)
+The scan matcher was rejecting too many matches (threshold 30.0 with scores in 15–25 range), causing pure-encoder odometry drift.
+
+| Parameter | Old | New | Rationale |
+|-----------|-----|-----|-----------|
+| `score_threshold` | 30.0 | **15.0** | Accept more matches; observed scores 42–91 after fix |
+| `search_radius_m` | 0.2 | **0.4** | Larger search for encoder drift |
+| `search_angle_rad` | 0.1 | **0.25** | Allow bigger heading correction |
+| `interval` | 1.0 | **0.3** | Match more frequently |
+| `lidar_downsample` | 6 | **4** | More points = better correlation |
+
+**Result:** Scan matching resumed working. Scores observed: 42–91 (well above 15.0 threshold).
+
+### 2. Stationary Deadband — Drift Spiral Fix (commit `5272431`)
+**Problem:** Even with robot physically still, encoder odometry reported tiny velocities. Scan matcher found slightly better scores at small rotations (inflated cell partial credit). EKF applied these → pose drifted → map smeared.
+
+**Fix:** Skip scan matching when `abs(vx) < 0.01 and abs(vth) < 0.01`. Lock pose to last known good value and still update map.
+
+```python
+is_stationary = abs(vx) < 0.01 and abs(vth) < 0.01
+if is_stationary:
+    cx, cy, ctheta = init_x, init_y, init_theta  # Lock pose
+    # Update map only (no scan matching)
+```
+
+**Result:** Map no longer smears during stationary tests. Saved PNGs and live viewer show consistent room geometry when robot is still.
+
+### 3. LocalGridMapCpp.clear() — Missing Method Fix (commit `c4b8927`)
+**Problem:** `AttributeError: 'LocalGridMapCpp' object has no attribute 'clear'` triggered during recovery mode.
+
+**Fix:** Added `clear()` method to `LocalGridMapCpp`:
+```python
+def clear(self) -> None:
+    self._cpp.clear()
+    self.grid.fill(0)
+    self.origin_x = 0.0
+    self.origin_y = 0.0
+    self.origin_theta = 0.0
+```
+
+### 4. Auto-Save on Shutdown (committed)
+`destroy_node()` now calls `_save_map_to_file()` so maps are persisted even on SIGINT.
+
+### 5. Rosbridge in Launch (committed)
+`robot.launch.py` now includes `rosbridge_websocket_launch.xml` for web-based map viewer.
+
+### 6. Map Viewer Fix (committed)
+Fixed `localhost:9090` hardcode; viewer served on HTTP port 8080. Verified working.
+
+### 7. world_to_grid Unpack Bug Fix (committed)
+C++ binding returns `(ok, gx, gy)` tuple; Python code was incorrectly unpacking. Fixed.
+
+---
+
+## 🔋 Battery Failure Incident
+
+**Timeline:**
+- **Earlier in session:** Battery ~12.1V (healthy for 3S Li-ion)
+- **Forward-motion test:** Robot commanded to drive 1m forward
+- **Immediate result:** Robot did not move
+- **Base controller log:** Voltage dropped to **0.20V**, then recovered to **0.59V**
+- **Root cause:** 18650 pack depleted. The 12.1V reading earlier may have been surface charge or measurement artifact.
+- **System behavior:** No automatic motor cutoff. Nav node kept publishing `/cmd_vel`. Base controller logged warnings but continued to accept and forward motor commands.
+
+**Impact:**
+- Robot did not move (battery too low to drive motors)
+- No hardware damage observed, but cells may have been discharged below safe threshold
+- Session had to halt for charging
+
+---
+
+## ⚠️ Active Issues Requiring Attention
+
+### 1. Battery Monitoring is Passive (CRITICAL)
+- Base controller publishes `/battery_status` ("LOW"/"OK") and logs warnings
+- **Nav node does NOT subscribe to battery status**
+- **No automatic motor cutoff at critical voltage**
+- **Recommendation:** Add battery subscriber to nav node. Stop motors and enter low-power standby when voltage < 9.0V (for 3S). Protect cells from deep discharge.
+
+### 2. Forward-Motion Test Incomplete
+- Robot never actually drove under its own power in this session
+- Need to retry after battery is charged
+- Before retry: verify battery voltage > 11.0V under load
+
+### 3. Map Viewer Coordinate Frames
+- Live viewer renders `/odom` pose alongside `/map` (SLAM pose)
+- When stationary deadband is active, these frames should converge
+- **Not yet verified** with actual robot motion
+- Saved PNGs: forward on robot = right on image
+
+### 4. Zombie Processes
+- 88+ defunct PIDs from unclean kills earlier in the day
+- **Recommendation:** Restart container when resuming to clean up
+
+---
+
+## 🎯 Next Steps (After Charging)
+
+1. **Charge battery** to >11.5V (3S Li-ion full = 12.6V)
+2. **Restart container** to clear zombie processes
+3. **Verify voltage under load** — run base controller, check `/battery_status`
+4. **Stationary verification** — launch nav, let robot sit, confirm map is stable
+5. **Forward-motion test** — command 1m forward, verify:
+   - Robot actually moves
+   - Encoder odometry reports reasonable distance
+   - Scan matcher scores remain healthy
+   - Map updates correctly (walls appear where expected)
+6. **Implement battery safety** — add `/battery_status` subscriber to nav node, motor cutoff at critical voltage
+
+---
+
+## 📋 Performance Summary (Post-Optimizations)
+
+| Metric | Value |
+|--------|-------|
+| Nav cycle time | ~2–11 ms (target 333 ms @ 3 Hz) |
+| DWA samples | 7 vel × 14 ang = 98 (was 20×28 = 560) |
+| Frontier detection | `scipy.ndimage.label` (vectorized, replaces BFS) |
+| Scan match interval | 0.3 s (was 1.0 s) |
+| Lidar downsample | 4 (was 6) |
+| Executor | SingleThreadedExecutor (was MultiThreaded) |
+| Publish decimation | 150 (map TF every ~50 s) |
+
+---
+
+## 🔧 Code State at Session End
+
+**Modified files (all committed to main):**
+- `src/aimee_nav/aimee_nav/aimee_nav_node.py` — Stationary deadband, scan matcher params, auto-save
+- `src/aimee_nav/aimee_nav/local_grid_map_cpp.py` — Added `clear()`
+- `src/aimee_nav/cpp/src/scan_matcher.cpp` — Unchanged in this session (params in YAML)
+- `src/aimee_nav/config/nav_params.yaml` — Scan matcher params exposed
+- `src/aimee_bringup/launch/robot.launch.py` — Rosbridge included
+- `src/aimee_ugv02_controller/aimee_ugv02_controller/ugv02_controller_node.py` — Battery pub (unchanged in this session)
+
+**Git log (last 5 commits):**
+```
+c4b8927 Add LocalGridMapCpp.clear() and auto-save on shutdown
+5272431 Add stationary deadband to prevent drift spiral
+419bb60 Tune scan matcher: threshold 15, radius 0.4, angle 0.25, interval 0.3
+[... earlier commits ...]
+```
+
+**Status:** 🔴 **SESSION HALTED DUE TO DEAD BATTERY. CHARGE BEFORE RESUMING.**
