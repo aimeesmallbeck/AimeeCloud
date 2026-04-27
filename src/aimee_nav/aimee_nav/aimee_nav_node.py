@@ -698,66 +698,90 @@ class AimeeNavNode(Node):
                 init_x = self._ekf.x()
                 init_y = self._ekf.y()
                 init_theta = self._ekf.theta()
-                match_x, match_y, match_theta, score = self._scan_matcher.match(
-                    ranges, angle_min, angle_increment,
-                    0.01, 12.0,
-                    init_x, init_y, init_theta,
-                    self._scan_match_search_radius, self._scan_match_search_angle,
-                )
-                if score > self._scan_match_score_threshold:
-                    # EKF innovation: log discrepancy between prediction and scan match
-                    pred_x = self._ekf.x()
-                    pred_y = self._ekf.y()
-                    pred_theta = self._ekf.theta()
-                    dx = match_x - pred_x
-                    dy = match_y - pred_y
-                    dtheta = match_theta - pred_theta
-                    while dtheta > math.pi:
-                        dtheta -= 2.0 * math.pi
-                    while dtheta < -math.pi:
-                        dtheta += 2.0 * math.pi
 
-                    self._ekf.update_scan_pose(
-                        match_x, match_y, match_theta,
-                        self._scan_match_pos_variance, self._scan_match_yaw_variance
+                # Skip scan matching when robot is stationary to prevent drift spiral
+                is_stationary = (abs(vx) < 0.01 and abs(vth) < 0.01)
+
+                if is_stationary:
+                    # Use current pose directly; update map without scan matching
+                    cx, cy, ctheta = init_x, init_y, init_theta
+                    self._global_map.update_from_scan(
+                        cx, cy, ctheta,
+                        ranges, angle_min, angle_increment,
+                        0.01, 12.0,
                     )
-                    cx = self._ekf.x()
-                    cy = self._ekf.y()
-                    ctheta = self._ekf.theta()
-
-                    # Log innovation magnitude periodically
-                    if self._nav_cycle_count % 5 == 0:
+                    self._global_map.inflate_obstacles()
+                    if self._scan_match_count % 10 == 0:
+                        n_free, n_occ, n_unk = self._global_map.count_cells()
                         self.get_logger().info(
-                            f"EKF innovation: dx={dx:.3f}m dy={dy:.3f}m "
-                            f"dtheta={math.degrees(dtheta):.1f}° "
-                            f"score={score:.1f}"
-                        )
-
-                    if self._localization_mode:
-                        # Localization only: correct pose but do NOT modify the map
-                        self.get_logger().info(
-                            f"Localized: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
-                            f"[localization mode — map unchanged]"
+                            f"Stationary scan: pose=({cx:.2f},{cy:.2f}) "
+                            f"map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
                         )
                     else:
-                        # Mapping mode: update global map with corrected pose
-                        self._global_map.update_from_scan(
-                            cx, cy, ctheta,
-                            ranges, angle_min, angle_increment,
-                            0.01, 12.0,
+                        self.get_logger().info(
+                            f"Stationary scan: pose=({cx:.2f},{cy:.2f})"
                         )
-                        self._global_map.inflate_obstacles()
-                        # Count map cells for debugging (C++ single-pass, decimated)
-                        if self._scan_match_count % 10 == 0:
-                            n_free, n_occ, n_unk = self._global_map.count_cells()
+                else:
+                    match_x, match_y, match_theta, score = self._scan_matcher.match(
+                        ranges, angle_min, angle_increment,
+                        0.01, 12.0,
+                        init_x, init_y, init_theta,
+                        self._scan_match_search_radius, self._scan_match_search_angle,
+                    )
+                    if score > self._scan_match_score_threshold:
+                        # EKF innovation: log discrepancy between prediction and scan match
+                        pred_x = self._ekf.x()
+                        pred_y = self._ekf.y()
+                        pred_theta = self._ekf.theta()
+                        dx = match_x - pred_x
+                        dy = match_y - pred_y
+                        dtheta = match_theta - pred_theta
+                        while dtheta > math.pi:
+                            dtheta -= 2.0 * math.pi
+                        while dtheta < -math.pi:
+                            dtheta += 2.0 * math.pi
+
+                        self._ekf.update_scan_pose(
+                            match_x, match_y, match_theta,
+                            self._scan_match_pos_variance, self._scan_match_yaw_variance
+                        )
+                        cx = self._ekf.x()
+                        cy = self._ekf.y()
+                        ctheta = self._ekf.theta()
+
+                        # Log innovation magnitude periodically
+                        if self._nav_cycle_count % 5 == 0:
                             self.get_logger().info(
-                                f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
-                                f"map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
+                                f"EKF innovation: dx={dx:.3f}m dy={dy:.3f}m "
+                                f"dtheta={math.degrees(dtheta):.1f}° "
+                                f"score={score:.1f}"
+                            )
+
+                        if self._localization_mode:
+                            # Localization only: correct pose but do NOT modify the map
+                            self.get_logger().info(
+                                f"Localized: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
+                                f"[localization mode — map unchanged]"
                             )
                         else:
-                            self.get_logger().info(
-                                f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f}"
+                            # Mapping mode: update global map with corrected pose
+                            self._global_map.update_from_scan(
+                                cx, cy, ctheta,
+                                ranges, angle_min, angle_increment,
+                                0.01, 12.0,
                             )
+                            self._global_map.inflate_obstacles()
+                            # Count map cells for debugging (C++ single-pass, decimated)
+                            if self._scan_match_count % 10 == 0:
+                                n_free, n_occ, n_unk = self._global_map.count_cells()
+                                self.get_logger().info(
+                                    f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
+                                    f"map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
+                                )
+                            else:
+                                self.get_logger().info(
+                                    f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f}"
+                                )
 
                         # Insert keyframe if moved far enough
                         kx, ky, kth = self._last_keyframe_pos
@@ -786,8 +810,8 @@ class AimeeNavNode(Node):
                             self._pose_graph.add_keyframe(kf)
                             self._last_keyframe_pos = (cx, cy, ctheta)
                             self.get_logger().info(f"Keyframe added at ({cx:.2f}, {cy:.2f})")
-                else:
-                    self.get_logger().info(f"Scan match FAILED: score={score:.1f}")
+                    else:
+                        self.get_logger().info(f"Scan match FAILED: score={score:.1f}")
             prof['slam'] = time.time() - t_slam
 
         # Use SLAM-corrected pose for navigation
