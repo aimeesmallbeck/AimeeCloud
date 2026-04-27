@@ -173,6 +173,11 @@ class LocalGridMapCpp:
 
         return points
 
+    def clear(self) -> None:
+        """Reset the grid to all unknown."""
+        self._cpp.clear()
+        self.grid = np.zeros((self.grid_size, self.grid_size), dtype=np.int8)
+
     def to_occupancy_grid_data(self) -> np.ndarray:
         # Use C++ helper which already does the conversion
         return self._cpp.to_occupancy_grid_data()
