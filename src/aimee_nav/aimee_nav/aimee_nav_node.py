@@ -45,7 +45,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
-from rclpy.executors import SingleThreadedExecutor
+from rclpy.executors import MultiThreadedExecutor
 
 from geometry_msgs.msg import Twist, TransformStamped, PoseStamped, Quaternion
 from nav_msgs.msg import Odometry, OccupancyGrid, Path
@@ -123,7 +123,6 @@ class AimeeNavNode(Node):
             ('enable_exploration', False),
             ('exploration_speed_scale', 0.3),
             ('min_frontier_size', 5),
-            ('auto_save_map', True),
             ('emergency_reverse_time_s', 0.5),
 
             # Frames
@@ -136,7 +135,7 @@ class AimeeNavNode(Node):
             # Timing
             ('nav_rate_hz', 10.0),
             ('publish_decimation', 10),  # Publish scan/map every N cycles
-            ('lidar_downsample', 4),  # Use every Nth lidar point (1=full, 4=~90 pts)
+            ('lidar_downsample', 6),  # Use every Nth lidar point (1=full, 6=60 pts)
             ('scan_match_interval', 0.2),  # Seconds between scan matches
             ('map_save_dir', '~/aimee_maps'),
             ('waypoints_file', ''),
@@ -146,7 +145,7 @@ class AimeeNavNode(Node):
             ('scan_match_yaw_variance', 0.02),   # Yaw measurement variance (rad^2); lower = trust scan more
             ('scan_match_search_radius_m', 0.5),  # Search radius for scan matcher (m)
             ('scan_match_search_angle_rad', 0.2), # Search angle for scan matcher (rad)
-            ('scan_match_score_threshold', 15.0), # Minimum score to accept scan match
+            ('scan_match_score_threshold', 10.0), # Minimum score to accept scan match
             ('ticks_per_meter', 106.0),     # Calibrated 2026-04-25: 71cm actual / 37.7cm odom
             ('accel_scale', 0.001197),      # IMU accel m/s^2 per LSB
             ('gyro_scale', 0.001066),       # IMU gyro rad/s per LSB
@@ -194,7 +193,6 @@ class AimeeNavNode(Node):
         self._enable_exploration = self.get_parameter('enable_exploration').value
         self._exploration_speed_scale = self.get_parameter('exploration_speed_scale').value
         self._min_frontier_size = self.get_parameter('min_frontier_size').value
-        self._auto_save_map = self.get_parameter('auto_save_map').value
         # navigation_mode can override the individual booleans for convenience
         if self._nav_mode == 'reactive':
             self._enable_reactive = True
@@ -244,23 +242,6 @@ class AimeeNavNode(Node):
         self._path_pub = self.create_publisher(Path, '/path', self._reliable_qos)
         self._local_plan_pub = self.create_publisher(Path, '/local_plan', self._reliable_qos)
         self._cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', self._reliable_qos)
-
-        # Pre-allocate reusable ROS messages to avoid GC pressure
-        self._reusable_scan = LaserScan()
-        self._reusable_scan.header.frame_id = self._lidar_frame_id
-        self._reusable_scan.angle_min = 0.0
-        self._reusable_scan.angle_max = 2.0 * math.pi
-        self._reusable_scan.angle_increment = 2.0 * math.pi / 360.0
-        self._reusable_scan.range_min = 0.02
-        self._reusable_scan.range_max = 12.0
-        self._reusable_path = Path()
-        self._reusable_path.header.frame_id = self._map_frame
-        self._reusable_local_plan = Path()
-        self._reusable_local_plan.header.frame_id = self._map_frame
-        self._reusable_twist = Twist()
-        self._reusable_odom = Odometry()
-        self._reusable_odom.header.frame_id = self._odom_frame
-        self._reusable_odom.child_frame_id = self._base_frame
 
         # ─── TF ───
         if self._do_publish_tf:
@@ -352,8 +333,8 @@ class AimeeNavNode(Node):
         self._dwa_cfg.acc_lim_theta = 2.0
         self._dwa_cfg.sim_time = 1.5
         self._dwa_cfg.dt = 0.1
-        self._dwa_cfg.vx_samples = 7
-        self._dwa_cfg.vtheta_samples = 14
+        self._dwa_cfg.vx_samples = 20
+        self._dwa_cfg.vtheta_samples = 20
         self._dwa = DWALocalPlanner(self._dwa_cfg)
         self._avoidance = ObstacleAvoidance(
             safety_distance_m=self._safety_distance,
@@ -456,10 +437,6 @@ class AimeeNavNode(Node):
         self.add_on_set_parameters_callback(self._on_parameter_change)
 
         self.get_logger().info(
-            "AimeeNav initialized.\n"
-            f"  Lidar: {self._lidar_port} @ {self._lidar_baud}\n"
-            f"  Base:  {self._base_interface} ({self._rover_port if self._base_interface == 'direct' else '/odom + /cmd_vel'})\n"
-            f"  Grid:  {self._grid_size}m x {self._grid_size}m @ {self._grid_res}m\n"
             f"  Mode:  {self._nav_mode}"
         )
 
@@ -494,8 +471,6 @@ class AimeeNavNode(Node):
             self._path_world = []
             self._path_index = 0
             self._controller.reset()
-        self._stuck_start_time = time.time()
-        self._last_progress_pos = (self._ekf.x(), self._ekf.y())
         self._nav_state = 'GOING_TO_GOAL'
         self.get_logger().info(
             f"New goal: x={self._goal_x:.2f}, y={self._goal_y:.2f}"
@@ -593,7 +568,6 @@ class AimeeNavNode(Node):
                 self._nav_cycle()
             except Exception as e:
                 import traceback
-                self.get_logger().error(f"Navigation cycle error: {e}\n{traceback.format_exc()}")
 
             # Maintain fixed rate
             elapsed = time.time() - loop_start
@@ -612,8 +586,7 @@ class AimeeNavNode(Node):
         t0 = time.time()
         prof = {}
 
-        # ─── Get latest sensor data + odometry in ONE lock ───
-        dt = 1.0 / self._nav_rate
+        # ─── Get latest sensor data ───
         with self._state_lock:
             scan = self._latest_scan
             ranges = self._latest_ranges
@@ -622,20 +595,34 @@ class AimeeNavNode(Node):
             goal_x = self._goal_x
             goal_y = self._goal_y
             has_goal = self._has_goal
-            path_world = self._path_world.copy()
-            path_index = self._path_index
 
-            if self._base_interface == 'ros':
+        if scan is None or not ranges:
+            return
+
+        # Downsample lidar for CPU efficiency on UNO Q
+        if self._lidar_downsample > 1:
+            ranges = ranges[::self._lidar_downsample]
+            angles = angles[::self._lidar_downsample]
+            intensities = intensities[::self._lidar_downsample]
+
+        # ─── Get odometry ───
+        dt = 1.0 / self._nav_rate
+        if self._base_interface == 'ros':
+            with self._state_lock:
                 odom_age = time.time() - self._ros_odom_time
                 if odom_age < 0.5:
+                    # Fresh external odometry
                     odom_x = self._ros_odom_x
                     odom_y = self._ros_odom_y
                     odom_theta = self._ros_odom_theta
                     vx = self._ros_odom_vx
                     vth = self._ros_odom_vth
                 else:
+                    # Stale / missing odometry — fall back to dead reckoning
+                    # from our own last commanded velocity
                     vx = self._last_cmd_linear
                     vth = self._last_cmd_angular
+                    # Advance odom pose by integrating commanded velocities
                     self._ros_odom_x += vx * math.cos(self._ros_odom_theta) * dt
                     self._ros_odom_y += vx * math.sin(self._ros_odom_theta) * dt
                     self._ros_odom_theta += vth * dt
@@ -650,19 +637,7 @@ class AimeeNavNode(Node):
                         self.get_logger().warn(
                             f"Odometry stale ({odom_age:.1f}s) — using dead reckoning"
                         )
-            else:
-                odom_x = odom_y = odom_theta = vx = vth = 0.0
-
-        if scan is None or not ranges:
-            return
-
-        # Downsample lidar for CPU efficiency on UNO Q
-        if self._lidar_downsample > 1:
-            ranges = ranges[::self._lidar_downsample]
-            angles = angles[::self._lidar_downsample]
-            intensities = intensities[::self._lidar_downsample]
-
-        if self._base_interface != 'ros':
+        else:
             odom_x, odom_y, odom_theta, vx, vth = self._rover.get_odometry()
 
         # ─── SLAM / Localization ───
@@ -698,90 +673,66 @@ class AimeeNavNode(Node):
                 init_x = self._ekf.x()
                 init_y = self._ekf.y()
                 init_theta = self._ekf.theta()
+                match_x, match_y, match_theta, score = self._scan_matcher.match(
+                    ranges, angle_min, angle_increment,
+                    0.01, 12.0,
+                    init_x, init_y, init_theta,
+                    self._scan_match_search_radius, self._scan_match_search_angle,
+                )
+                if score > self._scan_match_score_threshold:
+                    # EKF innovation: log discrepancy between prediction and scan match
+                    pred_x = self._ekf.x()
+                    pred_y = self._ekf.y()
+                    pred_theta = self._ekf.theta()
+                    dx = match_x - pred_x
+                    dy = match_y - pred_y
+                    dtheta = match_theta - pred_theta
+                    while dtheta > math.pi:
+                        dtheta -= 2.0 * math.pi
+                    while dtheta < -math.pi:
+                        dtheta += 2.0 * math.pi
 
-                # Skip scan matching when robot is stationary to prevent drift spiral
-                is_stationary = (abs(vx) < 0.01 and abs(vth) < 0.01)
-
-                if is_stationary:
-                    # Use current pose directly; update map without scan matching
-                    cx, cy, ctheta = init_x, init_y, init_theta
-                    self._global_map.update_from_scan(
-                        cx, cy, ctheta,
-                        ranges, angle_min, angle_increment,
-                        0.01, 12.0,
+                    self._ekf.update_scan_pose(
+                        match_x, match_y, match_theta,
+                        self._scan_match_pos_variance, self._scan_match_yaw_variance
                     )
-                    self._global_map.inflate_obstacles()
-                    if self._scan_match_count % 10 == 0:
-                        n_free, n_occ, n_unk = self._global_map.count_cells()
+                    cx = self._ekf.x()
+                    cy = self._ekf.y()
+                    ctheta = self._ekf.theta()
+
+                    # Log innovation magnitude periodically
+                    if self._nav_cycle_count % 5 == 0:
                         self.get_logger().info(
-                            f"Stationary scan: pose=({cx:.2f},{cy:.2f}) "
-                            f"map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
+                            f"EKF innovation: dx={dx:.3f}m dy={dy:.3f}m "
+                            f"dtheta={math.degrees(dtheta):.1f}° "
+                            f"score={score:.1f}"
+                        )
+
+                    if self._localization_mode:
+                        # Localization only: correct pose but do NOT modify the map
+                        self.get_logger().info(
+                            f"Localized: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
+                            f"[localization mode — map unchanged]"
                         )
                     else:
-                        self.get_logger().info(
-                            f"Stationary scan: pose=({cx:.2f},{cy:.2f})"
+                        # Mapping mode: update global map with corrected pose
+                        self._global_map.update_from_scan(
+                            cx, cy, ctheta,
+                            ranges, angle_min, angle_increment,
+                            0.01, 12.0,
                         )
-                else:
-                    match_x, match_y, match_theta, score = self._scan_matcher.match(
-                        ranges, angle_min, angle_increment,
-                        0.01, 12.0,
-                        init_x, init_y, init_theta,
-                        self._scan_match_search_radius, self._scan_match_search_angle,
-                    )
-                    if score > self._scan_match_score_threshold:
-                        # EKF innovation: log discrepancy between prediction and scan match
-                        pred_x = self._ekf.x()
-                        pred_y = self._ekf.y()
-                        pred_theta = self._ekf.theta()
-                        dx = match_x - pred_x
-                        dy = match_y - pred_y
-                        dtheta = match_theta - pred_theta
-                        while dtheta > math.pi:
-                            dtheta -= 2.0 * math.pi
-                        while dtheta < -math.pi:
-                            dtheta += 2.0 * math.pi
-
-                        self._ekf.update_scan_pose(
-                            match_x, match_y, match_theta,
-                            self._scan_match_pos_variance, self._scan_match_yaw_variance
-                        )
-                        cx = self._ekf.x()
-                        cy = self._ekf.y()
-                        ctheta = self._ekf.theta()
-
-                        # Log innovation magnitude periodically
-                        if self._nav_cycle_count % 5 == 0:
+                        self._global_map.inflate_obstacles()
+                        # Count map cells for debugging (C++ single-pass, decimated)
+                        if self._scan_match_count % 10 == 0:
+                            n_free, n_occ, n_unk = self._global_map.count_cells()
                             self.get_logger().info(
-                                f"EKF innovation: dx={dx:.3f}m dy={dy:.3f}m "
-                                f"dtheta={math.degrees(dtheta):.1f}° "
-                                f"score={score:.1f}"
-                            )
-
-                        if self._localization_mode:
-                            # Localization only: correct pose but do NOT modify the map
-                            self.get_logger().info(
-                                f"Localized: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
-                                f"[localization mode — map unchanged]"
+                                f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
+                                f"map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
                             )
                         else:
-                            # Mapping mode: update global map with corrected pose
-                            self._global_map.update_from_scan(
-                                cx, cy, ctheta,
-                                ranges, angle_min, angle_increment,
-                                0.01, 12.0,
+                            self.get_logger().info(
+                                f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f}"
                             )
-                            self._global_map.inflate_obstacles()
-                            # Count map cells for debugging (C++ single-pass, decimated)
-                            if self._scan_match_count % 10 == 0:
-                                n_free, n_occ, n_unk = self._global_map.count_cells()
-                                self.get_logger().info(
-                                    f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f} "
-                                    f"map_cells=free:{n_free} occ:{n_occ} unk:{n_unk}"
-                                )
-                            else:
-                                self.get_logger().info(
-                                    f"Scan matched: pose=({cx:.2f},{cy:.2f}) score={score:.1f}"
-                                )
 
                         # Insert keyframe if moved far enough
                         kx, ky, kth = self._last_keyframe_pos
@@ -810,8 +761,8 @@ class AimeeNavNode(Node):
                             self._pose_graph.add_keyframe(kf)
                             self._last_keyframe_pos = (cx, cy, ctheta)
                             self.get_logger().info(f"Keyframe added at ({cx:.2f}, {cy:.2f})")
-                    else:
-                        self.get_logger().info(f"Scan match FAILED: score={score:.1f}")
+                else:
+                    self.get_logger().info(f"Scan match FAILED: score={score:.1f}")
             prof['slam'] = time.time() - t_slam
 
         # Use SLAM-corrected pose for navigation
@@ -859,15 +810,21 @@ class AimeeNavNode(Node):
         if not has_goal and self._enable_exploration:
             frontiers = self._find_frontiers(robot_x, robot_y)
             t_after_frontier = time.time()
-            new_goal = None
             if frontiers:
                 best = self._select_best_frontier(frontiers, robot_x, robot_y)
                 if best:
-                    new_goal = (best[0], best[1])
+                    with self._state_lock:
+                        self._goal_x = best[0]
+                        self._goal_y = best[1]
+                        self._goal_theta = None
+                        self._has_goal = True
+                        self._path_world = []
+                        self._path_index = 0
                     self._nav_state = 'EXPLORING'
                     self.get_logger().info(
                         f"Exploration goal: ({best[0]:.2f}, {best[1]:.2f})"
                     )
+                    has_goal = True
             else:
                 # Bootstrap: no frontiers yet because map is all unknown.
                 # Set a short forward goal so existing nav drives there.
@@ -876,26 +833,24 @@ class AimeeNavNode(Node):
                 if front_dist > 0.5:
                     bx = robot_x + 0.3 * math.cos(robot_theta)
                     by = robot_y + 0.3 * math.sin(robot_theta)
-                    new_goal = (bx, by)
+                    with self._state_lock:
+                        self._goal_x = bx
+                        self._goal_y = by
+                        self._goal_theta = None
+                        self._has_goal = True
+                        self._path_world = []
+                        self._path_index = 0
                     self._nav_state = 'EXPLORING'
                     self.get_logger().info(
                         "Exploration bootstrap: forward goal "
                         f"({bx:.2f}, {by:.2f})"
                     )
+                    has_goal = True
                 else:
                     self.get_logger().info(
                         "Exploration complete — no frontiers remaining"
                     )
                     self._enable_exploration = False
-            if new_goal:
-                with self._state_lock:
-                    self._goal_x = new_goal[0]
-                    self._goal_y = new_goal[1]
-                    self._goal_theta = None
-                    self._has_goal = True
-                    self._path_world = []
-                    self._path_index = 0
-                has_goal = True
             self.get_logger().info(
                 f"FRONTIER timing: find={(t_after_frontier-t_frontier)*1000:.1f}ms "
                 f"total={(time.time()-t_frontier)*1000:.1f}ms"
@@ -904,6 +859,33 @@ class AimeeNavNode(Node):
         # ─── State machine ───
         linear_x = 0.0
         angular_z = 0.0
+        # --- Hard Safety Stop ---
+        points = list(zip(angles, ranges, [0]*len(ranges)))
+        sectors = self._avoidance.analyze_sectors(points)
+        front = next((s for s in sectors if s.name == 'front'), None)
+        if front and front.min_distance < 0.4:
+            self.get_logger().warn(f"SAFETY STOP: Obstacle at {front.min_distance:.2f}m")
+            linear_x = 0.0
+            angular_z = 0.0
+
+        # --- Safety Stop ---
+        points = list(zip(angles, ranges, [0]*len(ranges)))
+        sectors = self._avoidance.analyze_sectors(points)
+        front = next((s for s in sectors if s.name == 'front'), None)
+        if front and front.min_distance < 0.4:
+            self.get_logger().warn(f"SAFETY STOP: Obstacle at {front.min_distance:.2f}m")
+            linear_x = 0.0
+        angular_z = 0.0
+        # --- Hard Safety Stop ---
+        points = list(zip(angles, ranges, [0]*len(ranges)))
+        sectors = self._avoidance.analyze_sectors(points)
+        front = next((s for s in sectors if s.name == 'front'), None)
+        if front and front.min_distance < 0.4:
+            self.get_logger().warn(f"SAFETY STOP: Obstacle at {front.min_distance:.2f}m")
+            linear_x = 0.0
+            angular_z = 0.0
+
+
 
         if emergency_action is not None:
             linear_x, angular_z = self._avoidance.get_emergency_velocity(
@@ -916,7 +898,7 @@ class AimeeNavNode(Node):
 
         elif has_goal and self._enable_planning:
             # ─── Goal-directed navigation ───
-            # goal_x, goal_y already read at top; re-read in case bootstrap set them
+            # Re-read goal in case exploration/bootstrap just set it
             with self._state_lock:
                 goal_x = self._goal_x
                 goal_y = self._goal_y
@@ -941,15 +923,13 @@ class AimeeNavNode(Node):
                 linear_x, angular_z = self._execute_recovery()
 
             else:
-                # Re-plan if needed (use local copies read at top)
+                # Re-plan if needed
                 now = time.time()
                 should_replan = (
-                    not path_world
+                    not self._path_world
                     or now - self._last_replan_time > self._replan_interval
-                    or path_index >= len(path_world) - 1
+                    or self._path_index >= len(self._path_world) - 1
                 )
-                new_path = None
-                new_idx = 0
 
                 if should_replan:
                     t_plan = time.time()
@@ -961,8 +941,9 @@ class AimeeNavNode(Node):
                     )
                     t_after_global = time.time()
                     if path:
-                        new_path = path
-                        new_idx = 0
+                        with self._state_lock:
+                            self._path_world = path
+                            self._path_index = 0
                         self._last_replan_time = now
                         self.get_logger().info(
                             f"PLAN global: {(t_after_global-t_plan)*1000:.1f}ms "
@@ -977,8 +958,9 @@ class AimeeNavNode(Node):
                         t_after_local = time.time()
                         if path is not None:
                             path = self._planner.smooth_path(path)
-                            new_path = path
-                            new_idx = 0
+                            with self._state_lock:
+                                self._path_world = path
+                                self._path_index = 0
                             self._last_replan_time = now
                             self.get_logger().info(
                                 f"PLAN local: global={(t_after_global-t_plan)*1000:.1f}ms "
@@ -987,33 +969,30 @@ class AimeeNavNode(Node):
                             )
                         else:
                             self.get_logger().warn("Planning failed — falling back to reactive")
-                            new_path = []
+                            with self._state_lock:
+                                self._path_world = []
 
-                # Write path changes back once
-                if should_replan and new_path is not None:
+                # Follow path
+                if self._path_world:
                     with self._state_lock:
-                        self._path_world = new_path
-                        self._path_index = new_idx
-                    path_world = new_path
-                    path_index = new_idx
+                        path = self._path_world
+                        idx = self._path_index
 
-                # Follow path (using local copy)
-                if path_world:
                     # Advance path index
-                    while path_index < len(path_world) - 1:
-                        wx, wy = path_world[path_index]
+                    while idx < len(path) - 1:
+                        wx, wy = path[idx]
                         dist = math.hypot(wx - robot_x, wy - robot_y)
                         if dist < 0.15:
-                            path_index += 1
+                            idx += 1
                         else:
                             break
 
                     with self._state_lock:
-                        self._path_index = path_index
+                        self._path_index = idx
 
                     # Target heading = direction to next waypoint
-                    if path_index < len(path_world):
-                        wx, wy = path_world[path_index]
+                    if idx < len(path):
+                        wx, wy = path[idx]
                         target_heading = math.atan2(wy - robot_y, wx - robot_x)
                         target_speed = min(self._max_speed, distance_to_goal)
 
@@ -1196,10 +1175,17 @@ class AimeeNavNode(Node):
         angles: List[float],
         intensities: List[float],
     ) -> None:
-        """Publish LaserScan message (reuses pre-allocated message)."""
-        msg = self._reusable_scan
+        """Publish LaserScan message."""
+        msg = LaserScan()
         msg.header.stamp = self.get_clock().now().to_msg()
-        # Reset arrays in-place instead of allocating new ones
+        msg.header.frame_id = self._lidar_frame_id
+
+        # LD19: 0-360 degrees, ~1 degree resolution
+        msg.angle_min = 0.0
+        msg.angle_max = 2.0 * math.pi
+        msg.angle_increment = 2.0 * math.pi / 360.0
+        msg.range_min = 0.02
+        msg.range_max = 12.0
         msg.ranges = [float('inf')] * 360
         msg.intensities = [0.0] * 360
 
@@ -1256,10 +1242,13 @@ class AimeeNavNode(Node):
         """
         if self._base_interface == 'ros':
             return
-        msg = self._reusable_odom
+        msg = Odometry()
         msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = self._odom_frame
+        msg.child_frame_id = self._base_frame
         msg.pose.pose.position.x = x
         msg.pose.pose.position.y = y
+        msg.pose.pose.position.z = 0.0
         msg.pose.pose.orientation = self._euler_to_quaternion(0.0, 0.0, theta)
         msg.twist.twist.linear.x = vx
         msg.twist.twist.angular.z = vth
@@ -1331,16 +1320,16 @@ class AimeeNavNode(Node):
         self._tf_broadcaster.sendTransform(t3)
 
     def _publish_path(self) -> None:
-        """Publish current planned path (reuses pre-allocated message)."""
+        """Publish current planned path."""
         with self._state_lock:
             path = self._path_world.copy()
 
         if not path:
             return
 
-        msg = self._reusable_path
+        msg = Path()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.poses.clear()
+        msg.header.frame_id = self._map_frame
         for wx, wy in path:
             pose = PoseStamped()
             pose.pose.position.x = wx
@@ -1350,12 +1339,12 @@ class AimeeNavNode(Node):
         self._path_pub.publish(msg)
 
     def _publish_local_plan(self) -> None:
-        """Publish best DWA trajectory for RViz (reuses pre-allocated message)."""
+        """Publish best DWA trajectory for RViz."""
         if not self._latest_local_plan:
             return
-        msg = self._reusable_local_plan
+        msg = Path()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.poses.clear()
+        msg.header.frame_id = self._map_frame
         for wx, wy in self._latest_local_plan:
             pose = PoseStamped()
             pose.pose.position.x = wx
@@ -1365,8 +1354,8 @@ class AimeeNavNode(Node):
         self._local_plan_pub.publish(msg)
 
     def _publish_cmd_vel(self, linear_x: float, angular_z: float) -> None:
-        """Publish commanded velocity for monitoring (reuses pre-allocated message)."""
-        msg = self._reusable_twist
+        """Publish commanded velocity for monitoring."""
+        msg = Twist()
         msg.linear.x = linear_x
         msg.angular.z = angular_z
         self._cmd_vel_pub.publish(msg)
@@ -1402,7 +1391,7 @@ class AimeeNavNode(Node):
         Returns list of (world_x, world_y, size) for each frontier cluster.
         """
         import numpy as np
-        from scipy import ndimage
+        from collections import deque
 
         # Cache frontiers for a few seconds — map doesn't change that fast
         now = time.time()
@@ -1434,23 +1423,50 @@ class AimeeNavNode(Node):
             self._frontier_cache_time = now
             return []
 
-        # Cluster frontier cells using scipy.ndimage.label (much faster than Python BFS)
-        labeled, num_features = ndimage.label(frontier_mask)
+        # Cluster frontier cells using BFS with deque (faster than list.pop(0))
+        visited = np.zeros((h, w), dtype=bool)
         clusters = []
-        for label_id in range(1, num_features + 1):
-            coords = np.argwhere(labeled == label_id)
-            size = len(coords)
-            if size >= self._min_frontier_size:
-                avg_r = coords[:, 0].mean()
-                avg_c = coords[:, 1].mean()
+        frontier_coords = np.argwhere(frontier_mask)
+
+        for r, c in frontier_coords:
+            if visited[r, c]:
+                continue
+            cluster = []
+            queue = deque()
+            queue.append((r, c))
+            visited[r, c] = True
+            while queue:
+                cr, cc = queue.popleft()
+                cluster.append((cr, cc))
+                # Check 4-connected neighbors (unrolled for speed)
+                nr = cr - 1
+                if nr >= 0 and frontier_mask[nr, cc] and not visited[nr, cc]:
+                    visited[nr, cc] = True
+                    queue.append((nr, cc))
+                nr = cr + 1
+                if nr < h and frontier_mask[nr, cc] and not visited[nr, cc]:
+                    visited[nr, cc] = True
+                    queue.append((nr, cc))
+                nc = cc - 1
+                if nc >= 0 and frontier_mask[cr, nc] and not visited[cr, nc]:
+                    visited[cr, nc] = True
+                    queue.append((cr, nc))
+                nc = cc + 1
+                if nc < w and frontier_mask[cr, nc] and not visited[cr, nc]:
+                    visited[cr, nc] = True
+                    queue.append((cr, nc))
+
+            if len(cluster) >= self._min_frontier_size:
+                avg_r = sum(p[0] for p in cluster) / len(cluster)
+                avg_c = sum(p[1] for p in cluster) / len(cluster)
                 wx = origin_x + avg_c * res
                 wy = origin_y + avg_r * res
-                clusters.append((wx, wy, size))
+                clusters.append((wx, wy, len(cluster)))
 
         t_done = time.time()
         self.get_logger().info(
             f"FRONTIER internals: mask={(t_after_mask-t_mask)*1000:.1f}ms "
-            f"label={(t_done-t_after_mask)*1000:.1f}ms "
+            f"bfs={(t_done-t_after_mask)*1000:.1f}ms "
             f"cells={n_frontier} clusters={len(clusters)}"
         )
         self._frontier_cache = clusters
@@ -1458,11 +1474,7 @@ class AimeeNavNode(Node):
         return clusters
 
     def _select_best_frontier(self, frontiers, robot_x, robot_y):
-        """Pick the best frontier based on openness, size, and distance.
-
-        Prefers frontiers in open areas (more free space around them)
-        and rewards driving deeper into unexplored space.
-        """
+        """Pick the best frontier based on distance and size."""
         best = None
         best_score = -1.0
 
@@ -1476,32 +1488,8 @@ class AimeeNavNode(Node):
             if dist < 0.3:
                 continue
 
-            # --- Openness check: count free cells in a window around frontier ---
-            ok, gx, gy = self._global_map.world_to_grid(wx, wy)
-            if not ok:
-                continue
-            free_count = 0
-            total_count = 0
-            radius = 3  # 3 cells radius (~15 cm at 5 cm res, scale with map)
-            for dy in range(-radius, radius + 1):
-                for dx in range(-radius, radius + 1):
-                    cx = gx + dx
-                    cy = gy + dy
-                    if (0 <= cx < self._global_map.width_cells() and
-                            0 <= cy < self._global_map.height_cells()):
-                        val = self._global_map.cell(cx, cy)
-                        if 0 < val < 100:
-                            free_count += 1
-                        total_count += 1
-            openness = free_count / total_count if total_count > 0 else 0.0
-
-            # Skip frontiers that are wedged in tight corners
-            if openness < 0.3:
-                continue
-
-            # Score: larger * more open * farther = better
-            # sqrt(dist) gives a modest boost to farther frontiers
-            score = size * openness * math.sqrt(dist)
+            # Score: larger frontiers closer to robot are better
+            score = size / (dist + 0.1)
             if score > best_score:
                 best_score = score
                 best = (wx, wy)
@@ -1634,8 +1622,6 @@ class AimeeNavNode(Node):
             self._path_world = []
             self._path_index = 0
             self._controller.reset()
-        self._stuck_start_time = time.time()
-        self._last_progress_pos = (self._ekf.x(), self._ekf.y())
         self._nav_state = 'GOING_TO_GOAL'
         self.get_logger().info(f"Navigating to waypoint '{name}': ({x:.2f}, {y:.2f})")
 
@@ -1878,17 +1864,6 @@ class AimeeNavNode(Node):
         if self._lidar_consumer_thread is not None and self._lidar_consumer_thread.is_alive():
             self._lidar_consumer_thread.join(timeout=1.0)
 
-        # Auto-save map on shutdown
-        if self._auto_save_map:
-            try:
-                os.makedirs(self._map_save_dir, exist_ok=True)
-                timestamp = time.strftime('%Y%m%d_%H%M%S')
-                filename = os.path.join(self._map_save_dir, f'map_{timestamp}.json')
-                self._save_map_to_file(filename)
-                self.get_logger().info(f"Auto-saved map to {filename}")
-            except Exception as e:
-                self.get_logger().error(f"Auto-save failed: {e}")
-
         super().destroy_node()
 
 
@@ -1896,10 +1871,9 @@ def main(args=None):
     rclpy.init(args=args)
     node = AimeeNavNode()
 
-    # Use SingleThreadedExecutor — our heavy lifting (nav, lidar, loop closure)
-    # runs in independent daemon threads; ROS executor only handles low-rate
-    # subscriptions (/goal_pose, /go_to_waypoint_name, /odom) and services.
-    executor = SingleThreadedExecutor()
+    # Use MultiThreadedExecutor to allow ROS callbacks to run concurrently
+    # with our background threads (though our threads are independent)
+    executor = MultiThreadedExecutor()
     executor.add_node(node)
 
     try:

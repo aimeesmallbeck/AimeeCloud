@@ -9,7 +9,7 @@
 #     robot's YAML config under base_params.
 #
 # Platform-agnostic integrated navigation.
-#   base_interface: "ros"     → Use /cmd_vel + /odom (UGV02, etc.)
+#   base_interface: "direct"     → Use /cmd_vel + /odom (UGV02, etc.)
 #   base_interface: "direct" → Use WaveRoverDriver (Wave Rover direct control)
 
 aimee_nav:
@@ -21,7 +21,7 @@ aimee_nav:
     lidar_angle_offset_deg: 0.0
 
     # ─── Base Interface ───
-    base_interface: "ros"           # "ros" or "direct"
+    base_interface: "direct"           # "ros" or "direct"
     # Direct-mode params (ignored when base_interface="ros")
     rover_port: "/dev/ttyACM0"
     rover_baud: 115200
@@ -29,16 +29,16 @@ aimee_nav:
     control_mode: "wheel_speed"     # "wheel_speed" (T=1) or "velocity" (T=13)
     angular_scale: 1.0              # No extra scaling; controller handles mapping
     track_width_multiplier: 2.0     # Skid-steer scrub compensation
-    accel_limit_linear: 0.5         # m/s^2  (0 = disabled)
-    accel_limit_angular: 1.0        # rad/s^2 (0 = disabled)
+    accel_limit_linear: 0.3         # m/s^2  (0 = disabled)
+    accel_limit_angular: 0.5        # rad/s^2 (0 = disabled)
 
     # ─── Platform Geometry ───
     # UGV02  : wheel_separation=0.23, wheel_radius=0.04, max_speed=0.41
     # WaveRover: wheel_separation=0.172, wheel_radius=0.04, max_speed=0.5
-    wheel_separation: 0.172
+    wheel_separation: 0.26
     wheel_radius: 0.04
-    max_speed: 0.3               # Forward calibrated
-    max_angular: 0.3              # Maps to ~30% motor power ≈ 90°/s (clean in-place turn)
+    max_speed: 0.4
+    max_angular: 0.5              # Maps to ~30% motor power ≈ 90°/s (clean in-place turn)
 
     # ─── Local Grid Map ───
     grid_size_m: 3.0
@@ -50,7 +50,7 @@ aimee_nav:
 
     # ─── Navigation Behavior ───
     safety_distance_m: 0.35
-    goal_tolerance_m: 0.20
+    goal_tolerance_m: 0.10
     replan_interval_s: 1.0
     min_clearance_m: 0.20
     navigation_mode: "planned"      # "reactive" or "planned"
@@ -61,7 +61,7 @@ aimee_nav:
     nav_rate_hz: 3.0                 # Lower rate for UNO Q headroom
     publish_decimation: 150           # Viz topics every ~50s @ 3Hz (reduce DDS load)
     lidar_downsample: 6               # 60 points instead of 360 (6° resolution)
-    heading_kp: 0.6
+    heading_kp: 2.0
     heading_ki: 0.0
     heading_kd: 1.0
     velocity_kp: 1.0
@@ -82,7 +82,7 @@ aimee_nav:
     publish_map_odom_tf: true  # Set to false when external SLAM provides map→odom
 
     # ─── Encoder & IMU Tuning ───
-    ticks_per_meter: 200.0       # Generic N20 encoder estimate (~48 CPR, 0.04m radius)
+    ticks_per_meter: 106.0
                                  # Override in robot YAML with calibrated value
     accel_scale: 0.001197        # m/s^2 per LSB (approx 8192 LSB/g)
     gyro_scale: 0.001066         # rad/s per LSB (approx 16.4 LSB/(deg/s))

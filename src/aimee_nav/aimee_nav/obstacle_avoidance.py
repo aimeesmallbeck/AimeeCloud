@@ -165,6 +165,12 @@ class ObstacleAvoidance:
         fx = f_attract_x + f_repulse_x
         fy = f_attract_y + f_repulse_y
 
+                # Safety Clamp: Never allow forces to explode
+        mag = math.hypot(fx, fy)
+        if mag > 5.0:
+            scale = 5.0 / mag
+            fx *= scale
+            fy *= scale
         return fx, fy
 
     def vff_to_velocity(

@@ -276,6 +276,7 @@ class TTSNode(Node):
                 pygame.mixer.music.play()
                 start_time = time.time()
                 while pygame.mixer.music.get_busy():
+                    time.sleep(0.05) # Prevent 100% CPU usage
                     if self._preempt_event.is_set():
                         pygame.mixer.music.stop()
                         self._preempt_event.clear()

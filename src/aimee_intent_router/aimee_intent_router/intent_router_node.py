@@ -68,6 +68,8 @@ class IntentRouterNode(Node):
         self._intent_config = self._load_intent_config(intent_config_path)
         self._noise_words = set(self._intent_config.get('noise_words', []))
         self._local_only_skill_names = set(self._intent_config.get('local_only_skill_names', []))
+        self._intent_config_mtime = 0
+        self._intent_config_path = intent_config_path
 
         self.get_logger().info(
             f"Intent Router initialized: "
@@ -90,10 +92,22 @@ class IntentRouterNode(Node):
     # ─────────────────────────────── Intent Classification ───────────────────────────────
 
     def _classify_intent(self, text: str) -> dict:
-        """Classify intent using external JSON configuration (reloaded each call)."""
-        # Reload config each time so edits take effect immediately
-        config = self._load_intent_config(self.get_parameter('intent_config_path').value, silent=True)
-        noise_words = set(config.get('noise_words', []))
+        """Classify intent using external JSON configuration (smart cached)."""
+        # Reload config only if file has changed on disk
+        config_path = self.get_parameter('intent_config_path').value
+        try:
+            current_mtime = os.path.getmtime(config_path)
+            if current_mtime > self._intent_config_mtime:
+                self.get_logger().info(f"Reloading intent config (changed on disk)")
+                self._intent_config = self._load_intent_config(config_path, silent=True)
+                self._intent_config_mtime = current_mtime
+                self._noise_words = set(self._intent_config.get('noise_words', []))
+                self._local_only_skill_names = set(self._intent_config.get('local_only_skill_names', []))
+        except Exception as e:
+            self.get_logger().error(f"Error checking config mtime: {e}")
+
+        config = self._intent_config
+        noise_words = self._noise_words
 
         text_lower = text.lower().strip()
         cleaned = text_lower.rstrip('.').rstrip('?').rstrip('!')

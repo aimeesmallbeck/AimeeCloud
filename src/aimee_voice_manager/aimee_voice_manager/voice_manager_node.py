@@ -23,6 +23,7 @@ import select
 import signal
 import subprocess
 import threading
+import concurrent.futures
 import time
 import wave
 from dataclasses import dataclass
@@ -154,6 +155,7 @@ class VoiceManagerNode(Node):
         self._listen_thread: Optional[threading.Thread] = None
         self._online = False
         self._online_lock = threading.Lock()
+        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
         self.garbage_words: Set[str] = {"huh", "who", "um", "mm", "mhm", "uh", "eh", "hm", "hmm", "e", "a", "i", "o", "u"}
 
@@ -515,10 +517,12 @@ class VoiceManagerNode(Node):
                         should_use_whisper = self._online and self._whisper_enabled and self._whisper_api_key
 
                     if should_use_whisper and self._engine == 'whisper_api' and utterance_has_energy and len(utterance_buffer) > 0:
-                        whisper_text = self._transcribe_whisper_api(bytes(utterance_buffer))
-                        if whisper_text:
-                            final_text = whisper_text
-                            engine_used = "whisper_api"
+                        # Offload to executor to avoid blocking the audio capture loop
+                        self._executor.submit(self._handle_whisper_async, bytes(utterance_buffer), engine_used, "")
+                        # Continue loop without waiting for API response
+                        utterance_buffer = bytearray()
+                        utterance_has_energy = False
+                        continue
 
                     if final_text and len(final_text) >= self._min_command_length:
                         if self._is_garbage(final_text):
@@ -572,15 +576,14 @@ class VoiceManagerNode(Node):
 
     @staticmethod
     def _audio_energy(data: bytes) -> float:
-        """Compute RMS energy of a S16_LE raw audio chunk."""
+        """Compute RMS energy using numpy for speed."""
         if len(data) < 2:
             return 0.0
         try:
-            samples = array.array('h', data)
+            samples = np.frombuffer(data, dtype=np.int16).astype(np.float32)
             if len(samples) == 0:
                 return 0.0
-            sum_squares = sum(s * s for s in samples)
-            return math.sqrt(sum_squares / len(samples))
+            return float(np.sqrt(np.mean(np.square(samples))))
         except Exception:
             return 0.0
 
@@ -671,6 +674,20 @@ class VoiceManagerNode(Node):
         return False
 
     # ─────────────────────────────── Whisper API ───────────────────────────────
+
+    
+    def _handle_whisper_async(self, audio_bytes, engine_used, session_id):
+        """Background worker for Whisper API transcription."""
+        text = self._transcribe_whisper_api(audio_bytes)
+        if text and len(text) >= self._min_command_length:
+            if self._is_garbage(text) or self._is_tts_echo(text):
+                return
+            self.get_logger().info(f"Transcription (whisper_api_async): {text}")
+            result_obj = TranscriptionResult(
+                text=text, confidence=1.0, is_command=True,
+                engine="whisper_api", wake_word="", session_id=session_id
+            )
+            self._publish_transcription(result_obj)
 
     def _transcribe_whisper_api(self, audio_bytes: bytes) -> Optional[str]:
         """Send raw PCM audio to Whisper API and return transcription text."""
