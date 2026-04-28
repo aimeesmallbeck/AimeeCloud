@@ -1,1 +1,0 @@
-# Aimee Vision Pipeline Package

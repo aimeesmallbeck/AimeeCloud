@@ -94,6 +94,16 @@ _pipeline_state = {
 }
 
 # System status
+_cached_metrics = {
+    'cpu_percent': 0.0,
+    'ram_used_mb': 0,
+    'ram_total_mb': 0,
+    'ram_percent': 0.0,
+    'temp_c': 0.0
+}
+_metrics_lock = threading.Lock()
+
+# System status
 _system_status = {
     'ros2_running': False,
     'daemon_running': False,
@@ -127,7 +137,7 @@ NODE_DEFINITIONS = {
             '-p', 'video_device:=/dev/video2',
             '-p', 'image_width:=640',
             '-p', 'image_height:=480',
-            '-p', 'pixel_format:=raw_mjpeg',
+            '-p', 'pixel_format:=yuyv',
             '-p', 'io_method:=mmap',
             '-p', 'camera_name:=usb_camera',
             '-r', '__ns:=/camera'
@@ -479,17 +489,9 @@ def get_system_status():
 
 @app.route('/api/system/metrics')
 def get_system_metrics():
-    """Get CPU, RAM, and temperature metrics."""
-    cpu_percent = _get_cpu_percent()
-    ram_used_mb, ram_total_mb, ram_percent = _get_ram_info()
-    temp_c = _get_temperature()
-    return jsonify({
-        'cpu_percent': cpu_percent,
-        'ram_used_mb': ram_used_mb,
-        'ram_total_mb': ram_total_mb,
-        'ram_percent': ram_percent,
-        'temp_c': temp_c,
-    })
+    """Get cached CPU, RAM, and temperature metrics."""
+    with _metrics_lock:
+        return jsonify(_cached_metrics)
 
 
 @app.route('/api/pipeline')
@@ -718,6 +720,23 @@ def send_snapshot_to_cloud():
     
     return jsonify({'success': False, 'message': result.get('message', 'Snapshot failed')}), 500
 
+
+
+@app.route('/api/camera/stream')
+def camera_stream():
+    """MJPEG streaming route."""
+    if _ros_node is None:
+        return "ROS2 node not ready", 503
+        
+    def generate():
+        while True:
+            frame = _ros_node.get_camera_frame()
+            if frame:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            time.sleep(0.1) # Max 10 FPS to save CPU
+            
+    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/api/camera/frame.jpg')
 def camera_frame():
@@ -1194,6 +1213,7 @@ class MonitorNode(Node):
         self._initial_refresh_timer = self.create_timer(1.0, self._initial_refresh)
         
         self.get_logger().info("ROS2 Monitor Node started")
+        threading.Thread(target=self._metrics_worker, daemon=True).start()
     
     def capture_snapshot(self, resolution: str = "", quality: int = 95, timeout_sec: float = 15.0) -> dict:
         """Call the /camera/capture_snapshot service and return result dict."""
@@ -1259,6 +1279,28 @@ class MonitorNode(Node):
             self._camera_frame_data = bytes(msg.data)
             self._camera_frame_time = time.time()
     
+    
+    def _metrics_worker(self):
+        """Background thread to update system metrics without blocking Flask."""
+        global _cached_metrics
+        while rclpy.ok():
+            try:
+                c = _get_cpu_percent()
+                r_used, r_total, r_perc = _get_ram_info()
+                t = _get_temperature()
+                
+                with _metrics_lock:
+                    _cached_metrics.update({
+                        'cpu_percent': c,
+                        'ram_used_mb': r_used,
+                        'ram_total_mb': r_total,
+                        'ram_percent': r_perc,
+                        'temp_c': t
+                    })
+            except Exception as e:
+                self.get_logger().error(f"Metrics worker error: {e}")
+            time.sleep(2.0)
+
     def get_camera_frame(self) -> bytes:
         """Return latest camera frame bytes or empty bytes if stale (>2s)."""
         with self._camera_frame_lock:
@@ -1273,6 +1315,7 @@ class MonitorNode(Node):
         _pipeline_state['cloud'] = {'connected': msg.data, 'timestamp': time.time()}
     
     def _on_log_message(self, msg: Log):
+        if msg.level < 20: return # Skip DEBUG logs
         """Handle incoming log message."""
         global _log_stats
         

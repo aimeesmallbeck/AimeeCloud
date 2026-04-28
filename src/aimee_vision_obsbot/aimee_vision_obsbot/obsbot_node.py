@@ -496,202 +496,49 @@ class ObsbotNode(Node):
             self.get_logger().warning(f"Frame encoding error: {e}")
             return None
 
-    def _capture_via_v4l2(self, video_size: str, output_path: str) -> bytes:
-        """Capture a frame directly from V4L2 device (fallback)."""
-        image_data = b''
-        width, height = video_size.split('x')
-        cmd_v4l2 = [
-            'v4l2-ctl', '--device', self._video_device,
-            '--set-fmt-video', f'width={width},height={height},pixelformat=MJPG',
-            '--stream-mmap', '--stream-to', output_path, '--stream-count', '1'
-        ]
-        result_v4l2 = subprocess.run(
-            cmd_v4l2, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10
-        )
-        if result_v4l2.returncode == 0:
-            with open(output_path, 'rb') as f:
-                image_data = f.read()
-        else:
-            err_v4l2 = result_v4l2.stderr.decode('utf-8', errors='replace').strip()
-            self.get_logger().warning(f"v4l2-ctl failed: {err_v4l2}")
-        return image_data
-
-    def _capture_via_ffmpeg(self, video_size: str, output_path: str, qv: int) -> bytes:
-        """Capture a frame via ffmpeg (last resort fallback)."""
-        cmd = [
-            'ffmpeg', '-y',
-            '-f', 'v4l2',
-            '-input_format', 'mjpeg',
-            '-video_size', video_size,
-            '-i', self._video_device,
-            '-frames:v', '1',
-            '-q:v', str(qv),
-            output_path,
-        ]
-        result = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=15
-        )
-        if result.returncode != 0:
-            stderr = result.stderr.decode('utf-8', errors='replace')
-            self.get_logger().error(f"ffmpeg failed: {stderr}")
-            raise RuntimeError(stderr)
-        with open(output_path, 'rb') as f:
-            return f.read()
-
     def _on_capture_snapshot(self, request, response):
-        """Handle snapshot capture request.
-
-        Primary path: use the latest buffered frame from /camera/image_raw
-        (zero V4L2 contention, instant, reliable).
-
-        Fallback path: direct V4L2 capture via v4l2-ctl / ffmpeg
-        (for when usb_cam is not running or higher resolution is needed).
+        """Handle snapshot capture request using ONLY the buffered streaming topic.
+        We rely on the C++ usb_cam node for hardware stream to avoid V4L2 contention.
         """
-        resolution = request.resolution.strip().lower()
-        quality = request.quality
+        quality = max(1, min(100, request.quality))
 
-        # Map resolution string to size
-        size_map = {
-            '': self._snapshot_default_resolution,
-            'default': self._snapshot_default_resolution,
-            '1080p': '1920x1080',
-            '1920x1080': '1920x1080',
-            '4k': '3840x2160',
-            '2160p': '3840x2160',
-            '3840x2160': '3840x2160',
-            '720p': '1280x720',
-            '1280x720': '1280x720',
-            '480p': '640x480',
-            '640x480': '640x480',
-            'vga': '640x480',
-        }
-        video_size = size_map.get(resolution, self._snapshot_default_resolution)
-        quality = max(1, min(100, quality))
+        self.get_logger().info(f"Snapshot requested (quality={quality})")
 
-        self.get_logger().info(
-            f"Snapshot requested: {video_size} (quality={quality})"
-        )
-
-        # ─── Primary: buffered frame from streaming topic ───
         with self._latest_frame_lock:
             buffered_frame = self._latest_frame
             frame_count = self._frame_count
 
-        if buffered_frame is not None:
-            # Check if buffered frame resolution matches request
-            req_width, req_height = video_size.split('x')
-            req_width = int(req_width)
-            req_height = int(req_height)
+        if buffered_frame is None:
+            response.success = False
+            response.message = "No buffered frame available. Ensure the C++ camera node is running and publishing to /camera/image_raw."
+            self.get_logger().error(response.message)
+            return response
 
-            # Use buffered frame if resolution matches or is "close enough"
-            # (within 10% — streaming might be slightly different due to driver rounding)
-            buf_width = buffered_frame.width
-            buf_height = buffered_frame.height
-            width_ok = abs(buf_width - req_width) <= max(req_width * 0.1, 16)
-            height_ok = abs(buf_height - req_height) <= max(req_height * 0.1, 16)
-
-            if width_ok and height_ok:
-                self.get_logger().info(
-                    f"Using buffered frame ({buf_width}x{buf_height}, "
-                    f"frame_count={frame_count})"
-                )
-                image_data = self._encode_frame_to_jpeg(buffered_frame, quality)
-                if image_data:
-                    header = Header()
-                    header.stamp = self.get_clock().now().to_msg()
-                    header.frame_id = 'camera'
-                    response.image = CompressedImage(
-                        header=header,
-                        format='jpeg',
-                        data=image_data,
-                    )
-                    response.success = True
-                    response.message = (
-                        f"Snapshot from stream: {buf_width}x{buf_height}, "
-                        f"{len(image_data)} bytes"
-                    )
-                    self.get_logger().info(response.message)
-                    return response
-                else:
-                    self.get_logger().warning(
-                        "Buffered frame encoding failed, falling back to V4L2"
-                    )
-            else:
-                self.get_logger().info(
-                    f"Buffered frame resolution mismatch "
-                    f"({buf_width}x{buf_height} vs {video_size}), "
-                    f"falling back to V4L2"
-                )
-        else:
-            self.get_logger().info(
-                "No buffered frame available (usb_cam may not be running), "
-                "falling back to V4L2"
-            )
-
-        # ─── Fallback: direct V4L2 capture ───
-        with tempfile.NamedTemporaryFile(
-            suffix='.jpg', prefix='obsbot_snapshot_', delete=False
-        ) as tmp:
-            output_path = tmp.name
-
-        try:
-            image_data = b''
-
-            # Try v4l2-ctl first
-            image_data = self._capture_via_v4l2(video_size, output_path)
-
-            # Fallback to ffmpeg
-            if not image_data:
-                qv = max(1, min(31, 32 - quality // 3))
-                image_data = self._capture_via_ffmpeg(video_size, output_path, qv)
-
-            if not image_data:
-                response.success = False
-                response.message = "Captured image is empty"
-                return response
-
+        self.get_logger().info(
+            f"Using buffered frame ({buffered_frame.width}x{buffered_frame.height}, "
+            f"frame_count={frame_count})"
+        )
+        
+        image_data = self._encode_frame_to_jpeg(buffered_frame, quality)
+        
+        if image_data:
+            from std_msgs.msg import Header
+            from sensor_msgs.msg import CompressedImage
             header = Header()
             header.stamp = self.get_clock().now().to_msg()
             header.frame_id = 'camera'
-
             response.image = CompressedImage(
                 header=header,
                 format='jpeg',
                 data=image_data,
             )
             response.success = True
-            response.message = (
-                f"Snapshot captured (V4L2): {video_size}, "
-                f"{len(image_data)} bytes"
-            )
+            response.message = f"Snapshot from stream: {buffered_frame.width}x{buffered_frame.height}, {len(image_data)} bytes"
             self.get_logger().info(response.message)
-
-        except subprocess.TimeoutExpired:
+        else:
             response.success = False
-            response.message = "Snapshot capture timed out (V4L2/ffmpeg >15s)"
+            response.message = "Failed to encode the buffered frame to JPEG."
             self.get_logger().error(response.message)
-
-        except Exception as e:
-            stderr = str(e).lower()
-            if 'busy' in stderr or 'resource temporarily unavailable' in stderr:
-                response.success = False
-                response.message = (
-                    f"Device {self._video_device} is busy. "
-                    "Another process is using the camera."
-                )
-            else:
-                response.success = False
-                response.message = f"Snapshot error: {e}"
-            self.get_logger().error(response.message)
-
-        finally:
-            try:
-                os.unlink(output_path)
-            except Exception:
-                pass
 
         return response
     

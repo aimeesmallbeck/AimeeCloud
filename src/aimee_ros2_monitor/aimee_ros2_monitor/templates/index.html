@@ -324,6 +324,24 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Live Camera Feed (Embedded) -->
+            <div class="panel collapsible" style="flex: 0 0 auto;">
+                <div class="panel-header" onclick="togglePanel(this)">
+                    <span>📷 Live Camera</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="panel-content" style="padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; position: relative; min-height: 240px; overflow: hidden;">
+                    <img id="mainCameraFeed" src="" alt="Camera feed" style="width:100%; max-height: 360px; object-fit:contain;">
+                    <div id="mainCameraFeedOverlay" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:0.9rem; flex-direction:column; gap:0.5rem; text-align:center; padding:1rem;">
+                        Waiting for frames...
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:center; padding: 0.5rem; background:var(--bg-card); gap:0.5rem;">
+                     <button onclick="startMainCameraFeed()" style="background:#28a745;color:white;border:none;padding:0.4rem 0.9rem;border-radius:4px;cursor:pointer;font-size:0.8rem;font-weight:bold;">▶ Start Stream</button>
+                     <button onclick="stopMainCameraFeed()" style="background:var(--error);color:white;border:none;padding:0.4rem 0.9rem;border-radius:4px;cursor:pointer;font-size:0.8rem;font-weight:bold;">⏹ Stop Stream</button>
+                </div>
+            </div>
             
             <!-- Node Launcher -->
             <div class="panel collapsible" style="flex: 0 0 auto;">
@@ -585,6 +603,7 @@
             loadManagedNodes();
             updateStatus();
             updateMetrics();
+            startMainCameraFeed();
             loadTTSVoices();
             
             setInterval(() => {
@@ -598,6 +617,55 @@
             }, REFRESH_INTERVAL);
         });
         
+        
+        // ==================== Main Camera Feed ====================
+        let mainCameraPollInterval = null;
+        
+        function startMainCameraFeed() {
+            const img = document.getElementById('mainCameraFeed');
+            const overlay = document.getElementById('mainCameraFeedOverlay');
+            overlay.style.display = 'flex';
+            
+            if (mainCameraPollInterval) clearInterval(mainCameraPollInterval);
+            
+            let lastUrl = null;
+            mainCameraPollInterval = setInterval(async () => {
+                try {
+                    const resp = await fetch('/api/camera/frame.jpg?t=' + Date.now());
+                    if (resp.status === 204) {
+                        img.src = '';
+                        overlay.innerHTML = '<div>No frames available</div><div style="font-size:0.75rem;">Start the <strong>USB Camera</strong> node</div>';
+                        overlay.style.display = 'flex';
+                        if (lastUrl) {
+                            URL.revokeObjectURL(lastUrl);
+                            lastUrl = null;
+                        }
+                        return;
+                    }
+                    if (!resp.ok) return;
+                    const blob = await resp.blob();
+                    const url = URL.createObjectURL(blob);
+                    img.src = url;
+                    overlay.style.display = 'none';
+                    if (lastUrl) URL.revokeObjectURL(lastUrl);
+                    lastUrl = url;
+                } catch (err) {
+                    // ignore polling errors
+                }
+            }, 300);
+        }
+        
+        function stopMainCameraFeed() {
+            if (mainCameraPollInterval) {
+                clearInterval(mainCameraPollInterval);
+                mainCameraPollInterval = null;
+            }
+            document.getElementById('mainCameraFeed').src = '';
+            const overlay = document.getElementById('mainCameraFeedOverlay');
+            overlay.innerHTML = 'Stream Stopped';
+            overlay.style.display = 'flex';
+        }
+
         // ==================== Logs ====================
         async function loadLogs() {
             try {
