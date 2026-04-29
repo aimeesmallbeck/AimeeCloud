@@ -19,7 +19,7 @@ The project is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**. Many
 ## Technology Stack
 
 - **Middleware:** ROS2 Humble Hawksbill
-- **DDS:** Cyclone DDS (`rmw_cyclonedds_cpp`) — chosen for Nav2 stability. `setup_env.sh` sets `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`.
+- **DDS:** Fast DDS (`rmw_fastrtps_cpp`) — chosen for Nav2 stability. `setup_env.sh` sets `RMW_IMPLEMENTATION=rmw_fastrtps_cpp`.
 - **Primary Language:** Python 3 with `rclpy`
 - **Secondary Languages:** C++14/C99 (ldlidar driver, OBSBOT SDK sample, ROS2 message generation)
 - **Build Tool:** `colcon`
@@ -161,7 +161,7 @@ source ~/aimee-robot-ws/setup_env.sh
 
 This script:
 - Sources ROS2 Humble
-- Sets `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`
+- Sets `RMW_IMPLEMENTATION=rmw_fastrtps_cpp`
 - Sources the workspace `install/setup.bash` if present
 - Sets model paths, cloud endpoints, and `PYTHONPATH`
 
@@ -371,7 +371,7 @@ Individual packages also contain their own `README.md` files with topic interfac
 ## Important Notes for Agents
 
 - The target hardware is an **Arduino UNO Q with 4GB RAM**. Always consider memory constraints. Use `--parallel-workers 1` for builds if needed.
-- **Cyclone DDS is the default RMW**, not Fast DDS. The `fastdds_*.xml` files are legacy.
+- **Fast DDS is the default RMW**, not Fast DDS. The `fastdds_*.xml` files are legacy.
 - The OBSBOT Tiny 2 camera uses USB RNDIS and can hijack the default gateway. The routing fix service exists for this reason.
 - Large binary models (LLM weights, speech models, Edge Impulse models, `lib/`) are **not in git** and must be synced via `deploy/sync-models.sh` or downloaded separately.
 - There is **no CI/CD pipeline** in this repository.

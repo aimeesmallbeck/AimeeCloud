@@ -15,9 +15,8 @@ else
     echo "WARNING: ROS2 Humble setup not found!"
 fi
 
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-# Cyclone DDS configuration (replaced Fast DDS for Nav2 stability)
-
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+# Fast DDS configuration (Preferred for shared memory and performance)
 
 # Aimee Robot workspace
 if [ -f "${SCRIPT_DIR}/install/setup.bash" ]; then
@@ -62,6 +61,6 @@ echo "Aimee Robot Environment Configured"
 echo "=========================================="
 echo "Workspace: ${AIMEE_ROBOT_WS}"
 echo "Robot Name: ${AIMEE_ROBOT_NAME}"
-echo "DDS: Cyclone DDS (Nav2-stable)"
+echo "DDS: Fast DDS (Shared Memory Optimized)"
 echo "RMW Implementation: ${RMW_IMPLEMENTATION}"
 echo "=========================================="

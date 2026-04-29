@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: aimee-robot:cyclone-installed
+    image: aimee-robot:latest
     container_name: aimee-robot
     hostname: aimee-robot
     
@@ -16,15 +16,12 @@ services:
     # Restart on failure unless explicitly stopped
     restart: unless-stopped
     
-    env_file:
-      - .env
-    
+    # Environment variables
     environment:
       - TZ=America/Los_Angeles
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-      - FASTRTPS_DEFAULT_PROFILES_FILE=
-      - FASTRTPS_PROFILE=
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - FASTRTPS_DEFAULT_PROFILES_FILE=/workspace/fastdds_shm.xml
       - AIMEE_ROBOT_WS=/workspace
       - LEMONFOX_API_KEY=${LEMONFOX_API_KEY:-}
       - AIMEE_CLOUD_ENDPOINT=${AIMEE_CLOUD_ENDPOINT:-https://aimeecloud.com}
@@ -33,7 +30,7 @@ services:
       # Workspace source code
       - .:/workspace:rw
       
-      # Vosk models (can be large; optionally external mount)
+      # Vosk models
       - ./vosk-models:/home/arduino/vosk-models:rw
       
       # Device access
@@ -61,7 +58,18 @@ services:
       retries: 3
       start_period: 60s
     
-    # Default: drop to an interactive bash shell.
-    # For production, override with: docker compose run --rm aimee-robot ros2 launch aimee_bringup core.launch.py
+    # Default: launch core nodes and monitor on startup
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        if [ ! -f /workspace/install/setup.bash ]; then
+          echo 'Building AIMEE workspace...' &&
+          cd /workspace &&
+          colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release;
+        fi &&
+        source /workspace/install/setup.bash &&
+        ros2 launch aimee_bringup core.launch.py use_monitor:=true
+      "
+    
     stdin_open: true
     tty: true

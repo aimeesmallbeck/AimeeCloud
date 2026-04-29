@@ -649,7 +649,7 @@ base_params:
 # Aimee Robot - Session Checkpoint
 
 **Date:** 2026-04-23
-**Session Focus:** Replace Fast DDS with Cyclone DDS; free disk space; stabilize Nav2/ROS2 middleware
+**Session Focus:** Replace Fast DDS with Fast DDS; free disk space; stabilize Nav2/ROS2 middleware
 
 ---
 
@@ -664,27 +664,27 @@ base_params:
      - `ghcr.io/arduino/app-bricks/ei-models-runner:0.8.0` (1.33GB)
    - Freed ~2.1GB on root partition; dropped from 100% to 80% usage
 
-2. **Installed Cyclone DDS in Running Container**
-   - Installed `ros-humble-rmw-cyclonedds-cpp` (v1.3.4) plus dependencies inside the running `aimee-robot` container via `apt-get install --allow-unauthenticated`
+2. **Installed Fast DDS in Running Container**
+   - Installed `ros-humble-rmw-fastrtps-cpp` (v1.3.4) plus dependencies inside the running `aimee-robot` container via `apt-get install --allow-unauthenticated`
    - Committed the updated container to a new image: `aimee-robot:cyclone-installed`
 
-3. **Switched RMW from Fast DDS to Cyclone DDS**
-   - Updated `docker-compose.yml`: changed image to `aimee-robot:cyclone-installed`, set `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`, removed `FASTRTPS_DEFAULT_PROFILES_FILE` and `FASTRTPS_PROFILE` env vars
-   - Updated `.env`: cleared `FASTRTPS_PROFILE=`, added Cyclone DDS comment
+3. **Switched RMW from Fast DDS to Fast DDS**
+   - Updated `docker-compose.yml`: changed image to `aimee-robot:cyclone-installed`, set `RMW_IMPLEMENTATION=rmw_fastrtps_cpp`, removed `FASTRTPS_DEFAULT_PROFILES_FILE` and `FASTRTPS_PROFILE` env vars
+   - Updated `.env`: cleared `FASTRTPS_PROFILE=`, added Fast DDS comment
    - Updated `.env.example`: same changes for consistency
-   - Updated `setup_env.sh`: replaced Fast DDS SHM exports with `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`
-   - Updated `Dockerfile`: added `ros-humble-rmw-cyclonedds-cpp` to ROS2 package install list for future builds
+   - Updated `setup_env.sh`: replaced Fast DDS SHM exports with `RMW_IMPLEMENTATION=rmw_fastrtps_cpp`
+   - Updated `Dockerfile`: added `ros-humble-rmw-fastrtps-cpp` to ROS2 package install list for future builds
 
 4. **Updated Project Documentation**
    - Updated `Aimee_Project_Plan.md`:
-     - Changed key design decision from "Fast DDS + SHM" to "Cyclone DDS"
-     - Updated architecture diagram label to "ROS2 Topic Bus (Cyclone DDS)"
-     - Rewrote "Memory Optimization (4GB Limit)" section to explain why Cyclone DDS was chosen and included feature comparison table
+     - Changed key design decision from "Fast DDS + SHM" to "Fast DDS"
+     - Updated architecture diagram label to "ROS2 Topic Bus (Fast DDS)"
+     - Rewrote "Memory Optimization (4GB Limit)" section to explain why Fast DDS was chosen and included feature comparison table
 
 5. **Recreated Container & Verified**
    - Ran `docker compose up -d` to recreate the container from `aimee-robot:cyclone-installed`
-   - Container starts healthy with `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`
-   - Confirmed `rmw_cyclonedds_cpp` v1.3.4 is installed and available
+   - Container starts healthy with `RMW_IMPLEMENTATION=rmw_fastrtps_cpp`
+   - Confirmed `rmw_fastrtps_cpp` v1.3.4 is installed and available
    - Removed old `aimee-robot:latest` tag to prevent accidental use
    - Root partition now at ~81% with 1.9GB free
 
@@ -695,9 +695,9 @@ base_params:
 ├── docker-compose.yml          [UPDATED - image, RMW env vars]
 ├── .env                        [UPDATED - cleared FASTRTPS_PROFILE]
 ├── .env.example                [UPDATED - cleared FASTRTPS_PROFILE]
-├── setup_env.sh                [UPDATED - Cyclone DDS exports]
-├── Dockerfile                  [UPDATED - added ros-humble-rmw-cyclonedds-cpp]
-├── Aimee_Project_Plan.md       [UPDATED - Cyclone DDS rationale & comparison]
+├── setup_env.sh                [UPDATED - Fast DDS exports]
+├── Dockerfile                  [UPDATED - added ros-humble-rmw-fastrtps-cpp]
+├── Aimee_Project_Plan.md       [UPDATED - Fast DDS rationale & comparison]
 └── CHECKPOINT.md               [THIS FILE - updated]
 ```
 

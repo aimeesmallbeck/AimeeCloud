@@ -37,7 +37,7 @@ Aimee is a modular social assistance robot platform built on **ROS 2 Humble**.
 
 ## Technical Operational Details
 - **Container:** `aimee-robot` (Docker)
-- **DDS:** Fast DDS / Cyclone DDS
+- **DDS:** Fast DDS / Fast DDS
 - **Hardware Ports:** Lidar: `/dev/ttyUSB0`, Base: `/dev/ttyACM0`, Camera: `/dev/video2`
 
 ## Agent Editing Protocol (Anti-Corruption)

@@ -40,7 +40,7 @@ This project plan outlines a complete rebuild of the Aimee robot system using **
 | **Arduino Brick Framework** | Modular, hot-pluggable components, standardized interfaces |
 | **Edge Impulse Wake Word** | Custom-trained keyword spotting model |
 | **OSC Protocol (OBSBOT)** | Network-based camera control, no USB drivers needed |
-| **Cyclone DDS** | Stable, lightweight DDS — Nav2-recommended replacement for Fast DDS |
+| **Fast DDS** | Stable, lightweight DDS — Nav2-recommended replacement for Fast DDS |
 | **SQLite + ChromaDB** | Structured + semantic memory for user context |
 
 ### Robot Fleet
@@ -87,7 +87,7 @@ This project plan outlines a complete rebuild of the Aimee robot system using **
 │  ║          │                │                │                │          ║ │
 │  ║          └────────────────┴────────────────┴────────────────┘          ║ │
 │  ║                            │                                           ║ │
-│  ║                    ROS2 Topic Bus (Cyclone DDS)                        ║ │
+│  ║                    ROS2 Topic Bus (Fast DDS)                        ║ │
 │  ╚════════════════════════════╧═══════════════════════════════════════════╝ │
 │                                │                                            │
 │  ┌─────────────────────────────┼─────────────────────────────────────────┐  │
@@ -119,7 +119,7 @@ Based on Gemini's feedback, the following optimizations are **critical** for pro
 
 **Problem:** ROS2 Humble's default Fast DDS middleware has documented stability issues with Nav2: discovery "storms" that spike CPU, service hangs in lifecycle transitions, and SHM segment leaks after crashes. On a 4GB ARM64 board, these issues cause navigation failures and require manual XML tuning.
 
-**Solution:** Switch to **Cyclone DDS**, the RMW implementation recommended by the Nav2 maintainers for production use.
+**Solution:** Switch to **Fast DDS**, the RMW implementation recommended by the Nav2 maintainers for production use.
 
 **Installation:**
 ```bash
@@ -129,7 +129,7 @@ sudo apt install ros-humble-rmw-cyclonedds-cpp
 **Environment Setup:**
 ```bash
 # Add to ~/.bashrc (or docker-compose.yml)
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 ```
 
 **Benefits:**
@@ -141,7 +141,7 @@ export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 **Comparison:**
 
-| Feature | Fast DDS (Default) | Cyclone DDS (Our Choice) |
+| Feature | Fast DDS (Default) | Fast DDS (Our Choice) |
 |---|---|---|
 | Out-of-the-box Nav2 | Requires XML tuning or Discovery Server | Works plug-and-play |
 | Discovery | High overhead; prone to "storms" | Lightweight and stable |
