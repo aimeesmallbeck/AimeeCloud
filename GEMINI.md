@@ -23,10 +23,11 @@ Aimee is a modular social assistance robot platform built on **ROS 2 Humble**.
 - **Lidar Offset:** 0.0 deg
 - **Safety Stop:** 0.4m (Lidar-based, hard override)
 
-## Current Best Setup (2026-04-28)
+## Current Best Setup (2026-04-29)
 - **Vision Pipeline:** Pure C++ implementation (`color_detector_node`, `object_tracker_node`) avoiding Python GIL.
 - **Camera Device:** USB Camera (`/dev/video2`) running `mmap` with `YUYV` at `640x480` at 30fps.
 - **CPU Footprint:** ~60% average usage with live monitoring and vision pipeline active.
+- **Arm Manipulation:** The ROS 2 Python node (`arm_kinematics_bridge_rpc`) communicates via MessagePack RPC over a Unix socket (`/var/run/arduino-router.sock`) to the UNO Q's `arduino-router` background service. The router forwards commands to the STM32 co-processor which acts as a Real-Time Trajectory Engine. The STM32 calculates a smooth minimum-jerk (quintic) trajectory and natively streams micro-waypoints at 50Hz over Hardware Serial (921600 baud) to the ESP32 to eliminate scheduling jitter.
 
 ## Latest Test Observations
 - **1m Goal Test:** Robot reached distance but overshot by several centimeters.
