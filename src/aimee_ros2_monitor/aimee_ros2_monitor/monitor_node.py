@@ -127,6 +127,16 @@ NODE_DEFINITIONS = {
         'category': 'vision',
         'icon': '📷'
     },
+    'astra_camera': {
+        'name': 'Astra Pro (RGB+Depth)',
+        'ros_name': '/camera/camera',
+        'is_launch': True,
+        'package': 'aimee_bringup',
+        'executable': 'astra_pro_rgbd.launch.py',
+        'args': [],
+        'category': 'vision',
+        'icon': '🎥'
+    },
     'usb_camera': {
         'name': 'USB Camera',
         'ros_name': '/camera/usb_cam',
@@ -134,7 +144,7 @@ NODE_DEFINITIONS = {
         'executable': 'usb_cam_node_exe',
         'args': [
             '--ros-args',
-            '-p', 'video_device:=/dev/video2',
+            '-p', 'video_device:=/dev/video0',
             '-p', 'image_width:=640',
             '-p', 'image_height:=480',
             '-p', 'pixel_format:=yuyv',
@@ -161,7 +171,7 @@ NODE_DEFINITIONS = {
         'executable': 'voice_manager_node',
         'args': [
             '--ros-args',
-            '-p', 'audio_device:=default',
+            '-p', 'audio_device:=plughw:2,0',
             '-p', 'model_path:=/home/arduino/vosk-models/vosk-model-small-en-us-0.15',
             '-p', 'energy_threshold:=45.0',
             '-p', 'min_command_length:=0.3',
@@ -843,11 +853,18 @@ def start_node():
     node_def = NODE_DEFINITIONS[node_id]
     
     try:
-        cmd_parts = [
-            'source /opt/ros/humble/setup.bash',
-            'source /workspace/install/setup.bash',
-            f'ros2 run {node_def["package"]} {node_def["executable"]}'
-        ]
+        if node_def.get('is_launch'):
+            cmd_parts = [
+                'source /opt/ros/humble/setup.bash',
+                'source /workspace/install/setup.bash',
+                f'ros2 launch {node_def["package"]} {node_def["executable"]}'
+            ]
+        else:
+            cmd_parts = [
+                'source /opt/ros/humble/setup.bash',
+                'source /workspace/install/setup.bash',
+                f'ros2 run {node_def["package"]} {node_def["executable"]}'
+            ]
         if node_def.get('args'):
             cmd_parts[-1] += ' ' + ' '.join(node_def['args'])
         
@@ -962,6 +979,21 @@ def stop_node():
             time.sleep(0.5)
             subprocess.run(
                 ['pkill', '-9', '-f', '/opt/ros/humble/lib/usb_cam/usb_cam_node_exe'],
+                capture_output=True, timeout=5
+            )
+            
+        if node_id == 'astra_camera':
+            time.sleep(0.5)
+            subprocess.run(
+                ['pkill', '-9', '-f', 'usb_cam_node_exe'],
+                capture_output=True, timeout=5
+            )
+            subprocess.run(
+                ['pkill', '-9', '-f', 'component_container'],
+                capture_output=True, timeout=5
+            )
+            subprocess.run(
+                ['pkill', '-9', '-f', 'astra_pro_rgbd.launch.py'],
                 capture_output=True, timeout=5
             )
         
@@ -1178,7 +1210,7 @@ class MonitorNode(Node):
         self._camera_frame_lock = threading.Lock()
         self._camera_frame_data = None
         self._camera_frame_sub = self.create_subscription(
-            CompressedImage, '/camera/image_raw/compressed',
+            CompressedImage, '/camera/color/image_raw/compressed',
             self._on_camera_frame,
             QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
         )

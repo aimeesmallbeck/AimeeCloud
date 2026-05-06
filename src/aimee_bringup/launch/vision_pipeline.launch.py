@@ -4,8 +4,12 @@ Vision Pipeline launch file for Aimee Robot
 Launches complete vision-to-manipulation pipeline
 """
 
+import os
+from ament_index_python.packages import get_package_share_directory
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch.conditions import IfCondition
@@ -22,7 +26,7 @@ def generate_launch_description():
     enable_camera_arg = DeclareLaunchArgument(
         'enable_camera',
         default_value='true',
-        description='Enable OBSBOT camera node'
+        description='Enable Orbbec Astra Pro RGB+Depth node'
     )
     
     enable_detection_arg = DeclareLaunchArgument(
@@ -59,21 +63,13 @@ def generate_launch_description():
     
     # === Vision Pipeline Nodes ===
     
-    # OBSBOT Camera Node
-    obsbot_node = Node(
-        package='aimee_vision_obsbot',
-        executable='obsbot_node',
-        name='obsbot_camera',
-        output='screen',
-        parameters=[{
-            'host': '192.168.5.1',
-            'osc_send_port': 16284,
-            'control_mode': 'auto',
-            'auto_reconnect': True,
-            'tracking_sensitivity': 0.5,
-            'publish_video': False,
-            'enabled': True,
-        }],
+    # Astra Pro RGB+Depth Camera Node
+    astra_pro_node = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(
+            get_package_share_directory('aimee_bringup'), 
+            'launch', 
+            'astra_pro_rgbd.launch.py'
+        )),
         condition=IfCondition(enable_camera)
     )
     
@@ -85,10 +81,13 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'enabled': True,
-            'colors': ['red', 'blue', 'green', 'yellow', 'orange', 'purple'],
-            'min_object_area': 500,
-            'confidence_threshold': 0.7,
+            'enabled_colors': ['red', 'blue', 'green', 'yellow', 'orange', 'purple'],
+            'min_object_area': 100,
+            'confidence_threshold': 0.1,
             'publish_debug_image': True,
+            'camera_topic': '/camera/color/image_raw',
+            'camera_info_topic': '/camera/color/camera_info',
+            'frame_id': 'camera_color_frame',
         }],
         condition=IfCondition(enable_detection)
     )
@@ -179,6 +178,20 @@ def generate_launch_description():
         condition=IfCondition(enable_manipulation)
     )
     
+    # TF2 static transform for camera to arm base
+    # NOTE: The [X, Y, Z, Yaw, Pitch, Roll] values below need physical calibration!
+    camera_tf_node = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='camera_to_arm_tf',
+        arguments=[
+            '0.0', '0.0', '0.0', # Translation X, Y, Z (meters)
+            '0.0', '0.0', '0.0', # Rotation Yaw, Pitch, Roll (radians)
+            'arm_base_link', 'camera_link'
+        ],
+        condition=IfCondition(enable_camera)
+    )
+    
     return LaunchDescription([
         # Arguments
         use_sim_time_arg,
@@ -189,9 +202,10 @@ def generate_launch_description():
         enable_manipulation_arg,
         
         # Vision Pipeline
-        obsbot_node,
+        astra_pro_node,
         color_detector_node,
         object_tracker_node,
+        camera_tf_node,
         
         # Perception
         pose_estimator_node,

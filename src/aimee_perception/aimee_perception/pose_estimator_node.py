@@ -6,8 +6,8 @@
 """
 Pose Estimator Node
 
-Estimates 3D position of detected objects using monocular camera
-with known object sizes.
+Estimates 3D position of detected objects using a registered depth map.
+Falls back to monocular estimation if depth data is unavailable or invalid.
 
 Usage:
     ros2 run aimee_perception pose_estimator_node
@@ -17,15 +17,17 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from geometry_msgs.msg import Point, TransformStamped
-from sensor_msgs.msg import CameraInfo
+from sensor_msgs.msg import CameraInfo, Image
 from aimee_msgs.msg import ObjectDetection
 import tf2_ros
 from tf2_ros import TransformBroadcaster
 from typing import Dict, Optional
 import numpy as np
+from cv_bridge import CvBridge
+import cv2
 
 
-# Known object dimensions (meters)
+# Known object dimensions (meters) - used for fallback monocular estimation
 OBJECT_DIMENSIONS: Dict[str, Dict[str, float]] = {
     "ball": {
         "diameter": 0.065,      # Tennis ball
@@ -56,9 +58,9 @@ DEFAULT_DIMENSIONS = {
 
 class PoseEstimatorNode(Node):
     """
-    Estimates 3D position of objects from 2D detections.
+    Estimates 3D position of objects from 2D detections and Depth Maps.
     
-    Uses monocular depth estimation based on known object sizes.
+    Uses registered depth data to find exact distance.
     Publishes position in camera frame and transforms to robot frame.
     """
 
@@ -67,7 +69,7 @@ class PoseEstimatorNode(Node):
 
         # Declare parameters
         self.declare_parameters(namespace='', parameters=[
-            ('camera_frame', 'obsbot_camera'),
+            ('camera_frame', 'camera_color_frame'), # Changed to match usb_cam
             ('robot_frame', 'base_link'),
             ('publish_tf', True),
             ('assumed_object_distance', 0.5),  # meters (fallback)
@@ -83,11 +85,21 @@ class PoseEstimatorNode(Node):
             history=HistoryPolicy.KEEP_LAST,
             depth=10
         )
+        
+        sensor_qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1
+        )
 
         # TF
         self._tf_broadcaster = TransformBroadcaster(self)
         self._tf_buffer = tf2_ros.Buffer()
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer, self)
+
+        # CV Bridge
+        self._cv_bridge = CvBridge()
+        self._latest_depth_image: Optional[np.ndarray] = None
 
         # Publishers
         self._detection_pub = self.create_publisher(
@@ -104,9 +116,16 @@ class PoseEstimatorNode(Node):
 
         self._camera_info_sub = self.create_subscription(
             CameraInfo,
-            '/camera/camera_info',
+            '/camera/color/camera_info',
             self._on_camera_info,
             reliable_qos
+        )
+        
+        self._depth_sub = self.create_subscription(
+            Image,
+            '/camera/depth/image_raw',
+            self._on_depth_image,
+            sensor_qos
         )
 
         # State
@@ -131,10 +150,21 @@ class PoseEstimatorNode(Node):
         self._cx = msg.k[2]  # Principal point x
         self._cy = msg.k[5]  # Principal point y
         
-        self.get_logger().debug(
-            f"Camera intrinsics updated: fx={self._fx:.1f}, fy={self._fy:.1f}, "
-            f"cx={self._cx:.1f}, cy={self._cy:.1f}"
-        )
+        # Only log once
+        if not hasattr(self, '_camera_info_logged'):
+            self.get_logger().info(
+                f"Camera intrinsics updated: fx={self._fx:.1f}, fy={self._fy:.1f}, "
+                f"cx={self._cx:.1f}, cy={self._cy:.1f}"
+            )
+            self._camera_info_logged = True
+
+    def _on_depth_image(self, msg: Image):
+        """Cache the latest depth image."""
+        try:
+            # Astra depth is usually 16UC1 (millimeters)
+            self._latest_depth_image = self._cv_bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+        except Exception as e:
+            self.get_logger().error(f"Error converting depth image: {e}")
 
     def _on_detection(self, msg: ObjectDetection):
         """Process detection and estimate 3D pose."""
@@ -163,64 +193,89 @@ class PoseEstimatorNode(Node):
         except Exception as e:
             self.get_logger().error(f"Error processing detection: {e}")
 
+    def _get_depth_at_pixel(self, u: int, v: int) -> Optional[float]:
+        """Safely get the median depth value around a pixel in meters."""
+        if self._latest_depth_image is None:
+            return None
+            
+        h, w = self._latest_depth_image.shape
+        if not (0 <= u < w and 0 <= v < h):
+            return None
+            
+        # Use a small 5x5 window around the center to avoid noisy single pixels
+        window_size = 5
+        half_w = window_size // 2
+        
+        u_min, u_max = max(0, u - half_w), min(w, u + half_w + 1)
+        v_min, v_max = max(0, v - half_w), min(h, v + half_w + 1)
+        
+        window = self._latest_depth_image[v_min:v_max, u_min:u_max]
+        
+        # Filter out 0 depth values (invalid data)
+        valid_depths = window[window > 0]
+        
+        if len(valid_depths) == 0:
+            return None
+            
+        # Get median depth in millimeters and convert to meters
+        median_depth_mm = np.median(valid_depths)
+        return float(median_depth_mm) / 1000.0
+
     def _estimate_3d_position(self, detection: ObjectDetection) -> Point:
         """
-        Estimate 3D position from 2D detection using known object size.
-        
-        For a sphere (ball):
-        - Use the bounding box width to estimate distance
-        - Z = (real_diameter * focal_length) / apparent_width
-        
-        For other objects:
-        - Use the larger dimension (height or width)
+        Estimate 3D position from 2D detection.
+        Prefers hardware depth map if available, falls back to monocular estimation.
         """
-        # Get object dimensions
-        obj_class = detection.object_class
-        if obj_class in OBJECT_DIMENSIONS:
-            dims = OBJECT_DIMENSIONS[obj_class]
-        else:
-            dims = DEFAULT_DIMENSIONS
-
-        # Choose reference dimension
-        if "diameter" in dims:
-            # Spherical objects
-            real_size = dims["diameter"]
-        else:
-            # Use larger of width/height
-            real_size = max(dims.get("width", 0.05), dims.get("height", 0.05))
-
-        # Convert normalized bbox width to pixels
-        apparent_width = detection.bbox_width * 640  # Assuming 640px width
+        # Convert normalized coordinates to pixel coordinates
+        u = int(detection.bbox_x * 640) # Assuming 640px width
+        v = int(detection.bbox_y * 480) # Assuming 480px height
         
-        if apparent_width > 0:
-            # Estimate distance: Z = (real_size * focal_length) / apparent_size
-            z = (real_size * self._fx) / apparent_width
+        # 1. Try Hardware Depth
+        z = self._get_depth_at_pixel(u, v)
+        
+        if z is not None and z > 0.1:
+            method = "Hardware Depth"
         else:
-            z = self.get_parameter('assumed_object_distance').value
+            # 2. Fallback to Monocular Depth Estimation
+            method = "Monocular Fallback"
+            # Get object dimensions
+            obj_class = detection.object_class
+            if obj_class in OBJECT_DIMENSIONS:
+                dims = OBJECT_DIMENSIONS[obj_class]
+            else:
+                dims = DEFAULT_DIMENSIONS
+
+            # Choose reference dimension
+            if "diameter" in dims:
+                real_size = dims["diameter"]
+            else:
+                real_size = max(dims.get("width", 0.05), dims.get("height", 0.05))
+
+            apparent_width = detection.bbox_width * 640
+            
+            if apparent_width > 0:
+                z = (real_size * self._fx) / apparent_width
+            else:
+                z = self.get_parameter('assumed_object_distance').value
 
         # Calculate X, Y using pinhole camera model
         # X = (u - cx) * Z / fx
         # Y = (v - cy) * Z / fy
         
-        # Convert normalized coordinates to pixel coordinates
-        u = detection.bbox_x * 640
-        v = detection.bbox_y * 480
-        
         x = (u - self._cx) * z / self._fx
         y = (v - self._cy) * z / self._fy
 
-        # In ROS, camera frame is:
+        # In ROS, standard camera frame is:
         # X: right, Y: down, Z: forward
-        # Our camera might be oriented differently, so adjust:
         
         point = Point()
-        point.x = z   # Forward
-        point.y = -x  # Right (negative because image x increases right)
-        point.z = -y  # Up (negative because image y increases down)
+        point.x = x   
+        point.y = y   
+        point.z = z   
 
         self.get_logger().debug(
-            f"Object {detection.object_id}: "
-            f"2D=({detection.bbox_x:.3f}, {detection.bbox_y:.3f}), "
+            f"Object {detection.object_id} ({method}): "
+            f"2D=({u}, {v}), "
             f"3D=({point.x:.3f}, {point.y:.3f}, {point.z:.3f})"
         )
 
@@ -228,7 +283,6 @@ class PoseEstimatorNode(Node):
 
     def _transform_to_robot_frame(self, camera_point: Point) -> Point:
         """Transform point from camera frame to robot base frame."""
-        # Look up transform from camera to robot
         try:
             transform = self._tf_buffer.lookup_transform(
                 self._robot_frame,
@@ -236,17 +290,31 @@ class PoseEstimatorNode(Node):
                 rclpy.time.Time()
             )
             
-            # Apply transform (simplified - just translation for now)
+            # Simple translation for now
+            # Note: We should technically do full quaternion rotation, 
+            # but this assumes camera is axis-aligned with robot for MVP.
+            
+            # Re-orient from optical frame (Z forward) to robot frame (X forward)
+            # Optical: X=Right, Y=Down, Z=Forward
+            # Robot: X=Forward, Y=Left, Z=Up
+            robot_x = camera_point.z
+            robot_y = -camera_point.x
+            robot_z = -camera_point.y
+            
             robot_point = Point()
-            robot_point.x = camera_point.x + transform.transform.translation.x
-            robot_point.y = camera_point.y + transform.transform.translation.y
-            robot_point.z = camera_point.z + transform.transform.translation.z
+            robot_point.x = robot_x + transform.transform.translation.x
+            robot_point.y = robot_y + transform.transform.translation.y
+            robot_point.z = robot_z + transform.transform.translation.z
             
             return robot_point
             
         except tf2_ros.LookupException:
-            # If no transform available, assume camera is at robot origin
-            return camera_point
+            # Fallback re-orientation if no TF
+            point = Point()
+            point.x = camera_point.z
+            point.y = -camera_point.x
+            point.z = -camera_point.y
+            return point
 
     def _publish_object_tf(self, object_id: str, position: Point):
         """Publish TF frame for detected object."""
@@ -259,7 +327,7 @@ class PoseEstimatorNode(Node):
         t.transform.translation.y = position.y
         t.transform.translation.z = position.z
         
-        # No rotation (objects are rotationally symmetric for now)
+        # No rotation
         t.transform.rotation.x = 0.0
         t.transform.rotation.y = 0.0
         t.transform.rotation.z = 0.0

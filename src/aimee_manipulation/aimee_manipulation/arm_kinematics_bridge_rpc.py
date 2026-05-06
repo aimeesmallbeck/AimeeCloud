@@ -50,10 +50,38 @@ class ArmKinematicsBridgeRPC(Node):
             self.get_logger().error(f"Failed to send RPC: {e}")
 
     def calculate_ik(self, pose: Pose, gripper_width: float):
+        # --- HARDWARE SAFETY INTERLOCKS ---
+        # 1. Z-Axis Floor (Prevent smashing table)
+        SAFE_Z_MIN = 0.08  # Minimum wrist height (8cm protects down-pointing gripper)
+        if pose.position.z < SAFE_Z_MIN:
+            self.get_logger().warn(f"SAFETY INTERLOCK: Z={pose.position.z:.3f} below floor! Clipping to {SAFE_Z_MIN}")
+            pose.position.z = SAFE_Z_MIN
+            
+        # 2. Radial Reach Limits (Prevent overextension/crashing into base)
+        MAX_REACH = 0.35  # Max reach in meters
+        MIN_REACH = 0.10  # Min distance from base
+        distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
+        
+        if distance > MAX_REACH:
+            self.get_logger().warn(f"SAFETY INTERLOCK: Reach {distance:.3f} exceeds max {MAX_REACH}! Clipping.")
+            scale = MAX_REACH / distance
+            pose.position.x *= scale
+            pose.position.y *= scale
+            distance = MAX_REACH
+        elif distance < MIN_REACH:
+            self.get_logger().warn(f"SAFETY INTERLOCK: Reach {distance:.3f} too close to base! Clipping.")
+            scale = MIN_REACH / distance if distance > 0 else MIN_REACH
+            if distance > 0:
+                pose.position.x *= scale
+                pose.position.y *= scale
+            else:
+                pose.position.x = MIN_REACH
+            distance = MIN_REACH
+
+        # --- IK CALCULATION ---
         joints = [2047] * 6
         yaw = math.atan2(pose.position.y, pose.position.x)
         joints[0] = int(2047 + (yaw * 2048.0 / math.pi))
-        distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
         joints[1] = int(2047 + ((distance - 0.2) * 1000))
         joints[2] = int(2047 - ((pose.position.z - 0.1) * 1000))
         joints[3] = 2047

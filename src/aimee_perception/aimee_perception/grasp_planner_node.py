@@ -79,6 +79,7 @@ class GraspPlannerNode(Node):
 
         self._lift_height = self.get_parameter('default_lift_height').value
         self._safety_clearance = self.get_parameter('safety_clearance').value
+        self._gripper_length = self.get_parameter('gripper_length').value
 
         # Setup QoS
         reliable_qos = QoSProfile(
@@ -175,8 +176,8 @@ class GraspPlannerNode(Node):
         grasp_pose = Pose()
         grasp_pose.position.x = obj_pos.x
         grasp_pose.position.y = obj_pos.y
-        # Account for gripper finger thickness
-        grasp_pose.position.z = obj_pos.z + 0.02
+        # Account for gripper finger thickness and length from wrist
+        grasp_pose.position.z = obj_pos.z + self._gripper_length + 0.02
         grasp_pose.orientation = pre_grasp.orientation
         grasp.grasp_pose = grasp_pose
         
@@ -225,7 +226,7 @@ class GraspPlannerNode(Node):
         
         # Grasp: at object position
         grasp_pose = Pose()
-        grasp_pose.position.x = obj_pos.x
+        grasp_pose.position.x = obj_pos.x - self._gripper_length
         grasp_pose.position.y = obj_pos.y
         grasp_pose.position.z = obj_pos.z + 0.02
         grasp_pose.orientation = pre_grasp.orientation
