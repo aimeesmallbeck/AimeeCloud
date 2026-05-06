@@ -3,15 +3,18 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
+#include <sensor_msgs/msg/compressed_image.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.hpp>
 #include "aimee_msgs/msg/object_detection.hpp"
+#include "aimee_msgs/srv/capture_snapshot.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <map>
 #include <vector>
 #include <string>
 #include <optional>
+#include <mutex>
 
 namespace aimee_vision_pipeline
 {
@@ -25,6 +28,8 @@ public:
 private:
   void on_image(const sensor_msgs::msg::Image::ConstSharedPtr& msg);
   void on_camera_info(const sensor_msgs::msg::CameraInfo::ConstSharedPtr& msg);
+  void handle_capture_snapshot(const std::shared_ptr<aimee_msgs::srv::CaptureSnapshot::Request> request,
+                               std::shared_ptr<aimee_msgs::srv::CaptureSnapshot::Response> response);
   
   std::vector<aimee_msgs::msg::ObjectDetection> detect_objects(const cv::Mat & image);
   std::vector<aimee_msgs::msg::ObjectDetection> detect_color(const cv::Mat & hsv, const cv::Mat & bgr, const std::string & color);
@@ -36,6 +41,10 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;
   rclcpp::Publisher<aimee_msgs::msg::ObjectDetection>::SharedPtr detections_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_image_pub_;
+  rclcpp::Service<aimee_msgs::srv::CaptureSnapshot>::SharedPtr capture_service_;
+
+  cv::Mat latest_frame_;
+  std::mutex frame_mutex_;
 
   std::vector<std::string> enabled_colors_;
   std::vector<std::string> detectable_objects_;

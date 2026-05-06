@@ -147,7 +147,7 @@ def generate_launch_description():
             'engine': 'vosk',
             'model_path': '/home/arduino/vosk-models/vosk-model-small-en-us-0.15',
             'sample_rate': 16000,
-            'audio_device': 'default',
+            'audio_device': 'plughw:2,0',
             'publish_partials': True,
             'energy_threshold': 45.0,
             'enabled': True,

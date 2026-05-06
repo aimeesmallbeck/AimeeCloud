@@ -14,7 +14,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # ─────────────────────────────── System Dependencies ───────────────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update --allow-insecure-repositories --allow-unauthenticated && apt-get install -y --allow-unauthenticated --no-install-recommends \
     # ROS2 build tools
     python3-colcon-common-extensions \
     python3-rosdep \
@@ -46,7 +46,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ─────────────────────────────── ROS2 Packages ───────────────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update --allow-insecure-repositories --allow-unauthenticated && apt-get install -y --allow-unauthenticated --no-install-recommends \
     ros-humble-cv-bridge \
     ros-humble-image-transport \
     ros-humble-image-transport-plugins \
@@ -77,7 +77,7 @@ RUN pip3 install --no-cache-dir --break-system-packages \
     paho-mqtt==2.1.0 \
     requests==2.33.1 \
     "numpy<2" \
-    opencv-python-headless==4.13.0.92 \
+    opencv-python-headless \
     python-osc \
     pillow \
     pyserial \

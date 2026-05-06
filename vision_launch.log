@@ -1,0 +1,15 @@
+[INFO] [launch]: All log files can be found below /root/.ros/log/2026-04-30-22-15-22-633163-Ron-6951
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [obsbot_node-1]: process started with pid [6989]
+[INFO] [color_detector_node-2]: process started with pid [6995]
+[INFO] [object_tracker_node-3]: process started with pid [6997]
+[INFO] [static_transform_publisher-4]: process started with pid [7002]
+[INFO] [pose_estimator_node-5]: process started with pid [7005]
+[INFO] [grasp_planner_node-6]: process started with pid [7009]
+[static_transform_publisher-4] [WARN] [1777587324.499052248] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-4] [INFO] [1777587326.326731807] [camera_to_arm_tf]: Spinning until stopped - publishing transform
+[static_transform_publisher-4] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-4] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-4] from 'arm_base_link' to 'camera_link'
+[object_tracker_node-3] [INFO] [1777587334.829607970] [object_tracker]: ObjectTrackerNode initialized
+[color_detector_node-2] [INFO] [1777587334.884408515] [color_detector]: ColorDetectorNode initialized

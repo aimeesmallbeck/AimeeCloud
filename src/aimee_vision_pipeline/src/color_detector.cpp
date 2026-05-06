@@ -1,5 +1,6 @@
 #include "aimee_vision_pipeline/color_detector.hpp"
 #include <rclcpp_components/register_node_macro.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 namespace aimee_vision_pipeline
 {
@@ -50,12 +51,47 @@ ColorDetectorNode::ColorDetectorNode(const rclcpp::NodeOptions & options)
         camera_info_topic, reliable_qos,
         std::bind(&ColorDetectorNode::on_camera_info, this, std::placeholders::_1));
 
+    capture_service_ = this->create_service<aimee_msgs::srv::CaptureSnapshot>(
+        "/vision/capture_snapshot", std::bind(&ColorDetectorNode::handle_capture_snapshot, this, std::placeholders::_1, std::placeholders::_2));
+
     RCLCPP_INFO(this->get_logger(), "ColorDetectorNode initialized");
 }
 
 void ColorDetectorNode::on_camera_info(const sensor_msgs::msg::CameraInfo::ConstSharedPtr& msg)
 {
     camera_info_ = msg;
+}
+
+void ColorDetectorNode::handle_capture_snapshot(const std::shared_ptr<aimee_msgs::srv::CaptureSnapshot::Request> request,
+                                                std::shared_ptr<aimee_msgs::srv::CaptureSnapshot::Response> response)
+{
+    cv::Mat frame;
+    {
+        std::lock_guard<std::mutex> lock(frame_mutex_);
+        if (latest_frame_.empty()) {
+            response->success = false;
+            response->message = "No frame available yet";
+            return;
+        }
+        latest_frame_.copyTo(frame);
+    }
+
+    std::vector<uchar> buffer;
+    std::vector<int> param(2);
+    param[0] = cv::IMWRITE_JPEG_QUALITY;
+    param[1] = request->quality > 0 ? request->quality : 95;
+
+    if (cv::imencode(".jpg", frame, buffer, param)) {
+        response->image.format = "jpeg";
+        response->image.data = buffer;
+        response->success = true;
+        response->message = "Snapshot captured successfully";
+        RCLCPP_INFO(this->get_logger(), "Captured snapshot for cloud inference.");
+    } else {
+        response->success = false;
+        response->message = "Failed to encode image to JPEG";
+        RCLCPP_ERROR(this->get_logger(), "Snapshot JPEG encoding failed.");
+    }
 }
 
 void ColorDetectorNode::on_image(const sensor_msgs::msg::Image::ConstSharedPtr& msg)
@@ -65,6 +101,11 @@ void ColorDetectorNode::on_image(const sensor_msgs::msg::Image::ConstSharedPtr& 
         const cv::Mat& cv_image = cv_ptr->image;
         image_height_ = cv_image.rows;
         image_width_ = cv_image.cols;
+
+        {
+            std::lock_guard<std::mutex> lock(frame_mutex_);
+            cv_image.copyTo(latest_frame_);
+        }
 
         auto detections = detect_objects(cv_image);
 

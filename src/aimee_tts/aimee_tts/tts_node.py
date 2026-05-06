@@ -28,6 +28,8 @@ import time
 import wave
 from typing import Optional
 
+import os
+os.environ["AUDIODEV"] = "sysdefault:CARD=C1"
 import pygame
 import rclpy
 from rclpy.node import Node

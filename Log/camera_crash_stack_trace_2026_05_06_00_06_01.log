@@ -1,0 +1,63 @@
+Received signal: 11
+Stack trace (most recent call last) in thread 659:
+#19   Object "[0xffffffffffffffff]", at 0xffffffffffffffff, in 
+#18   Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa9169e9b, in 
+#17   Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa9100397, in 
+#16   Object "/lib/aarch64-linux-gnu/libstdc++.so.6", at 0xffffa93329cb, in 
+#15   Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa2838587, in orbbec_camera::OBCameraNodeDriver::queryDevice()
+#14   Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa28377bf, in orbbec_camera::OBCameraNodeDriver::startDevice(std::shared_ptr<ob::DeviceList> const&)
+#13   Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa282d623, in orbbec_camera::OBCameraNodeDriver::initializeDevice(std::shared_ptr<ob::Device> const&)
+#12   Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa288b197, in orbbec_camera::OBCameraNode::OBCameraNode(rclcpp::Node*, std::shared_ptr<ob::Device>, std::shared_ptr<orbbec_camera::Parameters>, bool)
+#11   Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa2889deb, in orbbec_camera::OBCameraNode::setupTopics()
+#10   Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa2888873, in orbbec_camera::OBCameraNode::setupPublishers()
+#9    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa2826dd3, in orbbec_camera::image_transport_publisher::image_transport_publisher(rclcpp::Node&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, rmw_qos_profile_s const&)
+#8    Object "/opt/ros/humble/lib/aarch64-linux-gnu/libimage_transport.so", at 0xffffa2617e3f, in image_transport::create_publisher(rclcpp::Node*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, rmw_qos_profile_s)
+#7    Object "/opt/ros/humble/lib/aarch64-linux-gnu/libimage_transport.so", at 0xffffa25e5847, in image_transport::Publisher::Publisher(rclcpp::Node*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::shared_ptr<pluginlib::ClassLoader<image_transport::PublisherPlugin> >, rmw_qos_profile_s)
+#6    Object "/opt/ros/humble/lib/libclass_loader.so", at 0xffffa905a37b, in class_loader::impl::isLibraryLoaded(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, class_loader::ClassLoader const*)
+#5    Object "/opt/ros/humble/lib/libclass_loader.so", at 0xffffa90582db, in class_loader::impl::allMetaObjectsForLibrary(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+#4    Object "/opt/ros/humble/lib/libclass_loader.so", at 0xffffa9057dc3, in class_loader::impl::allMetaObjects()
+#3    Object "/opt/ros/humble/lib/libclass_loader.so", at 0xffffa9057d1b, in class_loader::impl::allMetaObjects(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, class_loader::impl::AbstractMetaObjectBase*, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, class_loader::impl::AbstractMetaObjectBase*> > > const&)
+#2    Object "/lib/aarch64-linux-gnu/libstdc++.so.6", at 0xffffa931b65c, in std::_Rb_tree_increment(std::_Rb_tree_node_base const*)
+#1    Object "linux-vdso.so.1", at 0xffffa97537db, in 
+#0    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa2831f2f, in signalHandler(int)
+Received signal: 11
+Stack trace (most recent call last) in thread 970:
+#13   Object "[0xffffffffffffffff]", at 0xffffffffffffffff, in 
+#12   Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa9169e9b, in 
+#11   Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa9100397, in 
+#10   Object "/lib/aarch64-linux-gnu/libstdc++.so.6", at 0xffffa93329cb, in 
+#9    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa2838587, in orbbec_camera::OBCameraNodeDriver::queryDevice()
+#8    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa28377bf, in orbbec_camera::OBCameraNodeDriver::startDevice(std::shared_ptr<ob::DeviceList> const&)
+#7    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa282d623, in orbbec_camera::OBCameraNodeDriver::initializeDevice(std::shared_ptr<ob::Device> const&)
+#6    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa288b197, in orbbec_camera::OBCameraNode::OBCameraNode(rclcpp::Node*, std::shared_ptr<ob::Device>, std::shared_ptr<orbbec_camera::Parameters>, bool)
+#5    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa2889dcb, in orbbec_camera::OBCameraNode::setupTopics()
+#4    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa287c263, in orbbec_camera::OBCameraNode::setupProfiles()
+#3    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa90bd16b, in exit
+#2    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa90bcf94, in 
+#1    Object "linux-vdso.so.1", at 0xffffa97537db, in 
+#0    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa2831f2f, in signalHandler(int)
+Received signal: 6
+Stack trace (most recent call last) in thread 652:
+#22   Object "[0xffffffffffffffff]", at 0xffffffffffffffff, in 
+#21   Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa9169e9b, in 
+#20   Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa9100397, in 
+#19   Object "/lib/aarch64-linux-gnu/libstdc++.so.6", at 0xffffa93329cb, in 
+#18   Object "/opt/ros/humble/lib/libfastrtps.so.2.6", at 0xffffa87e3edb, in 
+#17   Object "/opt/ros/humble/lib/libfastrtps.so.2.6", at 0xffffa87e8ca7, in eprosima::fastdds::rtps::SharedMemChannelResource::perform_listen_operation(eprosima::fastrtps::rtps::Locator_t)
+#16   Object "/opt/ros/humble/lib/libfastrtps.so.2.6", at 0xffffa85c3bab, in eprosima::fastrtps::rtps::ReceiverResource::OnDataReceived(unsigned char const*, unsigned int, eprosima::fastrtps::rtps::Locator_t const&, eprosima::fastrtps::rtps::Locator_t const&)
+#15   Object "/opt/ros/humble/lib/libfastrtps.so.2.6", at 0xffffa85bcf07, in eprosima::fastrtps::rtps::MessageReceiver::processCDRMsg(eprosima::fastrtps::rtps::Locator_t const&, eprosima::fastrtps::rtps::Locator_t const&, eprosima::fastrtps::rtps::CDRMessage_t*)
+#14   Object "/opt/ros/humble/lib/libfastrtps.so.2.6", at 0xffffa85bb2f7, in eprosima::fastrtps::rtps::MessageReceiver::proc_Submsg_Data(eprosima::fastrtps::rtps::CDRMessage_t*, eprosima::fastrtps::rtps::SubmessageHeader_t*, bool) const
+#13   Object "/opt/ros/humble/lib/libfastrtps.so.2.6", at 0xffffa85b1d53, in eprosima::fastrtps::rtps::MessageReceiver::process_data_message_without_security(eprosima::fastrtps::rtps::EntityId_t const&, eprosima::fastrtps::rtps::CacheChange_t&, bool)
+#12   Object "/opt/ros/humble/lib/libfastrtps.so.2.6", at 0xffffa85a395f, in eprosima::fastrtps::rtps::StatefulReader::processDataMsg(eprosima::fastrtps::rtps::CacheChange_t*)
+#11   Object "/opt/ros/humble/lib/libfastrtps.so.2.6", at 0xffffa8592c83, in eprosima::fastrtps::rtps::TopicPayloadPool::get_payload(eprosima::fastrtps::rtps::SerializedPayload_t&, eprosima::fastrtps::rtps::IPayloadPool*&, eprosima::fastrtps::rtps::CacheChange_t&)
+#10   Object "/opt/ros/humble/lib/libfastrtps.so.2.6", at 0xffffa8597343, in eprosima::fastrtps::rtps::TopicPayloadPool::do_get_payload(unsigned int, eprosima::fastrtps::rtps::CacheChange_t&, bool)
+#9    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa9110e0b, in realloc
+#8    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa911003b, in 
+#7    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa910f7c3, in 
+#6    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa910c48b, in 
+#5    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa90f5fff, in 
+#4    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa90a7133, in abort
+#3    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa90ba83b, in raise
+#2    Object "/lib/aarch64-linux-gnu/libc.so.6", at 0xffffa9102008, in 
+#1    Object "linux-vdso.so.1", at 0xffffa97537db, in 
+#0    Object "/workspace/install/orbbec_camera/lib/liborbbec_camera.so", at 0xffffa2831f2f, in signalHandler(int)
