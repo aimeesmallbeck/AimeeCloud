@@ -593,6 +593,13 @@ class PickPlaceServer(Node):
                 goal_handle.abort()
                 return result
 
+        # Return home
+        self.get_logger().info("🏠 Returning home")
+        cmd = ArmCommand()
+        cmd.command_type = "home"
+        self._arm_cmd_pub.publish(cmd)
+        await self._sleep(5.0)
+
         # Success!
         feedback.current_phase = PickPlaceState.COMPLETED
         feedback.phase_progress = 100

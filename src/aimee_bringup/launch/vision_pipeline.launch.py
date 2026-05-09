@@ -139,26 +139,12 @@ def generate_launch_description():
     
     # === Manipulation Nodes ===
     
-    # Arm Controller Node (Simulated)
+    # Arm Kinematics Bridge Node (Hardware)
     arm_controller_node = Node(
         package='aimee_manipulation',
-        executable='arm_controller_node',
-        name='arm_controller',
+        executable='arm_kinematics_bridge_rpc',
+        name='arm_kinematics_bridge_rpc',
         output='screen',
-        parameters=[{
-            'enabled': True,
-            'simulation_mode': True,
-            'arm_type': 'roarm_m3',
-            'joint_limits': {
-                'j1': [-90, 90],
-                'j2': [0, 90],
-                'j3': [-90, 90],
-                'j4': [-90, 90],
-                'j5': [-90, 90],
-                'j6': [-90, 90],
-            },
-            'max_velocity': 1.0,
-        }],
         condition=IfCondition(enable_manipulation)
     )
     
@@ -185,7 +171,7 @@ def generate_launch_description():
         executable='static_transform_publisher',
         name='camera_to_arm_tf',
         arguments=[
-            '0.0', '0.0', '0.0', # Translation X, Y, Z (meters)
+            '-0.3088', '0.2370', '0.0869', # Translation X, Y, Z (meters)
             '0.0', '0.0', '0.0', # Rotation Yaw, Pitch, Roll (radians)
             'arm_base_link', 'camera_link'
         ],

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from aimee_msgs.msg import GraspPose
+from aimee_msgs.msg import GraspPose, ArmCommand
 from geometry_msgs.msg import Pose
 import math
 import time
 import socket
 import msgpack
 
-# RPC Message Types (from Arduino_RPClite)
+# RPC Message Types
 REQUEST = 0
 RESPONSE = 1
 NOTIFY = 2
@@ -28,13 +28,21 @@ class ArmKinematicsBridgeRPC(Node):
             self.get_logger().error(f"Failed to connect to router socket: {e}")
             self.sock = None
             
-        self.subscription = self.create_subscription(
-            GraspPose,
-            '/manipulation/grasp_pose',
-            self.grasp_pose_callback,
+        # BUG FIX: Removed rogue subscription to /manipulation/grasp_pose that was 
+        # causing autonomous and un-validated movement.
+        
+        self.cmd_subscription = self.create_subscription(
+            ArmCommand,
+            '/arm/command',
+            self.arm_command_callback,
             10
         )
-        self.get_logger().info("Arm Kinematics Bridge (RPC) initialized. Listening on /manipulation/grasp_pose")
+        
+        self.get_logger().info("Arm Kinematics Bridge (RPC) initialized. STM32 acts as Hardware Abstraction Layer.")
+        
+        # Enforce Safe Home Position on Startup
+        self.get_logger().info("Sending initial SAFE HOME command to STM32 to clear any invalid states...")
+        self.rpc_notify("receive_waypoints", 2056, 2060, 2636, 2484, 2043, 2062, 5000)
 
     def rpc_notify(self, method, *args):
         if not self.sock:
@@ -45,78 +53,53 @@ class ArmKinematicsBridgeRPC(Node):
         packed = msgpack.packb(request)
         try:
             self.sock.sendall(packed)
-            self.get_logger().info(f"RPC Notify sent: {method}({args})")
         except Exception as e:
             self.get_logger().error(f"Failed to send RPC: {e}")
 
-    def calculate_ik(self, pose: Pose, gripper_width: float):
-        # --- HARDWARE SAFETY INTERLOCKS ---
-        # 1. Z-Axis Floor (Prevent smashing table)
-        SAFE_Z_MIN = 0.08  # Minimum wrist height (8cm protects down-pointing gripper)
-        if pose.position.z < SAFE_Z_MIN:
-            self.get_logger().warn(f"SAFETY INTERLOCK: Z={pose.position.z:.3f} below floor! Clipping to {SAFE_Z_MIN}")
-            pose.position.z = SAFE_Z_MIN
+    def send_cartesian(self, pose, gripper_w, time_ms):
+        q = pose.orientation
+        sinp = 2 * (q.w * q.y - q.z * q.x)
+        pitch = math.asin(max(-1.0, min(1.0, sinp)))
+        self.rpc_notify("receive_cartesian", pose.position.x, pose.position.y, pose.position.z, pitch, gripper_w, time_ms)
+
+    def arm_command_callback(self, msg: ArmCommand):
+        """Directly accept pose or raw joint commands from the PickPlace Server."""
+        if msg.command_type == "raw_joints":
+            if len(msg.joint_angles) >= 6:
+                joints = [int(j) for j in msg.joint_angles[:6]]
+                time_ms = int(msg.joint_speed) if msg.joint_speed > 0 else 5000
+                self.rpc_notify("receive_waypoints", *joints, time_ms)
+                self.get_logger().info(f"Direct Command - Raw Joints: {joints}")
+                
+        elif msg.command_type == "cartesian":
+            gripper_w = msg.gripper_position if msg.gripper_position > 0 else 0.08
+            time_ms = int(msg.cartesian_speed) if msg.cartesian_speed > 0 else 5000
+            self.send_cartesian(msg.target_pose, gripper_w, time_ms)
+            self.get_logger().info(f"Direct Command - Cartesian Pose: X={msg.target_pose.position.x:.2f} Z={msg.target_pose.position.z:.2f}")
             
-        # 2. Radial Reach Limits (Prevent overextension/crashing into base)
-        MAX_REACH = 0.35  # Max reach in meters
-        MIN_REACH = 0.10  # Min distance from base
-        distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
-        
-        if distance > MAX_REACH:
-            self.get_logger().warn(f"SAFETY INTERLOCK: Reach {distance:.3f} exceeds max {MAX_REACH}! Clipping.")
-            scale = MAX_REACH / distance
-            pose.position.x *= scale
-            pose.position.y *= scale
-            distance = MAX_REACH
-        elif distance < MIN_REACH:
-            self.get_logger().warn(f"SAFETY INTERLOCK: Reach {distance:.3f} too close to base! Clipping.")
-            scale = MIN_REACH / distance if distance > 0 else MIN_REACH
-            if distance > 0:
-                pose.position.x *= scale
-                pose.position.y *= scale
-            else:
-                pose.position.x = MIN_REACH
-            distance = MIN_REACH
-
-        # --- IK CALCULATION ---
-        joints = [2047] * 6
-        yaw = math.atan2(pose.position.y, pose.position.x)
-        joints[0] = int(2047 + (yaw * 2048.0 / math.pi))
-        joints[1] = int(2047 + ((distance - 0.2) * 1000))
-        joints[2] = int(2047 - ((pose.position.z - 0.1) * 1000))
-        joints[3] = 2047
-        joints[4] = 2047
-        joints[5] = int(2047 + (gripper_width * 10000))
-        return [max(0, min(4095, j)) for j in joints]
-
-    def grasp_pose_callback(self, msg: GraspPose):
-        self.get_logger().info(f"Received GraspPose for object: {msg.object_id}")
-        home_pose = Pose()
-        home_pose.position.x = 0.2
-        home_pose.position.y = 0.0
-        home_pose.position.z = 0.3
-        
-        wp_home = self.calculate_ik(home_pose, msg.gripper_open_width)
-        self.rpc_notify("receive_waypoints", *wp_home, 2000)
-        time.sleep(2.0)
-        
-        wp_approach = self.calculate_ik(msg.pre_grasp_pose, msg.gripper_open_width)
-        self.rpc_notify("receive_waypoints", *wp_approach, 1500)
-        time.sleep(1.5)
-        
-        wp_grasp = self.calculate_ik(msg.grasp_pose, msg.gripper_close_width)
-        self.rpc_notify("receive_waypoints", *wp_grasp, 1000)
-        time.sleep(1.0)
-        
-        wp_retract = self.calculate_ik(msg.lift_pose, msg.gripper_close_width)
-        self.rpc_notify("receive_waypoints", *wp_retract, 1500)
-        time.sleep(1.5)
-        
-        wp_drop = self.calculate_ik(home_pose, msg.gripper_open_width)
-        self.rpc_notify("receive_waypoints", *wp_drop, 2000)
-        time.sleep(2.0)
-        
-        self.get_logger().info("RPC Maneuver sequence complete.")
+        elif msg.command_type == "home":
+            time_ms = 5000
+            # Send home using the direct raw waypoints so we know it's 100% mechanically safe
+            self.rpc_notify("receive_waypoints", 2056, 2060, 2636, 2484, 2043, 2062, time_ms)
+            self.get_logger().info(f"Direct Command - Home Sequence sent to STM32")
+            
+        elif msg.command_type == "grasp":
+            # Safely commanded by the pick_place_server, NOT autonomously.
+            grasp = msg.grasp_pose
+            self.get_logger().info(f"Executing PickPlace Grasp Sequence...")
+            # 1. Approach
+            self.send_cartesian(grasp.pre_grasp_pose, grasp.gripper_open_width, 1500)
+            time.sleep(1.5)
+            # 2. Grasp
+            self.send_cartesian(grasp.grasp_pose, grasp.gripper_close_width, 1000)
+            
+        elif msg.command_type == "gripper":
+            # Adjust gripper without moving arm
+            gripper_w = msg.gripper_position if msg.gripper_position > 0 else 0.08
+            # Fetch current physical state to hold arm still
+            # For safety, if we don't have current state, we shouldn't send 0.0.0.0
+            # For now, pick_place_server uses Cartesian to open/close when placing.
+            self.get_logger().info(f"Gripper only command received: {gripper_w}")
 
 def main(args=None):
     rclpy.init(args=args)

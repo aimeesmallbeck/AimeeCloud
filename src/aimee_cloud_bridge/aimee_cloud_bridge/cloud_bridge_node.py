@@ -20,10 +20,13 @@ from datetime import datetime, timezone
 
 import rclpy
 from rclpy.node import Node
+from rclpy.action import ActionClient
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from std_msgs.msg import String, Bool
 from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Pose
 from aimee_msgs.msg import Intent, CloudIntent, ArmCommand
+from aimee_msgs.action import PickPlace
 try:
     from aimee_msgs.srv import CaptureSnapshot
 except ImportError:
@@ -124,6 +127,9 @@ class AimeeCloudClientNode(Node):
             self._snapshot_cli = self.create_client(CaptureSnapshot, '/camera/capture_snapshot')
         else:
             self._snapshot_cli = None
+            
+        # Action client for PickPlace
+        self._pick_place_cli = ActionClient(self, PickPlace, '/manipulation/pick_place')
 
         # Subscriber for manual snapshot uploads from monitor/dashboard
         self.create_subscription(String, '/cloud/snapshot_manual_upload', self._on_manual_snapshot_upload, 10)
@@ -787,8 +793,41 @@ class AimeeCloudClientNode(Node):
             self._execute_game_move_command(cmd)
         elif cmd_type == "expression":
             self._execute_expression_command(cmd)
+        elif cmd_type == "skill":
+            self._execute_skill_command(cmd)
         else:
             self.get_logger().warning(f"Unknown AimeeAgent command type: {cmd_type}")
+
+    def _execute_skill_command(self, cmd: dict):
+        """Dispatch a generic skill command to the appropriate Action Server or Topic."""
+        skill_name = cmd.get("name", "")
+        params = cmd.get("parameters", {})
+        
+        self.get_logger().info(f"Received skill command: {skill_name} with params {params}")
+        
+        if skill_name == "pick_place":
+            # Wait for action server (non-blocking in a real app, but ok for a quick check)
+            if not self._pick_place_cli.wait_for_server(timeout_sec=2.0):
+                self.get_logger().error("PickPlace Action Server not available!")
+                return
+                
+            goal_msg = PickPlace.Goal()
+            goal_msg.object_class = params.get("object_class", "object")
+            goal_msg.object_color = params.get("color", "")
+            goal_msg.enable_place = params.get("enable_place", True)
+            
+            self.get_logger().info(f"Dispatching PickPlace Goal: {goal_msg.object_color} {goal_msg.object_class}")
+            
+            # Asynchronous call so we don't block the MQTT loop
+            self._pick_place_cli.send_goal_async(goal_msg)
+            
+        elif skill_name == "play_animation":
+            # In the future, this would route to the Skill Manager or Animation Node
+            anim_name = params.get("animation_name", "")
+            self.get_logger().info(f"Animation requested: {anim_name} (Not yet wired to local Action)")
+            
+        else:
+            self.get_logger().warning(f"Unknown skill requested: {skill_name}")
 
     def _execute_snapshot_command(self, cmd: dict):
         """Handle snapshot command from AimeeAgent."""

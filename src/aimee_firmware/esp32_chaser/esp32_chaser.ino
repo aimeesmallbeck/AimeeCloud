@@ -36,35 +36,64 @@ uint8_t servo_ids[7] = {
 };
 
 int16_t servo_positions[7];
-uint16_t servo_speeds[7] = {0, 0, 0, 0, 0, 0, 0}; // 0 = maximum speed (let STM32 handle trajectory timing)
-uint8_t servo_accs[7]    = {0, 0, 0, 0, 0, 0, 0}; // 0 = maximum acceleration
+uint16_t servo_speeds[7] = {0, 0, 0, 0, 0, 0, 0}; 
+uint8_t servo_accs[7]    = {0, 0, 0, 0, 0, 0, 0}; 
+
+int shoulder_offset = 0;
+bool is_calibrated = false;
 
 void setup() {
-  // Host communication (from STM32)
   Serial.begin(921600);
   
-  // Servo communication (ST3215 bus runs at 1,000,000 baud)
   Serial1.begin(1000000, SERIAL_8N1, S_RXD, S_TXD);
   st.pSerial = &Serial1;
   
   while(!Serial) {}
-  
-  // Wait for servos to power up
   delay(1000);
+
+  // Attempt initial calibration. 
+  int driving_pos = st.ReadPos(SHOULDER_DRIVING_ID);
+  int driven_pos = st.ReadPos(SHOULDER_DRIVEN_ID);
+  
+  if (driving_pos != -1 && driven_pos != -1) {
+      shoulder_offset = 4095 - (driving_pos + driven_pos);
+      is_calibrated = true;
+  }
+
   Serial.println("ESP32 Chaser Firmware Ready");
 }
 
 void loop() {
-  // Expecting format: <J1,J2,J3,J4,J5,J6> or PING
-  // J2 controls both SHOULDER_DRIVING and SHOULDER_DRIVEN (inverted)
   if (Serial.available()) {
     String input = Serial.readStringUntil('\n');
     input.trim();
     
     if (input == "PING") {
       Serial.println("PONG");
-    } else if (input.startsWith("<") && input.endsWith(">")) {
-      // Remove brackets
+    } else if (input == "FREEZE") {
+      for(int i=0; i<7; i++) st.EnableTorque(servo_ids[i], 0);
+      Serial.println("FROZEN");
+    } else if (input == "READ") {
+      Serial.print("POS:<");
+      for(int i=0; i<7; i++) {
+        int pos = st.ReadPos(servo_ids[i]);
+        if (pos != -1) Serial.print(pos);
+        else Serial.print("ERR");
+        if (i < 6) Serial.print(",");
+      }
+      Serial.println(">");
+    } else if (input.length() > 5 && input.startsWith("<") && input.endsWith(">")) {
+      
+      // LAZY CALIBRATION: Fix offset if 12V was off at boot
+      if (!is_calibrated) {
+        int driving_pos = st.ReadPos(SHOULDER_DRIVING_ID);
+        int driven_pos = st.ReadPos(SHOULDER_DRIVEN_ID);
+        if (driving_pos != -1 && driven_pos != -1) {
+            shoulder_offset = 4095 - (driving_pos + driven_pos);
+            is_calibrated = true;
+        }
+      }
+
       input = input.substring(1, input.length() - 1);
       
       int values[6];
@@ -76,21 +105,25 @@ void loop() {
         values[count++] = input.substring(startIdx, commaIdx).toInt();
         startIdx = commaIdx + 1;
       }
-      if (count < 6) {
-        values[count++] = input.substring(startIdx).toInt();
-      }
+      if (count < 6) values[count++] = input.substring(startIdx).toInt();
       
-      if (count == 6) {
-        // Map J1-J6 to the 7 servos
-        servo_positions[0] = values[0];                 // Base
-        servo_positions[1] = values[1];                 // Shoulder driving
-        servo_positions[2] = 4095 - values[1];          // Shoulder driven (mechanically inverted)
-        servo_positions[3] = values[2];                 // Elbow
-        servo_positions[4] = values[3];                 // Wrist
-        servo_positions[5] = values[4];                 // Roll
-        servo_positions[6] = values[5];                 // Gripper
+      // Strict validation: Only execute if exactly 6 valid ints were parsed
+      // and they are within absolute physical bounds
+      if (count == 6 && values[0] > 0 && values[0] < 4096) {
+        servo_positions[0] = values[0];                 
+        servo_positions[1] = values[1];                 
         
-        // Execute synchronous write
+        // Prevent math underflow on driven shoulder
+        int inverted = (4095 - values[1]) - shoulder_offset;
+        if (inverted < 0) inverted = 0;
+        if (inverted > 4095) inverted = 4095;
+        servo_positions[2] = inverted; 
+        
+        servo_positions[3] = values[2];                 
+        servo_positions[4] = values[3];                 
+        servo_positions[5] = values[4];                 
+        servo_positions[6] = values[5];                 
+        
         st.SyncWritePosEx(servo_ids, 7, servo_positions, servo_speeds, servo_accs);
       }
     }

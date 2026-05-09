@@ -32,11 +32,11 @@ GRASP_CONFIGS = {
         "approach_vector": (0, 0, -1),  # Downward
     },
     "cup": {
-        "grasp_type": "side",
-        "pre_grasp_offset": 0.10,
+        "grasp_type": "top_down",
+        "pre_grasp_offset": 0.15,
         "gripper_open": 0.10,
         "gripper_close": 0.08,
-        "approach_vector": (1, 0, 0),  # From side
+        "approach_vector": (0, 0, -1),
     },
     "block": {
         "grasp_type": "top_down",
@@ -75,11 +75,13 @@ class GraspPlannerNode(Node):
             ('gripper_length', 0.08),          # meters (from wrist to fingers)
             ('approach_speed', 0.05),          # m/s
             ('grasp_speed', 0.02),             # m/s
+            ('surface_offset', 0.02),          # meters above the physical floor/surface
         ])
 
         self._lift_height = self.get_parameter('default_lift_height').value
         self._safety_clearance = self.get_parameter('safety_clearance').value
         self._gripper_length = self.get_parameter('gripper_length').value
+        self._surface_offset = self.get_parameter('surface_offset').value
 
         # Setup QoS
         reliable_qos = QoSProfile(
@@ -107,7 +109,8 @@ class GraspPlannerNode(Node):
         self.get_logger().info(
             f"GraspPlannerNode initialized:\n"
             f"  Default lift height: {self._lift_height}m\n"
-            f"  Safety clearance: {self._safety_clearance}m"
+            f"  Safety clearance: {self._safety_clearance}m\n"
+            f"  Surface offset: {self._surface_offset}m"
         )
 
     def _on_detection(self, msg: ObjectDetection):
@@ -176,8 +179,8 @@ class GraspPlannerNode(Node):
         grasp_pose = Pose()
         grasp_pose.position.x = obj_pos.x
         grasp_pose.position.y = obj_pos.y
-        # Account for gripper finger thickness and length from wrist
-        grasp_pose.position.z = obj_pos.z + self._gripper_length + 0.02
+        # Account for surface offset (to avoid crashing into the table)
+        grasp_pose.position.z = obj_pos.z + self._surface_offset
         grasp_pose.orientation = pre_grasp.orientation
         grasp.grasp_pose = grasp_pose
         
@@ -218,7 +221,7 @@ class GraspPlannerNode(Node):
         pre_grasp = Pose()
         pre_grasp.position.x = obj_pos.x - config["pre_grasp_offset"]
         pre_grasp.position.y = obj_pos.y
-        pre_grasp.position.z = obj_pos.z + 0.02  # Slightly above center
+        pre_grasp.position.z = obj_pos.z + self._surface_offset  # Slightly above center based on offset
         # Orientation: gripper pointing forward
         pre_grasp.orientation = self._quaternion_from_euler(0, 0, 0)
         grasp.pre_grasp_pose = pre_grasp
@@ -228,7 +231,7 @@ class GraspPlannerNode(Node):
         grasp_pose = Pose()
         grasp_pose.position.x = obj_pos.x - self._gripper_length
         grasp_pose.position.y = obj_pos.y
-        grasp_pose.position.z = obj_pos.z + 0.02
+        grasp_pose.position.z = obj_pos.z + self._surface_offset
         grasp_pose.orientation = pre_grasp.orientation
         grasp.grasp_pose = grasp_pose
         

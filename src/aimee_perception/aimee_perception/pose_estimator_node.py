@@ -145,10 +145,11 @@ class PoseEstimatorNode(Node):
     def _on_camera_info(self, msg: CameraInfo):
         """Store camera intrinsics."""
         self._camera_info = msg
-        self._fx = msg.k[0]  # Focal length x
-        self._fy = msg.k[4]  # Focal length y
-        self._cx = msg.k[2]  # Principal point x
-        self._cy = msg.k[5]  # Principal point y
+        if msg.k[0] > 0.0:
+            self._fx = msg.k[0]  # Focal length x
+            self._fy = msg.k[4]  # Focal length y
+            self._cx = msg.k[2]  # Principal point x
+            self._cy = msg.k[5]  # Principal point y
         
         # Only log once
         if not hasattr(self, '_camera_info_logged'):

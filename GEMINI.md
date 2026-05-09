@@ -13,31 +13,63 @@ Aimee is a modular social assistance robot platform built on **ROS 2 Humble**.
 
 ---
 
-## Current Best Calibration (2026-04-27)
+## Current Best Calibration (2026-05-07)
 - **Base:** UGV02 (Encoders active, IMU Disabled)
 - **Ticks Per Meter:** 106.0
-- **Wheel Separation:** 0.26m (Effective width to prevent over-correction)
-- **Max Speed:** 0.4 m/s (Ramped)
-- **Accel Limits:** Linear: 0.5 m/s², Angular: 1.0 rad/s²
-- **Min Power Floor:** 0.18
-- **Lidar Offset:** 0.0 deg
+- **Wheel Separation:** 0.26m
+- **Arm Limits (Raw):** Home: `[2056, 2060, 2636, 2484, 2043, 2062]`. Floor (X=0.196m): `[2059, 2703, 2435, 2038]`.
+- **Coordinate Origin:** Shoulder joint is (0,0,0). Desk surface is at `Z ≈ -0.088m`.
 - **Safety Stop:** 0.4m (Lidar-based, hard override)
 
-## Current Best Setup (2026-05-06)
-- **Vision Pipeline:** Hybrid C++/Python pipeline. `color_detector_node` and `object_tracker_node` (C++). `pose_estimator_node` (Python) now utilizes registered hardware depth map from Astra Pro to extract precise 3D object coordinates.
-- **Camera Device:** Orbbec Astra Pro (RGB+Depth). RGB stream via UVC (`/dev/video0`) using `usb_cam` with `YUYV` at `640x480` at 30fps. Depth stream via OpenNI (`orbbec_camera`) at 30fps. IR and PointCloud generation disabled for CPU efficiency.
-- **CPU Footprint:** ~80-85% peak usage with full vision-to-manipulation pipeline running alongside live dashboard monitoring.
-- **Arm Manipulation:** The ROS 2 Python node (`arm_kinematics_bridge_rpc`) communicates via MessagePack RPC over a Unix socket (`/var/run/arduino-router.sock`) to the UNO Q's `arduino-router` background service. Hard Cartesian safety limits are enforced within the bridge (Z-floor at 0.08m, min radial reach 0.10m, max radial reach 0.35m) to prevent workspace violations. The router forwards commands to the STM32 co-processor acting as a Real-Time Trajectory Engine. The STM32 calculates a smooth quintic trajectory and natively streams micro-waypoints at 50Hz over Hardware Serial (921600 baud) to the ESP32.
+## Current Best Setup (2026-05-07)
+- **Vision Pipeline:** Hybrid C++/Python pipeline. `pose_estimator_node` extracts 3D coordinates from registered depth map.
+- **Arm Manipulation (Hardware HAL):**
+    - **STM32 Trajectory Engine:** Hosts native 2D Trigonometric IK solver. Directly accepts Cartesian coordinates (`X, Y, Z, Pitch`).
+    - **ESP32 Chaser:** Performs dynamic mechanical offset calibration for shoulder parallel linkage on boot.
+    - **Python Bridge Node:** Pure RPC proxy. All kinematic math removed from high-level scripting for hardware abstraction.
+- **Safety Interlocks:** Hard Cartesian limits enforced in STM32 firmware (Z-floor -0.088m, min reach 0.10m). 2000ms startup delay and 5000ms default movement duration active for safe validation.
 
 ## Latest Test Observations
-- **Pick and Place Flow:** Successfully triggered autonomous pick sequence on colored block. Hardware bridge safety interlocks proven necessary and functional.
-- **1m Goal Test:** Robot reached distance but overshot by several centimeters.
-- **Motion Quality:** Ramping provided smoother starts/stops, but perceived speed was lower.
-- **Battery:** 11.75V (Pre-charge status).
+- **Critical Incident (2026-05-08):** Severe hardware desynchronization led to violent, continuous erratic arm movements causing slight physical damage.
+- **Incident Root Causes:**
+    1. **Vision Auto-Trigger:** A rogue callback in `arm_kinematics_bridge_rpc.py` autonomously executed grasp commands the moment the camera detected an object, bypassing the Action Server.
+    2. **Missing TF Calibration:** The `camera_to_arm_tf` transform was uncalibrated (`0,0,0`). The robot assumed the camera was inside its base. Vision targets thus triggered catastrophic IK calculations, forcing the arm to over-extend to absolute physical limits.
+    3. **Serial Buffer Corruption / Ghost Commands:** When the ESP32 boots without 12V motor power, its calibration routine (`st.ReadPos()`) fails and returns `-1`. This causes a massive integer underflow in the driven shoulder math (offset = 4097, result = large negative). Furthermore, attempting to "fix" the STM32 by adding 50Hz continuous `stream_cartesian` and auto-syncing caused severe race conditions. The STM32 stored a corrupt coordinate in RAM and endlessly blasted it over the serial line.
+- **MANDATORY RECOVERY PROTOCOL (NEXT SESSION):**
+    1. **HARD SHUTDOWN:** Ensure 12V power AND logic power (USB) are fully disconnected to clear STM32 and ESP32 RAM.
+    2. **SAFE FIRMWARE FLASH:** Before applying 12V power, manually flash BOTH the STM32 and ESP32 with bare-bones, rigorously clamped firmware. The ESP32 **MUST** have strict input validation to ignore malformed serial commands and prevent math underflow on startup offsets.
+    3. **NO STREAMING:** Disable the continuous 50Hz streaming from the STM32 until serial checksums and strict bounds-checking are implemented on the ESP32.
+    - **CAMERA CALIBRATION:** Run `/home/arduino/auto_calibrate_camera.py` purely in software (or physically moving the arm by hand) to fix the TF math before enabling the PickPlace server.
 
----
+    ---
 
-## Technical Operational Details
+    ## Session Progress (2026-05-09)
+    ### 1. Camera-to-Arm Calibration Success
+    - **Status:** Complete.
+    - **Results:** Computed new `camera_link` to `arm_base_link` physical offsets.
+    - **Applied TF:** `X=-0.3088, Y=0.2370, Z=0.0869`.
+    - **Note:** Updated `vision_pipeline.launch.py` with these values.
+
+    ### 2. Manipulation Bug Fixes
+    - **Grasp Loop Resolved:** Identified that `arm_kinematics_bridge_rpc.py` had a rogue autonomous subscription bypassing the Action Server. Recompiled `aimee_manipulation` package to apply the fix.
+    - **Z-Height Alignment:** Fixed math error in `grasp_planner_node.py` where `gripper_length` (0.08m) was incorrectly added to the target Z, causing the arm to hover 8cm above the table.
+    - **Return Home:** Updated `pick_place_server.py` to command the arm back to the `home` position after a vision-based pick-up completion.
+    - **Hardware Integration:** Swapped simulated `arm_controller_node` with the real `arm_kinematics_bridge_rpc` in the main launch file.
+
+    ### 3. Vision Stability
+    - **USB Cam Fix:** Corrected `pixel_format` to `yuyv` and device path to `/dev/video4`.
+    - **Pose Estimator Robustness:** Patched `pose_estimator_node.py` to handle empty `CameraInfo` (prevent divide-by-zero/NaN coordinates).
+
+    ## Current Issues & Next Steps
+    - **X/Y Accuracy:** The arm is currently "moving past" the object. This indicates the TF rotation or the X/Y translation offset needs manual fine-tuning.
+    - **NEXT SESSION:**
+        1. Place a block at a known coordinate (e.g., center of camera view).
+        2. Compare vision coordinates (`/vision/detections_3d`) vs actual arm reach.
+        3. Surgically adjust the translation arguments in `vision_pipeline.launch.py` until X/Y alignment is pixel-perfect.
+
+    ---
+
+    ## Technical Operational Details
 - **Container:** `aimee-robot` (Docker)
 - **DDS:** Fast DDS / Fast DDS
 - **Hardware Ports:** Lidar: `/dev/ttyUSB0`, Base: `/dev/ttyACM0`, Camera: `/dev/video0` (RGB) / OpenNI (Depth)
