@@ -684,7 +684,10 @@ class PickPlaceServer(Node):
             if goal_handle.is_cancel_requested:
                 return None
             if self._current_grasp:
-                if self._current_grasp.object_id == detection.object_id:
+                # Match by exact ID, or fallback to same object class (handles rapid ID changes from tracker)
+                id_match = self._current_grasp.object_id == detection.object_id
+                class_match = self._current_grasp.object_class == detection.object_class
+                if id_match or class_match:
                     grasp = self._current_grasp
                     self._current_grasp = None
                     return grasp

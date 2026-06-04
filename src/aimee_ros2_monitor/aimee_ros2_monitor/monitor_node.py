@@ -182,6 +182,21 @@ NODE_DEFINITIONS = {
         'category': 'audio',
         'icon': '🎤'
     },
+    'voice_streaming': {
+        'name': 'Voice Streaming (Cloud)',
+        'ros_name': '/voice_streaming',
+        'package': 'aimee_voice_streaming',
+        'executable': 'voice_streaming_node',
+        'args': [
+            '--ros-args',
+            '--params-file', os.path.join(
+                os.getenv('AIMEE_ROBOT_WS', '/workspace'),
+                'src/aimee_voice_streaming/config/voice_streaming.yaml'
+            )
+        ],
+        'category': 'audio',
+        'icon': '☁️'
+    },
     'intent_router': {
         'name': 'Intent Router',
         'ros_name': '/intent_router',

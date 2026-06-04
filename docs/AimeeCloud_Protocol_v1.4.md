@@ -33,7 +33,7 @@ AimeeCloud uses MQTT as the transport layer between robots (clients) and the clo
 ```json
 {
   "type": "connect",
-  "api_key": "ac_free_943d96db38ee49aa",
+  "api_key": "YOUR_API_KEY",
   "user_profile": { "name": "BrowserTester", "location": "web" },
   "capabilities": { "input": ["text"], "output": ["display", "tts"] },
   "tts_mode": "client",
@@ -43,7 +43,7 @@ AimeeCloud uses MQTT as the transport layer between robots (clients) and the clo
 
 - If `request_session_id` is provided and valid for the same device, the session is resumed.
 - Otherwise, a new session is created.
-- `api_key` is required for tiered access. Free tier key: `ac_free_943d96db38ee49aa`
+- `api_key` is required for tiered access. Free tier key: `YOUR_API_KEY`
 
 ### 3.2 Session Init Response
 **Received on:** `aimeecloud/device/<deviceId>/out`

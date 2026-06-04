@@ -81,7 +81,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'enabled': True,
-            'enabled_colors': ['red', 'blue', 'green', 'yellow', 'orange', 'purple'],
+            'enabled_colors': ['red', 'pink', 'blue', 'green', 'yellow', 'orange', 'purple'],
             'min_object_area': 100,
             'confidence_threshold': 0.1,
             'publish_debug_image': True,
@@ -115,9 +115,17 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'enabled': True,
-            'focal_length': 800.0,
-            'camera_height': 0.5,
-            'camera_tilt': -0.3,
+            'image_width': 640,
+            'image_height': 480,
+            'camera_pitch_deg': 90.0,  # Camera is directly overhead, perpendicular to desk
+            'camera_yaw_deg': 0.0,      # Tune this if arm goes to wrong angle (90° = image top points to robot left)
+            'robot_frame': 'arm_base_link',
+            # Astra Pro depth units: observed raw values ~78 at 80cm height.
+            # 100.0 treats values as centimeters (78 -> 0.78m).
+            'depth_scale': 100.0,
+            'use_hardware_depth': True,
+            'min_depth': 0.10,
+            'max_depth': 1.20,  # Increased to allow desk (0.78m) + margin for edges/floor
         }],
         condition=IfCondition(enable_perception)
     )
@@ -165,15 +173,17 @@ def generate_launch_description():
     )
     
     # TF2 static transform for camera to arm base
-    # NOTE: The [X, Y, Z, Yaw, Pitch, Roll] values below need physical calibration!
+    # NOTE: The translation [X, Y, Z] was calibrated on 2026-05-09.
+    # Rotation is handled inside pose_estimator_node (camera_pitch_deg).
+    # If you need full 6-DOF TF for other tools (RViz), add roll/pitch/yaw here.
     camera_tf_node = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
         name='camera_to_arm_tf',
         arguments=[
-            '-0.3088', '0.2370', '0.0869', # Translation X, Y, Z (meters)
+            '-0.3088', '0.2370', '0.5000', # Translation X, Y, Z (meters) - Z: camera 60cm above desk, arm base ~10cm above desk
             '0.0', '0.0', '0.0', # Rotation Yaw, Pitch, Roll (radians)
-            'arm_base_link', 'camera_link'
+            'arm_base_link', 'camera_color_frame'
         ],
         condition=IfCondition(enable_camera)
     )

@@ -73,11 +73,31 @@ class PoseEstimatorNode(Node):
             ('robot_frame', 'base_link'),
             ('publish_tf', True),
             ('assumed_object_distance', 0.5),  # meters (fallback)
+            ('image_width', 640),   # pixels
+            ('image_height', 480),  # pixels
+            ('camera_pitch_deg', 0.0),  # degrees: positive = camera looks down
+            ('camera_yaw_deg', 0.0),    # degrees: rotation around camera optical axis (Z). +90 = camera image top points to robot left
+            ('depth_scale', 1000.0),  # divide raw depth by this to get meters (1000=mm, 100=cm)
+            ('use_hardware_depth', True),
+            ('min_depth', 0.05),   # meters
+            ('max_depth', 1.0),    # meters
+            ('fx_override', 0.0),  # pixels; if > 0, use instead of CameraInfo or default
+            ('fy_override', 0.0),  # pixels
         ])
 
         self._camera_frame = self.get_parameter('camera_frame').value
         self._robot_frame = self.get_parameter('robot_frame').value
         self._publish_tf = self.get_parameter('publish_tf').value
+        self._image_width = self.get_parameter('image_width').value
+        self._image_height = self.get_parameter('image_height').value
+        self._camera_pitch_deg = self.get_parameter('camera_pitch_deg').value
+        self._camera_yaw_deg = self.get_parameter('camera_yaw_deg').value
+        self._depth_scale = self.get_parameter('depth_scale').value
+        self._use_hardware_depth = self.get_parameter('use_hardware_depth').value
+        self._min_depth = self.get_parameter('min_depth').value
+        self._max_depth = self.get_parameter('max_depth').value
+        self._fx_override = self.get_parameter('fx_override').value
+        self._fy_override = self.get_parameter('fy_override').value
 
         # Setup QoS
         reliable_qos = QoSProfile(
@@ -130,16 +150,28 @@ class PoseEstimatorNode(Node):
 
         # State
         self._camera_info: Optional[CameraInfo] = None
-        self._fx = 600.0  # Default focal length (updated from camera_info)
-        self._fy = 600.0
-        self._cx = 320.0  # Default principal point
+        # Astra Pro HD typical intrinsics for 640x480 (60° HFOV, 49° VFOV)
+        self._fx = 554.0  # 320 / tan(30°)
+        self._fy = 526.0  # 240 / tan(24.5°)
+        self._cx = 320.0
         self._cy = 240.0
+        # Apply overrides if set
+        if self._fx_override > 0:
+            self._fx = self._fx_override
+        if self._fy_override > 0:
+            self._fy = self._fy_override
 
         self.get_logger().info(
             f"PoseEstimatorNode initialized:\n"
             f"  Camera frame: {self._camera_frame}\n"
             f"  Robot frame: {self._robot_frame}\n"
-            f"  Publish TF: {self._publish_tf}"
+            f"  Publish TF: {self._publish_tf}\n"
+            f"  Image size: {self._image_width}x{self._image_height}\n"
+            f"  Camera pitch: {self._camera_pitch_deg}°\n"
+            f"  Camera yaw: {self._camera_yaw_deg}°\n"
+            f"  Depth scale: {self._depth_scale} (raw/scale = meters)\n"
+            f"  Hardware depth: {self._use_hardware_depth}\n"
+            f"  Depth range: [{self._min_depth}, {self._max_depth}] m"
         )
 
     def _on_camera_info(self, msg: CameraInfo):
@@ -218,9 +250,10 @@ class PoseEstimatorNode(Node):
         if len(valid_depths) == 0:
             return None
             
-        # Get median depth in millimeters and convert to meters
-        median_depth_mm = np.median(valid_depths)
-        return float(median_depth_mm) / 1000.0
+        # Get median depth and apply scale to convert to meters
+        median_depth_raw = np.median(valid_depths)
+        depth_m = float(median_depth_raw) / self._depth_scale
+        return depth_m
 
     def _estimate_3d_position(self, detection: ObjectDetection) -> Point:
         """
@@ -228,13 +261,21 @@ class PoseEstimatorNode(Node):
         Prefers hardware depth map if available, falls back to monocular estimation.
         """
         # Convert normalized coordinates to pixel coordinates
-        u = int(detection.bbox_x * 640) # Assuming 640px width
-        v = int(detection.bbox_y * 480) # Assuming 480px height
+        u = int(detection.bbox_x * self._image_width)
+        v = int(detection.bbox_y * self._image_height)
         
         # 1. Try Hardware Depth
-        z = self._get_depth_at_pixel(u, v)
+        z = None
+        if self._use_hardware_depth:
+            z = self._get_depth_at_pixel(u, v)
+            if z is not None and (z < self._min_depth or z > self._max_depth):
+                self.get_logger().debug(
+                    f"Hardware depth {z:.3f}m out of range "
+                    f"[{self._min_depth}, {self._max_depth}], falling back to monocular"
+                )
+                z = None
         
-        if z is not None and z > 0.1:
+        if z is not None:
             method = "Hardware Depth"
         else:
             # 2. Fallback to Monocular Depth Estimation
@@ -252,7 +293,7 @@ class PoseEstimatorNode(Node):
             else:
                 real_size = max(dims.get("width", 0.05), dims.get("height", 0.05))
 
-            apparent_width = detection.bbox_width * 640
+            apparent_width = detection.bbox_width * self._image_width
             
             if apparent_width > 0:
                 z = (real_size * self._fx) / apparent_width
@@ -283,38 +324,55 @@ class PoseEstimatorNode(Node):
         return point
 
     def _transform_to_robot_frame(self, camera_point: Point) -> Point:
-        """Transform point from camera frame to robot base frame."""
+        """Transform point from camera optical frame to robot base frame.
+        
+        Applies camera yaw (around Z) then pitch (around X), then the
+        standard optical-to-robot axis reorientation, then translation.
+        """
+        # 1. Apply camera yaw rotation (around optical Z axis)
+        yaw_rad = np.radians(self._camera_yaw_deg)
+        cy = np.cos(yaw_rad)
+        sy = np.sin(yaw_rad)
+        
+        x_yaw = cy * camera_point.x - sy * camera_point.y
+        y_yaw = sy * camera_point.x + cy * camera_point.y
+        z_yaw = camera_point.z
+        
+        # 2. Apply camera pitch rotation (positive pitch = camera looks down)
+        pitch_rad = np.radians(self._camera_pitch_deg)
+        cp = np.cos(pitch_rad)
+        sp = np.sin(pitch_rad)
+        
+        # Rotate around camera X axis
+        x_rot = x_yaw
+        y_rot = cp * y_yaw + sp * z_yaw
+        z_rot = -sp * y_yaw + cp * z_yaw
+        
+        # 3. Re-orient from optical frame to robot frame
+        # Optical: X=Right, Y=Down, Z=Forward
+        # Robot:   X=Forward, Y=Left, Z=Up
+        robot_x = z_rot
+        robot_y = -x_rot
+        robot_z = -y_rot
+        
+        # 3. Apply translation from TF
         try:
             transform = self._tf_buffer.lookup_transform(
                 self._robot_frame,
                 self._camera_frame,
                 rclpy.time.Time()
             )
-            
-            # Simple translation for now
-            # Note: We should technically do full quaternion rotation, 
-            # but this assumes camera is axis-aligned with robot for MVP.
-            
-            # Re-orient from optical frame (Z forward) to robot frame (X forward)
-            # Optical: X=Right, Y=Down, Z=Forward
-            # Robot: X=Forward, Y=Left, Z=Up
-            robot_x = camera_point.z
-            robot_y = -camera_point.x
-            robot_z = -camera_point.y
-            
             robot_point = Point()
             robot_point.x = robot_x + transform.transform.translation.x
             robot_point.y = robot_y + transform.transform.translation.y
             robot_point.z = robot_z + transform.transform.translation.z
-            
             return robot_point
-            
         except tf2_ros.LookupException:
-            # Fallback re-orientation if no TF
+            # Fallback: reorientation only, no translation
             point = Point()
-            point.x = camera_point.z
-            point.y = -camera_point.x
-            point.z = -camera_point.y
+            point.x = robot_x
+            point.y = robot_y
+            point.z = robot_z
             return point
 
     def _publish_object_tf(self, object_id: str, position: Point):

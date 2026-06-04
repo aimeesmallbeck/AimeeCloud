@@ -310,7 +310,7 @@
             </div>
             
             <!-- Active Nodes -->
-            <div class="panel collapsible" style="flex: 0 0 auto;">
+            <div class="panel collapsible collapsed" style="flex: 0 0 auto;">
                 <div class="panel-header" onclick="togglePanel(this)">
                     <span>📊 Active Nodes (<span id="nodeCount">0</span>)</span>
                     <span style="display:flex;align-items:center;gap:0.5rem;">
@@ -326,7 +326,7 @@
             </div>
 
             <!-- Live Camera Feed (Embedded) -->
-            <div class="panel collapsible" style="flex: 0 0 auto;">
+            <div class="panel collapsible collapsed" style="flex: 0 0 auto;">
                 <div class="panel-header" onclick="togglePanel(this)">
                     <span>📷 Live Camera</span>
                     <span class="toggle-icon">▼</span>
@@ -337,14 +337,14 @@
                         Waiting for frames...
                     </div>
                 </div>
-                <div style="display:flex; justify-content:center; padding: 0.5rem; background:var(--bg-card); gap:0.5rem;">
+                <div class="panel-content" style="display:flex; justify-content:center; padding: 0.5rem; background:var(--bg-card); gap:0.5rem;">
                      <button onclick="startMainCameraFeed()" style="background:#28a745;color:white;border:none;padding:0.4rem 0.9rem;border-radius:4px;cursor:pointer;font-size:0.8rem;font-weight:bold;">▶ Start Stream</button>
                      <button onclick="stopMainCameraFeed()" style="background:var(--error);color:white;border:none;padding:0.4rem 0.9rem;border-radius:4px;cursor:pointer;font-size:0.8rem;font-weight:bold;">⏹ Stop Stream</button>
                 </div>
             </div>
             
             <!-- Node Launcher -->
-            <div class="panel collapsible" style="flex: 0 0 auto;">
+            <div class="panel collapsible collapsed" style="flex: 0 0 auto;">
                 <div class="panel-header" onclick="togglePanel(this)">
                     <span>🚀 Node Launcher</span>
                     <span class="toggle-icon">▼</span>
@@ -355,7 +355,7 @@
             </div>
             
             <!-- Topics List -->
-            <div class="panel collapsible" style="flex: 0 0 auto;">
+            <div class="panel collapsible collapsed" style="flex: 0 0 auto;">
                 <div class="panel-header" onclick="togglePanel(this)">
                     <span>📡 Topics (<span id="topicCount">0</span>)</span>
                     <span class="toggle-icon">▼</span>
@@ -366,7 +366,7 @@
             </div>
             
             <!-- TTS Test -->
-            <div class="panel collapsible" style="flex: 0 0 auto; min-height: 80px;">
+            <div class="panel collapsible collapsed" style="flex: 0 0 auto; min-height: 80px;">
                 <div class="panel-header" onclick="togglePanel(this)">
                     <span>🔊 TTS Test</span>
                     <span class="toggle-icon">▼</span>
@@ -386,7 +386,7 @@
             </div>
 
             <!-- STT Test -->
-            <div class="panel collapsible" style="flex: 0 0 auto; min-height: 80px;">
+            <div class="panel collapsible collapsed" style="flex: 0 0 auto; min-height: 80px;">
                 <div class="panel-header" onclick="togglePanel(this)">
                     <span>🎤 STT Test</span>
                     <span class="toggle-icon">▼</span>
@@ -401,7 +401,7 @@
             </div>
 
             <!-- Local LLM Test -->
-            <div class="panel collapsible" style="flex: 0 0 auto; min-height: 80px;">
+            <div class="panel collapsible collapsed" style="flex: 0 0 auto; min-height: 80px;">
                 <div class="panel-header" onclick="togglePanel(this)">
                     <span>🧠 Local LLM Test</span>
                     <span class="toggle-icon">▼</span>
@@ -417,7 +417,7 @@
             </div>
 
             <!-- Cloud Session -->
-            <div class="panel collapsible" style="flex: 0 0 auto; min-height: 80px;">
+            <div class="panel collapsible collapsed" style="flex: 0 0 auto; min-height: 80px;">
                 <div class="panel-header" onclick="togglePanel(this)">
                     <span>☁️ Cloud Session</span>
                     <span class="toggle-icon">▼</span>

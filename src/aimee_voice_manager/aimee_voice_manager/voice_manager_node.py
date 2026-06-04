@@ -26,6 +26,7 @@ import threading
 import concurrent.futures
 import time
 import wave
+import numpy as np
 from dataclasses import dataclass
 from typing import Optional, Callable, Dict, Any, Set, List
 

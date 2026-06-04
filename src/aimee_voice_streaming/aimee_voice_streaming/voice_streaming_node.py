@@ -52,7 +52,7 @@ class VoiceStreamingNode(Node):
         # ─── Parameters ───
         self.declare_parameters(namespace='', parameters=[
             ('gateway_url', 'wss://aimeecloud.com/ws/v1'),
-            ('api_key', os.getenv('AIMEECLOUD_API_KEY', 'ac_free_943d96db38ee49aa')),
+            ('api_key', os.getenv('AIMEECLOUD_API_KEY', 'YOUR_API_KEY')),
             ('device_id', 'arduino-uno-q-001'),
             ('reconnect_interval_sec', 5.0),
 

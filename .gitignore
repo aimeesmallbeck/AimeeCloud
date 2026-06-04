@@ -33,6 +33,17 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+*.jpg
+*.jpeg
+*.png
+*.pdf
+*.gv
+*.log
+*.txt
+!CMakeLists.txt
+!package.xml
+!requirements.txt
+!OrbbecSDK.log.txt
 
 # Binary libraries and build artifacts
 *.so

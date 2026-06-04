@@ -62,7 +62,7 @@ class AimeeCloudClientNode(Node):
             ('session_file', '/home/arduino/.config/aimee_session.json'),
             ('snapshot_resolution', '640x480'),
             ('snapshot_quality', 85),
-            ('api_key', os.getenv('AIMEECLOUD_API_KEY', 'ac_free_943d96db38ee49aa')),
+            ('api_key', os.getenv('AIMEECLOUD_API_KEY', 'YOUR_API_KEY')),
             ('tts_mode', 'client'),
         ])
 

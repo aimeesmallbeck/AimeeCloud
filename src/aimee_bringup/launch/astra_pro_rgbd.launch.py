@@ -30,7 +30,7 @@ def generate_launch_description():
         name='camera_color',
         namespace='camera/color',
         parameters=[{
-            'video_device': '/dev/video4',
+            'video_device': '/dev/video0',  # Astra Pro color UVC (NOT /dev/video4 which is OBSBOT)
             'framerate': 30.0,
             'image_width': 640,
             'image_height': 480,

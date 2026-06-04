@@ -191,6 +191,24 @@ int ping_arm() {
   return 0;
 }
 
+// Read current servo positions from ESP32 and return as comma-separated string
+String read_arm_positions() {
+  while(Serial.available()) Serial.read();
+  Serial.println("READ");
+  unsigned long start = millis();
+  while (millis() - start < 1000) {
+    if (Serial.available()) {
+      String response = Serial.readStringUntil('\n');
+      response.trim();
+      if (response.startsWith("POS:<") && response.endsWith(">")) {
+        // Return just the numbers: "J1,J2,J3,J4,J5,J6,J7"
+        return response.substring(5, response.length() - 1);
+      }
+    }
+  }
+  return "ERROR";
+}
+
 void setup() {
   Serial.begin(ARM_BAUD_RATE);
   for (int i = 0; i < NUM_JOINTS; i++) {
@@ -209,6 +227,7 @@ void setup() {
   Bridge.provide("stream_cartesian", stream_cartesian);
   Bridge.provide("freeze_arm", freeze_arm);
   Bridge.provide("ping_arm", ping_arm);
+  Bridge.provide("read_arm_positions", read_arm_positions);
 
   delay(2000);
 }

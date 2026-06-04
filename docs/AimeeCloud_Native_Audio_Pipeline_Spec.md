@@ -200,7 +200,7 @@ All messages are JSON except audio payload, which is binary.
 // Robot → Cloud (first message after WS open)
 {
   "type": "session_start",
-  "api_key": "ac_free_943d96db38ee49aa",
+  "api_key": "YOUR_API_KEY",
   "device_id": "arduino-uno-q-001",
   "session_id": "sess_abc123",      // From MQTT session
   "capabilities": {

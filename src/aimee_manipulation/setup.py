@@ -24,6 +24,8 @@ setup(
             'pick_place_server = aimee_manipulation.pick_place_server:main',
             'test_pick_place_client = aimee_manipulation.test_pick_place_client:main',
             'arm_kinematics_bridge_rpc = aimee_manipulation.arm_kinematics_bridge_rpc:main',
+            'direct_pick = aimee_manipulation.direct_pick:main',
+            'empirical_pick = aimee_manipulation.empirical_pick:main',
         ],
     },
 )

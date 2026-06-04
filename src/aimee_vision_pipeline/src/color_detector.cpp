@@ -20,8 +20,11 @@ ColorDetectorNode::ColorDetectorNode(const rclcpp::NodeOptions & options)
     frame_id_ = this->declare_parameter("frame_id", "obsbot_camera");
 
     color_ranges_["red"] = {
-        {cv::Scalar(0, 100, 100), cv::Scalar(10, 255, 255)},
-        {cv::Scalar(160, 100, 100), cv::Scalar(180, 255, 255)}
+        {cv::Scalar(0, 15, 120), cv::Scalar(10, 255, 255)},
+        {cv::Scalar(160, 15, 120), cv::Scalar(180, 255, 255)}
+    };
+    color_ranges_["pink"] = {
+        {cv::Scalar(165, 15, 110), cv::Scalar(180, 255, 255)}
     };
     color_ranges_["blue"] = { {cv::Scalar(100, 150, 50), cv::Scalar(130, 255, 255)} };
     color_ranges_["green"] = { {cv::Scalar(40, 100, 100), cv::Scalar(80, 255, 255)} };
@@ -242,6 +245,7 @@ cv::Mat ColorDetectorNode::draw_detections(cv::Mat image, const std::vector<aime
 
         cv::Scalar color_scalar(255, 255, 255);
         if (det.color == "red") color_scalar = cv::Scalar(0, 0, 255);
+        else if (det.color == "pink") color_scalar = cv::Scalar(147, 20, 255);
         else if (det.color == "blue") color_scalar = cv::Scalar(255, 0, 0);
         else if (det.color == "green") color_scalar = cv::Scalar(0, 255, 0);
         else if (det.color == "yellow") color_scalar = cv::Scalar(0, 255, 255);

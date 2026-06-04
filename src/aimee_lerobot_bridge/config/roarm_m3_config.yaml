@@ -48,7 +48,7 @@ communication:
     baud: 115200
   wifi:
     ssid: "RoArm-M3"
-    password: "12345678"
+    password: "YOUR_PASSWORD"
     ip: "192.168.1.57"
 
 # JSON Protocol
