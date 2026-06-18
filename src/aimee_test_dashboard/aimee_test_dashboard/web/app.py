@@ -168,7 +168,7 @@ app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'aimee-robot-dashb
 # ==================== Audio Setup (Initialize ONCE) ====================
 # Set ALSA environment variables BEFORE importing pygame
 os.environ['SDL_AUDIODRIVER'] = 'alsa'
-os.environ['AUDIODEV'] = 'plughw:1,0'
+os.environ['AUDIODEV'] = 'default'
 
 # Initialize pygame mixer ONCE at startup to prevent audio clipping
 # This keeps the audio pipeline ready for immediate playback

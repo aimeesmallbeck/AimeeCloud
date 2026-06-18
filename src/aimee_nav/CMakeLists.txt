@@ -48,6 +48,9 @@ install(DIRECTORY
 
 install(PROGRAMS
   scripts/aimee_nav_node
+  scripts/minnie_nav_node.py
+  scripts/minnie_slam_node.py
+  scripts/minnie_explore_node.py
   scripts/go_to_waypoint.py
   scripts/save_map.py
   scripts/load_map.py

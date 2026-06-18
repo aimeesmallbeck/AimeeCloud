@@ -276,8 +276,8 @@ class VoiceManagerNode(Node):
         if self._listening:
             return
         # OBSBOT Tiny 2 Lite mic only works when video stream is active
-        if 'plughw:2,0' in self._audio_device:
-            self._ensure_usb_camera_running()
+        # if 'plughw:2,0' in self._audio_device:
+        #     self._ensure_usb_camera_running()
         self._kill_orphaned_arecord(self._audio_device)
         self._listening = True
         self.get_logger().info("Continuous listening started")

@@ -23,7 +23,7 @@ def run_pipeline():
     print("\n[1] Recording...")
     rec_start = time.time()
     subprocess.run([
-        "arecord", "-D", "hw:1", "-f", "S16_LE", "-r", "16000", "-c", "1", "-d", "5", "/tmp/pipeline.wav"
+        "arecord", "-D", "hw:0", "-f", "S16_LE", "-r", "16000", "-c", "1", "-d", "5", "/tmp/pipeline.wav"
     ], capture_output=True)
     print(f"    Recording: {time.time() - rec_start:.2f}s")
     

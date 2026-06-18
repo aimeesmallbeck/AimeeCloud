@@ -70,7 +70,7 @@ ron:
       enabled: true
       model_path: "/home/arduino/.arduino-bricks/models/custom-ei/model.eim"
       threshold: 0.7
-      audio_device: "hw:1,0"
+      audio_device: "default"
       
     stt:
       engine: "vosk"
@@ -81,7 +81,7 @@ ron:
     tts:
       engine: "piper"  # Options: piper, gtts
       model_path: "/home/arduino/models/llm/amy.onnx"
-      audio_device: "hw:1,0"
+      audio_device: "default"
       
   # LLM Configuration
   llm:

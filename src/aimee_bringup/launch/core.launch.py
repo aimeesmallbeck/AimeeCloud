@@ -42,7 +42,7 @@ def generate_launch_description():
     # Component toggles for debugging on resource-constrained targets
     use_usb_cam_arg = DeclareLaunchArgument(
         'use_usb_cam',
-        default_value='false',
+        default_value='true',
         description='Enable USB camera node (requires /dev/video2)'
     )
 
@@ -118,21 +118,31 @@ def generate_launch_description():
         'America/Los_Angeles'
     )
 
-    # ─── Optional USB Camera Node ───
-    usb_camera_node = Node(
-        package='usb_cam',
-        executable='usb_cam_node_exe',
-        name='usb_camera',
+    # ─── Optional Arm End Effector Camera Node ───
+    arm_camera_node = Node(
+        package='aimee_vision_fast',
+        executable='arm_cam_turbo',
+        name='arm_camera',
         output='screen',
         parameters=[{
-            'video_device': '/dev/video2',
-            'image_width': 1280,
-            'image_height': 720,
-            'pixel_format': 'mjpeg2rgb',
-            'io_method': 'mmap',
-            'camera_name': 'usb_camera',
+            'video_device': '/dev/video0',
+            'width': 640,
+            'height': 480,
+            'fps': 15,
+            'auto_start': True,
         }],
-        remappings=[('image_raw', '/camera/image_raw')],
+        condition=IfCondition(use_usb_cam)
+    )
+
+    arm_snapshot_node = Node(
+        package='aimee_perception',
+        executable='snapshot_service_node',
+        name='arm_snapshot_node',
+        output='screen',
+        parameters=[{
+            'image_topic': '/vision/arm_camera/image_raw',
+            'service_name': '/camera/capture_snapshot',
+        }],
         condition=IfCondition(use_usb_cam)
     )
 
@@ -147,7 +157,7 @@ def generate_launch_description():
             'engine': 'vosk',
             'model_path': '/home/arduino/vosk-models/vosk-model-small-en-us-0.15',
             'sample_rate': 16000,
-            'audio_device': 'plughw:2,0',
+            'audio_device': 'default',
             'publish_partials': True,
             'energy_threshold': 45.0,
             'enabled': True,
@@ -283,7 +293,8 @@ def generate_launch_description():
         use_cloud_arg,
         set_ros_domain_id,
         set_pacific_tz,
-        usb_camera_node,
+        arm_camera_node,
+        arm_snapshot_node,
         voice_manager_node,
         voice_streaming_node,
         tts_node,

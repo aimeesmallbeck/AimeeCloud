@@ -18,7 +18,8 @@ Aimee is a modular social assistance robot platform built on **ROS 2 Humble**.
 |--------|------|-------------|-------|
 | **STM32** (trajectory engine) | `/dev/ttyHS1` via `arduino-router` | 115200 | Unix socket: `/var/run/arduino-router.sock` (msgpack RPC) |
 | **ESP32** (chaser) | `/dev/ttyUSB0` (CP2102N) | 921600 | Direct serial. Boot: DTR=True→False, RTS=True→False |
-| **Camera** (Orbbec Astra Pro) | `/dev/video0` | 640×480 RGB | Held **exclusively** by host `usb_cam` node. Must kill it to use OpenCV directly. |
+| **Front Camera** (Orbbec Astra) | `/dev/video0` | 640×480 RGB | Mounted at the top of robot facing forward. Used for scene context, navigation, and SLAM. |
+| **Arm Camera** (USB Endoscope) | `/dev/video2` | 1280x720 MJPEG | Mounted at end-effector. Integrated via `usb_cam` and `snapshot_service_node`. |
 | **Lidar** | `/dev/ttyUSB0` historically | — | Verify before use; conflicts with ESP32 if same port |
 
 ### Critical Access Info
@@ -60,6 +61,18 @@ python3 -c "import cv2; cap=cv2.VideoCapture(0); ret,frame=cap.read(); cv2.imwri
 # 3. Restart usb_cam inside container or relaunch vision pipeline
 ```
 
+### Arm Endoscope (USB) Integration
+The end-effector camera is a standard USB endoscope integrated via the `usb_cam` package.
+- **Device:** `/dev/video2` (Typical)
+- **Resolution:** 1280 x 720 (MJPEG)
+- **ROS 2 Integration:**
+    - **Driver Node:** `arm_camera` (Package: `usb_cam`)
+    - **Service Node:** `snapshot_service_node` (Package: `aimee_perception`)
+    - **Raw Topic:** `/vision/arm_camera/image_raw`
+    - **Compressed Topic:** `/vision/arm_camera/image_raw/compressed`
+    - **Snapshot Service:** `/camera/capture_snapshot` (`aimee_msgs/srv/CaptureSnapshot`)
+- **Workflow:** The camera provides a high-resolution top-down view for precision alignment. `snapshot_service_node` buffers the stream and provides snapshots to AimeeCloud for VLM analysis.
+
 ---
 
 ## Mandatory Engineering Safety Protocols
@@ -85,9 +98,10 @@ python3 -c "import cv2; cap=cv2.VideoCapture(0); ret,frame=cap.read(); cv2.imwri
   - **Max Safe:** Transit: 2000ms, Z-moves: 1500ms, Gripper: 1000ms
 - **Grasp Height:** Z-offset is now 0.02m (was 0.01m) to avoid collisions with the desk.
 
-## Current Best Setup (2026-05-12)
-- **Vision Pipeline:** Hybrid C++/Python pipeline. `pose_estimator_node` extracts 3D coordinates from registered depth map.
-- **Camera Height:** 60cm above desk (sweet spot — see findings below).
+## Current Best Setup (2026-06-06)
+- **Vision Pipeline:** Transitioning to a dual-camera architecture:
+    - **Front-Facing Scene Camera:** Orbbec Astra Pro mounted at the top of the robot. Provides wide-angle scene view, navigation, and SLAM capabilities.
+    - **End-Effector Camera:** Mounted at the end of the arm. Integrated into the manipulation pipeline for high-precision alignment and pick/place verification.
 - **Arm Manipulation (Hardware HAL):**
     - **STM32 Trajectory Engine:** Hosts native 2D Trigonometric IK solver. Directly accepts Cartesian coordinates (`X, Y, Z, Pitch`).
     - **ESP32 Chaser:** Performs dynamic mechanical offset calibration for shoulder parallel linkage on boot.
@@ -414,4 +428,26 @@ The shoulder/elbow differences compensate geometrically to reach the same endpoi
 ├── docker-data/                        [New — Docker data root]
 └── /etc/docker/daemon.json             [Updated — data-root redirection]
 ```
+
+---
+
+## Session Progress (2026-06-06 — Hardware Integration & Dual-Camera Setup)
+
+### 1. Camera Repositioning
+- **Front-Facing Scene Camera:** The Orbbec Astra Pro has been relocated from the overhead stand to the top of the robot chassis, facing forward.
+- **Purpose:** This primary camera will now provide the main environmental view for navigation, SLAM, and scene analysis.
+- **Task:** Need to re-calibrate TF transforms for the new mount position and update navigation launch files.
+
+### 2. End-Effector Camera Integration
+- **Hardware:** A new **Hiwonder K210 (WonderMV)** AI vision module has been mounted at the end of the arm.
+- **Protocol:** Researched and documented the WonderMV UART/I2C protocol. It uses a `0xAA 0x77` header and 9600 baud rate for communication with host controllers.
+- **Integration:** This camera is being integrated into the arm control and pick/place functionality to allow for precision alignment during manipulation tasks.
+- **Workflow:** The system will use the front camera for initial object discovery and the arm camera for "visual servoing" or fine-grained position correction before grasping.
+- **Technical Detail:** Resolution is 320x240; coordinate origin is top-left. Data packets include X, Y, Width, Height, and Object ID.
+
+### 3. Documentation Update
+- Updated `GEMINI.md` to reflect the current hardware state and vision pipeline transition.
+- Hardware Interfaces table now includes both Front and Arm cameras.
+- "Current Best Setup" section updated to define the roles of each camera in the new architecture.
+
 

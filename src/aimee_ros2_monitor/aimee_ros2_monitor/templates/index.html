@@ -342,6 +342,24 @@
                      <button onclick="stopMainCameraFeed()" style="background:var(--error);color:white;border:none;padding:0.4rem 0.9rem;border-radius:4px;cursor:pointer;font-size:0.8rem;font-weight:bold;">⏹ Stop Stream</button>
                 </div>
             </div>
+
+            <!-- Arm End Effector Camera -->
+            <div class="panel collapsible collapsed" style="flex: 0 0 auto;">
+                <div class="panel-header" onclick="togglePanel(this)">
+                    <span>🦾 Arm End Effector Camera</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="panel-content" style="padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; position: relative; min-height: 240px; overflow: hidden;">
+                    <img id="armCameraFeed" src="" alt="Arm Camera feed" style="width:100%; max-height: 240px; object-fit:contain;">
+                    <div id="armCameraFeedOverlay" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:0.8rem; flex-direction:column; gap:0.5rem; text-align:center; padding:1rem;">
+                        Waiting for arm camera frames...
+                    </div>
+                </div>
+                <div class="panel-content" style="display:flex; justify-content:center; padding: 0.5rem; background:var(--bg-card); gap:0.5rem;">
+                     <button onclick="startArmCameraFeed()" style="background:#28a745;color:white;border:none;padding:0.3rem 0.7rem;border-radius:4px;cursor:pointer;font-size:0.7rem;font-weight:bold;">▶ Start</button>
+                     <button onclick="stopArmCameraFeed()" style="background:var(--error);color:white;border:none;padding:0.3rem 0.7rem;border-radius:4px;cursor:pointer;font-size:0.7rem;font-weight:bold;">⏹ Stop</button>
+                </div>
+            </div>
             
             <!-- Node Launcher -->
             <div class="panel collapsible collapsed" style="flex: 0 0 auto;">
@@ -604,8 +622,8 @@
             updateStatus();
             updateMetrics();
             startMainCameraFeed();
+            startArmCameraFeed();
             loadTTSVoices();
-            
             setInterval(() => {
                 if (autoRefresh) {
                     loadLogs();
@@ -1235,7 +1253,54 @@
         }
         
         setInterval(updateCoreStatus, 3000);
-        
+
+        // ==================== Arm Camera Feed ====================
+        let armCameraPollInterval = null;
+
+        function startArmCameraFeed() {
+            const img = document.getElementById('armCameraFeed');
+            const overlay = document.getElementById('armCameraFeedOverlay');
+            overlay.style.display = 'flex';
+
+            if (armCameraPollInterval) clearInterval(armCameraPollInterval);
+
+            let lastUrl = null;
+            armCameraPollInterval = setInterval(async () => {
+                try {
+                    const resp = await fetch('/api/arm_camera/frame.jpg?t=' + Date.now());
+                    if (resp.status === 204) {
+                        img.src = '';
+                        overlay.innerHTML = '<div>No frames available</div><div style="font-size:0.75rem;">Start the <strong>Arm Camera Node</strong></div>';
+                        overlay.style.display = 'flex';
+                        if (lastUrl) {
+                            URL.revokeObjectURL(lastUrl);
+                            lastUrl = null;
+                        }
+                        return;
+                    }
+                    if (!resp.ok) return;
+                    const blob = await resp.blob();
+                    const url = URL.createObjectURL(blob);
+                    img.src = url;
+                    overlay.style.display = 'none';
+                    if (lastUrl) URL.revokeObjectURL(lastUrl);
+                    lastUrl = url;
+                } catch (err) {
+                    // ignore
+                }
+            }, 300);
+        }
+
+        function stopArmCameraFeed() {
+            if (armCameraPollInterval) {
+                clearInterval(armCameraPollInterval);
+                armCameraPollInterval = null;
+            }
+            document.getElementById('armCameraFeed').src = '';
+            const overlay = document.getElementById('armCameraFeedOverlay');
+            overlay.innerHTML = 'Stream Stopped';
+            overlay.style.display = 'flex';
+        }
         // ==================== Node Launcher ====================
         async function loadNodeDefinitions() {
             try {

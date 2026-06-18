@@ -42,7 +42,7 @@ class ArmKinematicsBridgeRPC(Node):
         
         # Enforce Safe Home Position on Startup
         self.get_logger().info("Sending initial SAFE HOME command to STM32 to clear any invalid states...")
-        self.rpc_notify("receive_waypoints", 2056, 2060, 2636, 2484, 2043, 2062, 5000)
+        self.rpc_notify("receive_waypoints", 2056, 2047, 2502, 2606, 2043, 2062, 5000)
 
     def rpc_notify(self, method, *args):
         if not self.sock:
@@ -80,7 +80,7 @@ class ArmKinematicsBridgeRPC(Node):
         elif msg.command_type == "home":
             time_ms = 5000
             # Send home using the direct raw waypoints so we know it's 100% mechanically safe
-            self.rpc_notify("receive_waypoints", 2056, 2060, 2636, 2484, 2043, 2062, time_ms)
+            self.rpc_notify("receive_waypoints", 2056, 2047, 2502, 2606, 2043, 2062, time_ms)
             self.get_logger().info(f"Direct Command - Home Sequence sent to STM32")
             
         elif msg.command_type == "grasp":

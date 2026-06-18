@@ -155,6 +155,19 @@ NODE_DEFINITIONS = {
         'category': 'vision',
         'icon': '🎥'
     },
+    'arm_camera': {
+        'name': 'Arm End Effector Camera',
+        'ros_name': '/arm_camera',
+        'package': 'aimee_vision_fast',
+        'executable': 'arm_cam_turbo',
+        'args': [
+            '--ros-args',
+            '-p', 'video_device:=/dev/video0',
+            '-p', 'auto_start:=true'
+        ],
+        'category': 'vision',
+        'icon': '👁️'
+    },
     'wake_word': {
         'name': 'Wake Word',
         'ros_name': '/wake_word_ei',
@@ -768,16 +781,30 @@ def camera_frame():
     """Serve the latest compressed camera frame as a JPEG image."""
     if _ros_node is None:
         return Response('', status=503)
-    
+
     frame = _ros_node.get_camera_frame()
     if not frame:
         return Response('', status=204)
-    
+
     resp = make_response(frame)
     resp.headers['Content-Type'] = 'image/jpeg'
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     return resp
 
+@app.route('/api/arm_camera/frame.jpg')
+def arm_camera_frame():
+    """Serve the latest compressed arm camera frame as a JPEG image."""
+    if _ros_node is None:
+        return Response('', status=503)
+
+    frame = _ros_node.get_arm_camera_frame()
+    if not frame:
+        return Response('', status=204)
+
+    resp = make_response(frame)
+    resp.headers['Content-Type'] = 'image/jpeg'
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return resp
 
 # ==================== Node Control Endpoints ====================
 
@@ -1230,6 +1257,16 @@ class MonitorNode(Node):
             QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
         )
         
+        # Arm camera frame cache (formerly K210)
+        self._k210_frame_lock = threading.Lock()
+        self._k210_frame_data = None
+        self._k210_frame_time = 0
+        self._k210_frame_sub = self.create_subscription(
+            CompressedImage, '/vision/arm_camera/image_raw/compressed',
+            self._on_k210_frame,
+            QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
+        )
+        
         # Pipeline subscriptions
         self._voice_sub = self.create_subscription(
             (Transcription if Transcription else String), '/voice/transcription',
@@ -1325,6 +1362,12 @@ class MonitorNode(Node):
         with self._camera_frame_lock:
             self._camera_frame_data = bytes(msg.data)
             self._camera_frame_time = time.time()
+
+    def _on_k210_frame(self, msg: CompressedImage):
+        """Cache latest K210 camera frame."""
+        with self._k210_frame_lock:
+            self._k210_frame_data = bytes(msg.data)
+            self._k210_frame_time = time.time()
     
     
     def _metrics_worker(self):
@@ -1356,6 +1399,15 @@ class MonitorNode(Node):
             if getattr(self, '_camera_frame_time', 0) < time.time() - 2.0:
                 return b''
             return self._camera_frame_data
+
+    def get_arm_camera_frame(self) -> bytes:
+        """Return latest arm camera frame bytes or empty bytes if stale (>2s)."""
+        with self._k210_frame_lock:
+            if self._k210_frame_data is None:
+                return b''
+            if self._k210_frame_time < time.time() - 2.0:
+                return b''
+            return self._k210_frame_data
     
     def _on_cloud_connected(self, msg: Bool):
         global _pipeline_state

@@ -55,8 +55,37 @@ class AimeeCloudClientNode(Node):
             ('use_websocket', True),
             ('websocket_path', '/aimeecloud-mqtt'),
             ('user_name', 'Scott'),
-            ('user_location', 'home'),
+            ('user_location', 'Seattle'),
             ('user_language', 'en-US'),
+            ('robot_name', 'Aimee'),
+            ('robot_personality', 'Adorable Brat'),
+            ('gemini_voice', 'Leda'),
+            ('session_context_json', '{'
+                '"ram_mb": 4096, '
+                '"storage_gb": 64, '
+                '"cpu": "RK3588S octa-core @ 1.8GHz", '
+                '"battery": "5V 4A USB-C power adapter", '
+                '"manufacturer": "Arduino", '
+                '"model": "Arduino UNO Q", '
+                '"board": "Arduino UNO Q", '
+                '"architecture": "AARCH64", '
+                '"ros2_version": "Humble Hawksbill", '
+                '"os": "Ubuntu/Debian-based Linux", '
+                '"microphone": "Emeet OfficeCore M0 Plus", '
+                '"speaker": "Emeet OfficeCore M0 Plus", '
+                '"audio_device": "hw:0,0", '
+                '"main_camera": "OBSBOT Tiny 2", '
+                '"arm_camera": "Arducam 1080P-HDR", '
+                '"base": "Waveshare UGV02 tracked mobile robot", '
+                '"arm": "RoArm-M3-Pro 5-DOF manipulator with gripper", '
+                '"degrees_of_freedom": 6, '
+                '"max_arm_reach_mm": 350, '
+                '"expression_output": "LED matrix MAX7219", '
+                '"timezone": "Pacific", '
+                '"physical_location": "Seattle", '
+                '"ros2_environment": "Aimee runs on ROS2 Humble Hawksbill with Fast DDS shared memory. Python nodes: wake_word_ei_node (Edge Impulse wake-word detection), voice_manager_node (Vosk STT with Whisper/Lemonfox cloud fallback), voice_streaming_node (native bidirectional audio to AimeeCloud), tts_node (Lemonfox/Kokoro/gTTS text-to-speech), intent_router_node (voice intent classification and routing), skill_manager_node (skill/action execution server), llm_server_node (non-blocking local LLM action server), cloud_bridge_node (AimeeCloud MQTT/WebSocket bridge), obsbot_node and obsbot_keepalive_node (OBSBOT Tiny 2 PTZ camera control), color_detector_node and object_tracker_node (color-based detection and multi-object tracking), pose_estimator_node and grasp_planner_node (3D pose estimation and grasp planning), snapshot_service_node (camera capture service), ugv02_controller_node and ugv02_teleop_node (Waveshare UGV02 base control), roarm_m3_http_driver (RoArm-M3 HTTP/JSON arm driver), arm_controller_node (arm control), pick_place_server (PickPlace action server), monitor_node (web dashboard on port 8081), dashboard_node (hardware test dashboard). C++ programs and extensions: arm_cam_turbo (direct V4L2/MJPEG arm end-effector camera), arm_kinematics_bridge (serial bridge forwarding grasp poses to the STM32 trajectory engine), aimee_nav _core pybind11 extension containing GridMap, ScanMatcher, EKF2D, PoseGraph, GlobalPlanner, and DWALocalPlanner modules.", '
+                '"arm_chaser_stm": "The STM32U585 Real-Time Trajectory Engine runs on the UNO Q\'s STM32 co-processor and receives RPC commands from the ARM64 host via Arduino_RouterBridge. It computes smooth minimum-jerk (quintic) trajectories for the 6-DOF ROArm-M3 arm, converts Cartesian targets to joint angles using custom inverse kinematics, and streams 50 Hz micro-waypoints over hardware serial to the ESP32 \'Chaser\' firmware. The ESP32 immediately pushes each waypoint set to the ST3215 serial bus servos using SyncWrite for fluid, jitter-free motion. Safety limits prevent the base joint from rotating past +/-90 degrees and the shoulder from moving backward past vertical. The system supports normal smooth moves, raw high-frequency streaming for teleoperation/demonstration, and a freeze/limp mode that disables servo torque."'
+            '}'),
             ('reconnect_interval_sec', 5.0),
             ('ping_interval_sec', 60.0),
             ('session_file', '/home/arduino/.config/aimee_session.json'),
@@ -74,6 +103,12 @@ class AimeeCloudClientNode(Node):
         self._user_name = self.get_parameter('user_name').value
         self._user_location = self.get_parameter('user_location').value
         self._user_language = self.get_parameter('user_language').value
+        self._robot_name = self.get_parameter('robot_name').value
+        self._robot_personality = self.get_parameter('robot_personality').value
+        self._gemini_voice = self.get_parameter('gemini_voice').value
+        self._session_context = self._parse_session_context(
+            self.get_parameter('session_context_json').value
+        )
         self._reconnect_interval_sec = self.get_parameter('reconnect_interval_sec').value
         self._ping_interval_sec = self.get_parameter('ping_interval_sec').value
         self._session_file = self.get_parameter('session_file').value
@@ -159,6 +194,16 @@ class AimeeCloudClientNode(Node):
 
     def _iso_timestamp(self) -> str:
         return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    @staticmethod
+    def _parse_session_context(json_str: str) -> dict:
+        if not json_str:
+            return {}
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse session_context_json: {e}")
+            return {}
 
     def _load_session(self):
         if os.path.exists(self._session_file):
@@ -427,14 +472,26 @@ class AimeeCloudClientNode(Node):
             "type": "connect",
             "api_key": self._api_key,
             "device_id": self._device_id,
+            "robot_name": self._robot_name,
+            "robot_personality": self._robot_personality,
+            "gemini_voice": self._gemini_voice,
             "user_profile": {
                 "name": self._user_name,
                 "location": self._user_location,
                 "language": self._user_language
             },
             "capabilities": self._capabilities,
+            "robot_config": {
+                "has_motors": True,
+                "has_arm": True,
+                "has_gripper": True,
+                "has_camera": True,
+                "has_expressions": True,
+                "expression_types": ["happy", "sad", "surprised", "greeting", "celebration"]
+            },
+            "session_context": self._session_context,
             "tts_mode": self._tts_mode,
-            "request_session_id": self._session_id,
+            "request_session_id": self._session_id or None,
             "timestamp": self._iso_timestamp()
         }
         self._mqtt_client.publish(topic, json.dumps(payload), qos=1)
@@ -545,8 +602,21 @@ class AimeeCloudClientNode(Node):
     # ─────────────────────────────── ROS2 Callbacks ───────────────────────────────
 
     def _on_intent(self, msg: Intent):
-        if msg.skill_name == "AimeeCloud":
-            self.send_agent_request(msg.raw_text)
+        intent_dict = {
+            "intent": msg.intent_type,
+            "category": "local",
+            "confidence": float(msg.confidence),
+            "text": msg.raw_text,
+            "source": "intent_router"
+        }
+        
+        # If low confidence or unknown, mark as unclassified to trigger cloud-proxy
+        if msg.confidence < 0.6 or msg.intent_type == "unknown":
+            intent_dict["intent"] = "unclassified"
+            intent_dict["category"] = "cloud_proxy"
+            
+        if msg.skill_name == "AimeeCloud" or intent_dict["intent"] == "unclassified":
+            self.send_intent(msg.raw_text, intent_dict)
 
     def _on_cloud_game_move(self, msg: CloudIntent):
         try:

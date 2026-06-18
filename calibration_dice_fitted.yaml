@@ -1,0 +1,24 @@
+desk_z: -0.075
+grasp_offset: 0.02
+image_center_x: 320.0
+image_center_y: 240.0
+image_height: 480
+image_width: 640
+lift_height: 0.08
+max_pink_area: 20000
+min_pink_area: 200
+offset_x: 0.2398979189337171
+offset_y: -0.005872802426278689
+pink_hue_max: 180
+pink_hue_min: 140
+pink_sat_max: 255
+pink_sat_min: 15
+pink_val_max: 255
+pink_val_min: 80
+safe_z: 0.05
+scale_x: -0.0008518248809410518
+scale_y: 0.001814061161750526
+skew_xy: 0.0006007770380699027
+skew_yx: 0.0017899804292328507
+note: Full affine re-fit from dice ground-truth points (center + 5 limit poses, forward_left
+  excluded)

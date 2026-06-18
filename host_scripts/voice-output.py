@@ -12,7 +12,7 @@ Usage:
 import os
 # Force ALSA for audio
 os.environ['SDL_AUDIODRIVER'] = 'alsa'
-os.environ['AUDIODEV'] = 'plughw:1,0'
+os.environ['AUDIODEV'] = 'plughw:0,0'
 
 import argparse
 import json

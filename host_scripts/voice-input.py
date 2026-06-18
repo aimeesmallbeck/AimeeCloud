@@ -12,7 +12,7 @@ Usage:
 import os
 # Force ALSA for audio
 os.environ['SDL_AUDIODRIVER'] = 'alsa'
-os.environ['AUDIODEV'] = 'plughw:1,0'
+os.environ['AUDIODEV'] = 'plughw:0,0'
 
 import sys
 import argparse
@@ -54,9 +54,9 @@ async def listen_once(model, ws):
     """Listen once and return transcribed text."""
     recognizer = KaldiRecognizer(model, 16000)
     
-    # Use dsnoop for USB mic (device 1,0)
+    # Use dsnoop for USB mic (device 0,0)
     import subprocess
-    cmd = ["arecord", "-D", "dsnoop:1,0", "-f", "S16_LE", "-r", "16000", "-c", "1", "-t", "raw"]
+    cmd = ["arecord", "-D", "dsnoop:0,0", "-f", "S16_LE", "-r", "16000", "-c", "1", "-t", "raw"]
     
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
@@ -122,7 +122,7 @@ async def listen_continuous(model, ws):
     recognizer = KaldiRecognizer(model, 16000)
     
     import subprocess
-    cmd = ["arecord", "-D", "dsnoop:1,0", "-f", "S16_LE", "-r", "16000", "-c", "1", "-t", "raw"]
+    cmd = ["arecord", "-D", "dsnoop:0,0", "-f", "S16_LE", "-r", "16000", "-c", "1", "-t", "raw"]
     
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     

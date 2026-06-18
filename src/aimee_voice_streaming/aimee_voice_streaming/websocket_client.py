@@ -32,6 +32,12 @@ class AudioWebSocketClient:
         device_id: str,
         session_id: str,
         capabilities: dict,
+        robot_name: str = "Aimee",
+        robot_personality: str = "Adorable Brat",
+        gemini_voice: str = "Leda",
+        provider: str = "gemini",
+        robot_config: Optional[dict] = None,
+        session_context: Optional[dict] = None,
         on_message: Optional[Callable[[dict], None]] = None,
         on_connected: Optional[Callable[[], None]] = None,
         on_disconnected: Optional[Callable[[], None]] = None,
@@ -42,6 +48,12 @@ class AudioWebSocketClient:
         self.device_id = device_id
         self.session_id = session_id
         self.capabilities = capabilities
+        self.robot_name = robot_name
+        self.robot_personality = robot_personality
+        self.gemini_voice = gemini_voice
+        self.provider = provider
+        self.robot_config = robot_config
+        self.session_context = session_context
         self.on_message = on_message
         self.on_connected = on_connected
         self.on_disconnected = on_disconnected
@@ -112,7 +124,13 @@ class AudioWebSocketClient:
                         "type": "session_start",
                         "api_key": self.api_key,
                         "device_id": self.device_id,
-                        "session_id": self.session_id,
+                        "session_id": self.session_id or None,
+                        "robot_name": self.robot_name,
+                        "robot_personality": self.robot_personality,
+                        "gemini_voice": self.gemini_voice,
+                        "provider": self.provider,
+                        "robot_config": self.robot_config,
+                        "session_context": self.session_context,
                         "capabilities": self.capabilities,
                         "timestamp": self._iso_timestamp(),
                     })

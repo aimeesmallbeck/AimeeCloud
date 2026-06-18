@@ -29,7 +29,7 @@ import wave
 from typing import Optional
 
 import os
-os.environ["AUDIODEV"] = "sysdefault:CARD=C1"
+os.environ["AUDIODEV"] = "default"
 import pygame
 import rclpy
 from rclpy.node import Node

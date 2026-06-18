@@ -21,7 +21,7 @@ YZMA_DIR = "/home/arduino/yzma"
 def listen_and_respond():
     """Record, transcribe, respond"""
     print("Recording...")
-    subprocess.run("arecord -D plughw:1 -f S16_LE -r 16000 -d 5 /tmp/wake_input.wav", 
+    subprocess.run("arecord -D plughw:0 -f S16_LE -r 16000 -d 5 /tmp/wake_input.wav", 
                    shell=True, capture_output=True)
     
     # Transcribe
@@ -59,7 +59,7 @@ import numpy as np
 try:
     while True:
         # Quick check audio level (very short recording)
-        subprocess.run("arecord -D plughw:1 -f S16_LE -r 16000 -d 1 /tmp/check.wav -V mono", 
+        subprocess.run("arecord -D plughw:0 -f S16_LE -r 16000 -d 1 /tmp/check.wav -V mono", 
                        shell=True, capture_output=True)
         
         # Get file size as proxy for volume

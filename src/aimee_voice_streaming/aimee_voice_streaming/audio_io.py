@@ -50,7 +50,7 @@ class AudioCapture:
             if self._running:
                 return True
             try:
-                self._stream = sd.RawInputStream(
+                self._stream = sd.InputStream(
                     samplerate=self.sample_rate,
                     blocksize=self.block_size,
                     dtype=self.dtype,
@@ -87,13 +87,17 @@ class AudioCapture:
         if status:
             logger.debug(f"Audio capture status: {status}")
         try:
-            # indata is a memoryview-like object; copy to numpy array
-            self._queue.put_nowait(np.copy(indata))
+            # indata is a numpy array; copy it
+            arr = indata.copy()
+            # If 2D with 1 channel, flatten it
+            if arr.ndim > 1 and arr.shape[1] == 1:
+                arr = arr.flatten()
+            self._queue.put_nowait(arr)
         except queue.Full:
             # Drop oldest frame to avoid unbounded growth
             try:
                 self._queue.get_nowait()
-                self._queue.put_nowait(np.copy(indata))
+                self._queue.put_nowait(arr)
             except queue.Empty:
                 pass
 
@@ -143,7 +147,7 @@ class AudioPlayback:
             if self._running:
                 return True
             try:
-                self._stream = sd.RawOutputStream(
+                self._stream = sd.OutputStream(
                     samplerate=self.sample_rate,
                     blocksize=self.block_size,
                     dtype=self.dtype,
@@ -183,7 +187,9 @@ class AudioPlayback:
             logger.debug(f"Audio playback status: {status}")
         try:
             frame = self._queue.get_nowait()
-            # Ensure exact block size
+            if frame.ndim == 1 and outdata.ndim == 2:
+                frame = frame.reshape(-1, 1)
+            
             if len(frame) >= len(outdata):
                 outdata[:] = frame[: len(outdata)]
             else:
