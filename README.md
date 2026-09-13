@@ -2,7 +2,7 @@
 
 ROS2 Humble workspace for the Aimee social assistance robot running on **Arduino UNO Q**.
 
-Request access to AimeeCloud API at http://www.aimeecloud.com
+
 
 ## Quick Start
 
