@@ -355,7 +355,7 @@ docker compose run --rm aimee-robot bash -c "colcon build --symlink-install --pa
 
 ## License
 
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).
+This project is licensed under the GNU General Public License version 3 or later (GPL3+).
 
 ### Third-Party Software
 
